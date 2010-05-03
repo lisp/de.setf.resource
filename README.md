@@ -15,15 +15,15 @@ Architecture
 ------------
  The core implementation involves three classes
 
- - property-metaclass : the metaclass associates URI realms (base-uri) with property-class instances to support
+ - resource-metaclass : the metaclass associates URI realms (base-uri) with resource-class instances to support
    projection of entire graphs.
- - property-class : the metaclass associates individual URI with CLOS instances and exteneds the standard-class
+ - resource-class : the metaclass associates individual URI with CLOS instances and exteneds the standard-class
    slot access protocol based on slot declarations to support RDF assertions
- - property-object : the abstract class projects the URI and graph relations for a repository node onto
-   an instance property slots, each of which corresponds to a statement property or
+ - resource-object : the abstract class projects the URI and relationships for a repository subject node onto
+   an instance and its property slots, each of which corresponds to a triple property or
    a computed graph predicate. In addition to the properties and any transient slots, each instance also includes
    a state slot, which is interpreted in combination
-   with instantiation, slot-access, and transaction operators to implement an life-cycle[5] in which 
+   with instantiation, slot-access, and transaction operators to implement a life-cycle[5] in which 
    the CLOS instance behaves as an heap model for the persistent state of nodes in the RDF repository.
 
 There are several precedents for CLOS-MOP based persistence
