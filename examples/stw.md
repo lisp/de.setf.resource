@@ -158,7 +158,7 @@ The first issue manifests in the identifers associated with the ZBW schemas. The
  application logic, and declare the intended application datatype.
 
 
-** Constructing a CLOS model for the concept graph
+## Constructing a CLOS model for the concept graph
 
  There are two classes of terms: 'topic headings' (Thsys), and 'descriptions' (Descriptor).
     ? (rdf:query (wilbur-mediator)
@@ -265,7 +265,8 @@ The first issue manifests in the identifers associated with the ZBW schemas. The
         (hash-table-count terms))
     31425
 
-** Rendering concept relations as a graph
+
+## Rendering concept relations as a graph
 
  First a few operators to make sense out of the various available labels for a given term, and to make the terms available
  as selection criteria.
