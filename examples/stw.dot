@@ -1,4 +1,4 @@
-digraph stw { rankdir=LR; size="100,100"; ranksep="4";
+digraph stw { rankdir=LR; size="3,3"; ranksep="4";
 Thsys201188 [label=Sicherheitspolitik, color="#8b0000", fontcolor="#000000"];Thsys201188 -> Descriptor201189 [color="#101010"];Thsys201188 -> Descriptor201190 [color="#101010"];Thsys201188 -> Descriptor201191 [color="#101010"];Thsys201188 -> Descriptor201192 [color="#101010"];Thsys201188 -> Descriptor201193 [color="#101010"];Thsys201188 -> Descriptor201194 [color="#101010"];Thsys201188 -> Descriptor201195 [color="#101010"];Thsys201188 -> Descriptor201196 [color="#101010"];Thsys201188 -> Descriptor201197 [color="#101010"];Thsys201188 -> Descriptor201198 [color="#101010"];Thsys201199 -> Thsys201188 [color=red];
 Descriptor201189 [label="Security Policy", color="#8b8989", fontcolor="#000000"];Descriptor201189 -> Descriptor201193 [color="#999999"];Descriptor201189 -> Descriptor201195 [color="#999999"];Descriptor201200 -> Descriptor201189 [color="#999999"];
 Descriptor201193 [label="Military policy", color="#8b8989", fontcolor="#8b8989"];

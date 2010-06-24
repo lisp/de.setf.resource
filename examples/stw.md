@@ -394,11 +394,15 @@ The first issue manifests in the identifers associated with the ZBW schemas. The
        Abort trap
        $
 
- A limited graph, one which restricts the view to terms related to politics is more successful.
+ A limited graph, one which restricts the view to terms related to politics, is more successful.
   
     ? (graph-stw *sorted-concepts* #P"LIBRARY:examples;data;stw-2.dot" :size "100,100" :topic "oliti" :depth 2)
 
- The [result](./stw.svg) renders fairly well on opera and firefox, but exceeds safari's ability to scale. 
+ The result renders fairly well on opera and firefox, but exceeds safari's ability to scale. 
+
+<div style='text-align: center'><a href='./stw.svg'><img src='http://github.com/lisp/de.setf.resource/raw/master/examples/stw-3x3.jpg' width='64' height='64'/></a></div>
+
+
 
 ----
  Copyright 2010 [james anderson](mailto:james.anderson@setf.de)  All Rights Reserved
