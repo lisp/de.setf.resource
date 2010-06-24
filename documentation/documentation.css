@@ -1,0 +1,101 @@
+
+body {background-color: #f4f4f8;}
+
+div.code {
+ background-color: #f6f6fa; width: 75%; white-space: pre;
+ margin-left: 1em; margin-top: .5ex; margin-bottom: .5ex; padding-left: 1em;
+ border: solid; border-width: 1px;
+ border-top-color: #e0e0e0; border-left-color: #e0e0e0;
+ border-right-color: #ffffff; border-bottom-color: #ffffff;
+ }
+
+div.documentation {
+ white-space: pre;
+ margin-left: 0.5in; margin-right: 0.5in;
+ padding-bottom: 0.5ex;
+ }
+
+div.documentation:before {
+ padding-left: 1in;
+ }
+
+div.type {
+ float: right;
+ width: 2in;
+ text-align: right;
+ font-style: italic;
+ padding-right: .1in;
+ }
+
+div.type:before {
+ content: "[";
+ font-style: normal;
+ }
+
+div.type:after {
+ content: "]";
+ font-style: normal;
+ }
+
+div.name {
+ font-weight: bold;
+ }
+
+div.method div.name { 
+ float: left;
+ width: 2.5in; margin-right: 0.25in;
+ }
+
+div.class div.name { 
+ float: left;
+ width: 2.5in; margin-right: 0.25in;
+ }
+
+div.class div.slots { 
+ margin-left: 0.25in;
+ }
+
+div.class div.slots div.name { 
+ float: left;
+ width: 2.25in; margin-right: 0.25in;
+ }
+
+div.class div.slots div.slot { 
+ padding-top: .5ex;
+ }
+
+div.class div.slots div.slot div.documentation{ 
+ margin-left: 0.5in;
+ margin-right: 1in;
+ }
+
+div.function div.name { 
+ float: left;
+ width: 2.5in; margin-right: 0.25in;
+ }
+
+div.indexLetter {
+ font-weight: bold;
+ border: outset grey 1px;
+ background-color: #e0e0e0;
+ margin-bottom: 1ex;
+ padding-left: 1em;
+ }
+
+div.indexHeading {
+ font-weight: bold;
+ border: outset grey 1px;
+ text-align: center;
+ background-color: #e0e0e0;
+ margin-bottom: 1ex;
+ }
+
+hr {
+ clear: both;
+ }
+
+div.footer {
+ font-size: small;
+ margin-bottom: 0.25in;
+ }
+
