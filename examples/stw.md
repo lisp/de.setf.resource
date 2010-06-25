@@ -101,13 +101,13 @@ The first issue manifests in the identifers associated with the ZBW schemas. The
     ? (rename-package "http://www.w3.org/2004/02/skos/core#"
                       "http://www.w3.org/2004/02/skos/core#" '("skos"))
 
- Two functions return information about the schema associated with a vocabulary. The first, `repository-schema-types`
+ Two functions return information about the schema associated with a vocabulary. The first, `repository-schema-types`,
  returns a list of the classes present in the repository which were defined by a givne resource:
 
     ? (respository-schema-types (wilbur-mediator) '{zbw}zbw-extensions.rdf)
     (|http://zbw.eu/namespaces/zbw-extensions/|::|Descriptor| |http://zbw.eu/namespaces/zbw-extensions/|::|Thsys|)
 
- The second vocabulary-definitions, returns a list of the definitions which were computed when the vocabulary
+ The second, `vocabulary-definitions`, returns a list of the definitions which were computed when the vocabulary
  was extracted:
 
     ? (vocabulary-definitions (rdf:find-vocabulary (wilbur-mediator) "http://zbw.eu/namespaces/zbw-extensions/"))
@@ -119,19 +119,19 @@ The first issue manifests in the identifers associated with the ZBW schemas. The
        (:datatype {zbw}Descriptor)))
 
 
- If we now want to look mode closely at the class structure, first we need to finalize the classes
+ In order to examine the class structure, first we finalize the classes.
 
     ? (c2mop:finalize-inheritance (rdf:find-class (wilbur-mediator) '{zbw}Descriptor))
     ? (c2mop:finalize-inheritance (rdf:find-class (wilbur-mediator) '{zbw}Thsys))
 
- after which, we can summarize the class definition
+ after which, we can summarize the class definition,
 
     ? (mapcar #'c2mop:slot-definition-name (c2mop:class-slots (find-class '{zbw}Descriptor)))
     (URI SOURCE STATE GRAPH HISTORY PROPERTIES {skos}topConceptOf {skos}semanticRelation #:TOPCONCEPTOF #:SEMANTICRELATION)
     ? (mapcar #'class-name (c2mop:class-precedence-list (find-class '{zbw}Descriptor)))
     ({zbw}Descriptor {skos}Concept RESOURCE-OBJECT STANDARD-OBJECT T)
 
- and are surprised to see that although {skos}Concept is included, only two of its properties are reified as slots.
+ and are surprised to see that although `{skos}Concept` is included, only two of its properties are reified as slots.
  The problem is, although the SKOS schema defines thirty-two predicates, to wit
 
    $ rapper http://www.w3.org/2009/08/skos-reference/skos.rdf | fgrep DefinedBy
@@ -140,7 +140,7 @@ The first issue manifests in the identifers associated with the ZBW schemas. The
 
    $ rapper http://www.w3.org/2009/08/skos-reference/skos.rdf | fgrep domain
 
- of those, {skos}hasTopConcept and {skos}semanticRelation, are recognized and appear as archetypal properties.
+ of those, `{skos}hasTopConcept` and `{skos}semanticRelation`, are recognized and appear as archetypal properties.
  It would be possible to augment the repository schema or compose an explicit vocabulary, but for this example
  the incomplete schema is itself useful, as it demonstrates how resources behave when presented with data beyond
  their definition. One alternative is to use the operator `property-value` to access the properties in a manner
