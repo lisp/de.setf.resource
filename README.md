@@ -144,18 +144,6 @@ In the latter case, one requires an additional interaction with the repository t
 Which means the operation cannot occur in-line, as the dynamic state may be in the middle of a continuing statement stream.
 It must instead be deferred to the end of the stream, at which point "forward-reference" instances can be classified either nominally or structurally.
 
- ---
- [0] : Bobrow, Daniel G., DiMichiel, Linda G., Gabriel, Richard P., Keene, Sonya E., Kiczales, Gregor, and Moon, David A.  
-"Common Lisp Object System specification: 1. Programmer interface concepts." Lisp and Symbolic Computation 1, 3/4 (January 1989), 245-298, 299-394
-http://dreamsongs.com/Files/concepts.pdf, http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node260.html
- [1] : Lassila, Ora, "Taking the RDF Model Theory Out For a Spin", http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.100.6738&rep=rep1&type=pdf  
- [2] : wilbur-rdf.sourceforge.net/  
- [3] : lisp.github.com/wilbur  
- [4] : http://www.franz.com/agraph/  
- [5] : http://en.wikipedia.org/wiki/Java_Data_Objects  
- [6] :  Papecke, Andreas, "PCLOS: A Critical Review", http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.8.3357&rep=rep1&type=pdf, http://www-db.stanford.edu/~paepcke/shared-documents/pclos-critical.ps  
- [7] : Andreas Paepcke. "PCLOS: Stress Testing CLOS - Experiencing the Metaobject Protocol". In Proceedings of the Conference on Object-Oriented Programming Systems, 1990.  http://www-db.stanford.edu/~paepcke/shared-documents/pclosmeta.ps  
- [8] : Andreas Paepcke. "PCLOS: A Flexible Implementation of CLOS Persistence". In S. Gjessing and K. Nygaard, editors, Proceedings of the European Conference on Object-Oriented Programming (ECOOP). Lecture Notes in Computer Science, Springer Verlag, 1988. http://www-db.stanford.edu/~paepcke/shared-documents/pclos-report.ps  
 
  ---
 typing  
@@ -168,8 +156,6 @@ At the moment, github has just notes and examples.
 The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) desribes the implementation based on wilbur.
 An persistent implementation is in progress based on Cassandra[[9]].
 
----
- [9] : http://github.com/lisp/de.setf.cassandra
 
 ### Evolution
 
@@ -193,3 +179,17 @@ per se and those for 'instance' resources.
 ## Licensing
 
 ...
+
+ ---
+ [0]: Bobrow, Daniel G., DiMichiel, Linda G., Gabriel, Richard P., Keene, Sonya E., Kiczales, Gregor, and Moon, David A.  
+"Common Lisp Object System specification: 1. Programmer interface concepts." Lisp and Symbolic Computation 1, 3/4 (January 1989), 245-298, 299-394
+http://dreamsongs.com/Files/concepts.pdf, http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node260.html
+ [1]: Lassila, Ora, "Taking the RDF Model Theory Out For a Spin", http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.100.6738&rep=rep1&type=pdf  
+ [2]: wilbur-rdf.sourceforge.net/  
+ [3]: lisp.github.com/wilbur  
+ [4]: http://www.franz.com/agraph/  
+ [5]: http://en.wikipedia.org/wiki/Java_Data_Objects  
+ [6]:  Papecke, Andreas, "PCLOS: A Critical Review", http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.8.3357&rep=rep1&type=pdf, http://www-db.stanford.edu/~paepcke/shared-documents/pclos-critical.ps  
+ [7]: Andreas Paepcke. "PCLOS: Stress Testing CLOS - Experiencing the Metaobject Protocol". In Proceedings of the Conference on Object-Oriented Programming Systems, 1990.  http://www-db.stanford.edu/~paepcke/shared-documents/pclosmeta.ps  
+ [8]: Andreas Paepcke. "PCLOS: A Flexible Implementation of CLOS Persistence". In S. Gjessing and K. Nygaard, editors, Proceedings of the European Conference on Object-Oriented Programming (ECOOP). Lecture Notes in Computer Science, Springer Verlag, 1988. http://www-db.stanford.edu/~paepcke/shared-documents/pclos-report.ps  
+ [9]: http://github.com/lisp/de.setf.cassandra
