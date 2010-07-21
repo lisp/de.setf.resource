@@ -5,26 +5,45 @@ DE.SETF.RESOURCE: a CLOS projection for RDF repositories
 
 Introduction
 ------------
- `de.setf.resource` implements transparent projection for RDF repositories as CLOS models.
- The implementation relies on the CLOS-MOP support for augmented slot access mechanisms to
- equate CLOS class/instance/slot[0] structure with a domain/resource/property oriented view of RDF graphs. It includes
- interfaces to wilbur[1,2,3] and allegro-graph[4] repositories and permits both memory-resident and remote
- repositories.
+ `de.setf.resource` implements transparent projection from RDF repositories into CLOS models.
+ It relies on the CLOS-MOP support to implement a collection of metaclasses and operators to 
+ equate CLOS class/instance/slot[0] structure with a domain/resource/property oriented view of RDF graphs.
+ It includes interfaces to wilbur[1,2,3] and allegro-graph[4] repositories and permits both memory-resident
+ and remote repositories.
 
 Architecture
 ------------
- The core implementation involves three classes
+ The core implementation involves several classes
 
- - resource-metaclass : the metaclass associates URI realms (base-uri) with resource-class instances to support
+ - resource-metaclass : the metaclass associates URI-designated RDF datatypes with resource-class instances to support
    projection of entire graphs.
- - resource-class : the metaclass associates individual URI with CLOS instances and exteneds the standard-class
-   slot access protocol based on slot declarations to support RDF assertions
- - resource-object : the abstract class projects the URI and relationships for a repository subject node onto
-   an instance and its property slots, each of which corresponds to a triple property or
-   a computed graph predicate. In addition to the properties and any transient slots, each instance also includes
-   a state slot, which is interpreted in combination
-   with instantiation, slot-access, and transaction operators to implement a life-cycle[5] in which 
-   the CLOS instance behaves as an heap model for the persistent state of nodes in the RDF repository.
+ - resource-class : the metaclass associates individual URI with CLOS instances, extends the standard-class
+   slot access protocol based on slot declarations to support RDF properties, and adds a prototype-based
+   storage model to manage properties absent schemas 
+ - resource-object : the abstract class projects the resource URI and predicated properties for a repository
+   subject node onto a CLOS instance, its instance slots, and its prototypical properties, each of which
+   corresponds to a triple property or a computed graph predicate. In addition to the predicated values and
+   any transient slots, each instance also includes state and history slots, which are interpreted in
+   combination with instantiation, slot-access, and transaction operators to implement a persistence
+   life-cycle[5]. In this protocol, the CLOS instance behaves as an heap model for the persistent state of
+   nodes in the RDF repository.
+
+ Specialized resource-object classes can be defined in advance, the application can leave them to be
+ constructed on-demand based on models accompanying the resource data, or data can be manipulated through
+ unclassified prototypes.
+ All variations share a common access interface for predicated properties, that of functional accessors.
+ Given predefined classes, these are specified in the class declaration.
+ Where the class definition is derived from a schema, the accessors are translated from the respective RDF
+ vocabulary. Where prototypes are used, they are are defined on-the-fly based on the respective property
+ names.
+ The accessors implement a protocol which handles internalizing/externalizing RDF literal and resource values,
+ lazy construction of related resource-object instances on-demand.
+ In combination with the instance state and history, the accessors maintain the correspondence between
+ external statements and slot values.
+
+
+Precedents
+----------
 
 There are several precedents for CLOS-MOP based persistence
 
@@ -33,6 +52,8 @@ There are several precedents for CLOS-MOP based persistence
 - Pevelance
 - PCLOS
 - Rucksack
+- SWCLOS
+- CL-RDFXML[http://www.cs.rpi.edu/~tayloj/CL-RDFXML/] : a direct rdf model interface which transforms an RDF document into a triple stream
 
 They share a basic architecture, which uses the CLOS-MOP to extend the slot access mechanism to encapsulate access to persistent data.
 Within that framework each demonstrates a variation in the following aspects:
@@ -41,11 +62,11 @@ Within that framework each demonstrates a variation in the following aspects:
 - identity : do unique instances correspond to external data or can there be multiple projections
 - caching : does the instance act as a cache for projected data or does each access read/write through to external data
 
-The`de.setf.resource` resource-object protocol implements
+The `de.setf.resource` resource-object protocol implements
 
 - instance granularity projection for literals and resource with per-property read granularity as an option for resources.
-- URI-based object identity
-- slot-based caching with
+- URI-based object identity.
+- slot-based caching with automatic internalization/externalization based on the relation between declare property type and datatype.
 
 Repositories
 ------------
@@ -77,17 +98,17 @@ Classification
 --------------
 
 CLOS relies on a nominal type system. RDF - at least for those documents associated with a schema, also relies on a
-nominal type system. A strict open-world view, however, requires that a system be comprehend instance constituents
+nominal type system. A strict open-world view, however, requires that a system comprehend instance constituents
 independent of an apriori definition. For CLOS this would entail some form of structural typing.
 Perhaps even opportunistically structural.
 
-Anomalies between the defined model and the actual data can appear in two situations.
+Anomalies between the defined CLOS model and the actual data can appear in two situations.
 
 - A CLOS class elected by the application as the target model for the projection does not include a property which is present in the
-  external model.
+  RDF graph.
 - A resource which denotes a constituent in a relation (subject or object) is not associated with a class in the CLOS model.
 
-That is, an exceptional condition arises if either a single class model or the application concept model do not correspond to the external model.
+That is, an exceptional condition arises if either a single class or the application concept model do not correspond to the external model.
 In which cases, in general, there are three alternatives: abort the projection, ignore the unknown assertion(s), or extend the CLOS model.
 
 In the case, where the discrepancy is with a class definition, where no slot exists for a property asserted for a given subject object,
@@ -100,9 +121,9 @@ there are several specific options.
 - find an alternative class which includes a property for the slot, most immediately a specialization of the current class, and change the instance class.
 - define a new class - either as an alternative or as a specialization, to include the property, and change the instance class.
 
-To some extent the proper response depends on whether the projection context includes a schema.
+To some extent the proper response depends on whether the projection context includes a schema and RDF nodes have types more specific than `rdfs:Resource`.
 If a schema is present, as its purpose was to have been to specify the structure of the external model, a strict process must signal an error, while
-a robust process should either treat the instance as a prototype or locate/create a suecpaized subclass - specific to the schema, to accept extensions.
+a robust process should either treat the instance as a prototype or locate/create a specialized subclass - specific to the schema, to accept extensions.
 If, on the other hand, no schema was present, then the best response would be to extend the class as required and associate it with the resource domain.
 
 
@@ -118,7 +139,7 @@ or when projected as the object of an assertion, the options are similar to thos
 On one hand, if an external schema is present, its definitions may provide either a nominal correspondence, or a structural analogy.
 In the first case the class names are compared to a registry. In the second case, the declare properties are compared to
 the properties of known classes. If either yields a match, that class should serve as the target for resources in the given domain.
-If no external schem is present, then the only alternatve to continue with a typed data model is to opportunistically define the class.
+If no external schema is present, then the only alternatve to continue with a typed data model is to opportunistically define the class.
 In the latter case, one requires an additional interaction with the repository to obtain schema information. 
 Which means the operation cannot occur in-line, as the dynamic state may be in the middle of a continuing statement stream.
 It must instead be deferred to the end of the stream, at which point "forward-reference" instances can be classified either nominally or structurally.
@@ -136,27 +157,39 @@ http://dreamsongs.com/Files/concepts.pdf, http://www.cs.cmu.edu/Groups/AI/html/c
  [7] : Andreas Paepcke. "PCLOS: Stress Testing CLOS - Experiencing the Metaobject Protocol". In Proceedings of the Conference on Object-Oriented Programming Systems, 1990.  http://www-db.stanford.edu/~paepcke/shared-documents/pclosmeta.ps  
  [8] : Andreas Paepcke. "PCLOS: A Flexible Implementation of CLOS Persistence". In S. Gjessing and K. Nygaard, editors, Proceedings of the European Conference on Object-Oriented Programming (ECOOP). Lecture Notes in Computer Science, Springer Verlag, 1988. http://www-db.stanford.edu/~paepcke/shared-documents/pclos-report.ps  
 
-Status
-------
+ ---
+typing  
+  [] : Klaus Ostermann: Nominal and Structural Subtyping in  Component-Based Programming, in Journal of Object Technology, vol. 7, no. 1, January–February 2008, pages 121–145, http://www.jot.fm/issues/issues 2008 January-February/  
+  [] : Martin Odersky, Vincent Cremet, Christine Röckl, Matthias Zenger, "A Nominal Theory of Objects with  Dependent Types"
 
-At the moment, github has just these notes.
+## Status
 
+At the moment, github has just notes and examples.
+The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) desribes the implementation based on wilbur.
+An persistent implementation is in progress based on Cassandra[[9]].
 
-Downloading
------------
+---
+ [9] : http://github.com/lisp/de.setf.cassandra
+
+### Evolution
+
+* The present implementation supports two representation for resource identifiers: UUID and symbols. The latter facilitate code which integrates
+link data schema, but it also entails some package housekeeping, as the identifiers are all interned gloablly.
+In order to operate one unbounded data with non UUID identifiers, it will be necessary to distinguish between identifiers for resources in a schema
+per se and those for 'instance' resources.
+
+* ?
+
+## Downloading
 
 ...
 
-Building
----------
+
+## Building
+
 
 ...
  
-Licensing
----------
+## Licensing
 
-Unknown, except that it depends on P. Costanza's work to provide portable CLOS-MOP operations.
-
-- closer-mop :  MIT-style
-  - 2005 - 2010 [Pascal Costanza](http://p-cos.net)
-
+...
