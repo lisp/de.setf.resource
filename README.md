@@ -181,10 +181,11 @@ per se and those for 'instance' resources.
 ...
 
  ---
- [0]: Bobrow, Daniel G., DiMichiel, Linda G., Gabriel, Richard P., Keene, Sonya E., Kiczales, Gregor, and Moon, David A.  
-"Common Lisp Object System specification: 1. Programmer interface concepts." Lisp and Symbolic Computation 1, 3/4 (January 1989), 245-298, 299-394
-http://dreamsongs.com/Files/concepts.pdf, http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node260.html
- [1]: Lassila, Ora, "Taking the RDF Model Theory Out For a Spin", http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.100.6738&rep=rep1&type=pdf  
+- Bobrow, Daniel G., DiMichiel, Linda G., Gabriel, Richard P., Keene, Sonya E., Kiczales, Gregor, and Moon, David A. "Common Lisp Object System specification: 1. Programmer interface concepts." Lisp and Symbolic Computation 1, 3/4 (January 1989), 245-298, 299-394 [[0]]
+- Lassila, Ora, "Taking the RDF Model Theory Out For a Spin"[[1]]
+
+ [0]: http://dreamsongs.com/Files/concepts.pdf, http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node260.html
+ [1]: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.100.6738&rep=rep1&type=pdf  
  [2]: wilbur-rdf.sourceforge.net/  
  [3]: lisp.github.com/wilbur  
  [4]: http://www.franz.com/agraph/  
