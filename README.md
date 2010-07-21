@@ -7,8 +7,8 @@ Introduction
 ------------
  `de.setf.resource` implements transparent projection from RDF repositories into CLOS models.
  It relies on the CLOS-MOP support to implement a collection of metaclasses and operators to 
- equate CLOS class/instance/slot[0] structure with a domain/resource/property oriented view of RDF graphs.
- It includes interfaces to wilbur[1,2,3] and allegro-graph[4] repositories and permits both memory-resident
+ equate CLOS class/instance/slot[[0]] structure with a domain/resource/property oriented view of RDF graphs.
+ It includes interfaces to wilbur[[1]],[[2]],[[3]] and allegro-graph[[4]] repositories and permits both memory-resident
  and remote repositories.
 
 Architecture
@@ -25,7 +25,7 @@ Architecture
    corresponds to a triple property or a computed graph predicate. In addition to the predicated values and
    any transient slots, each instance also includes state and history slots, which are interpreted in
    combination with instantiation, slot-access, and transaction operators to implement a persistence
-   life-cycle[5]. In this protocol, the CLOS instance behaves as an heap model for the persistent state of
+   life-cycle[[5]]. In this protocol, the CLOS instance behaves as an heap model for the persistent state of
    nodes in the RDF repository.
 
  Specialized resource-object classes can be defined in advance, the application can leave them to be
@@ -145,8 +145,8 @@ Which means the operation cannot occur in-line, as the dynamic state may be in t
 It must instead be deferred to the end of the stream, at which point "forward-reference" instances can be classified either nominally or structurally.
 
 
- ---
-typing  
+typing
+  
   [] : Klaus Ostermann: Nominal and Structural Subtyping in  Component-Based Programming, in Journal of Object Technology, vol. 7, no. 1, January–February 2008, pages 121–145, http://www.jot.fm/issues/issues 2008 January-February/  
   [] : Martin Odersky, Vincent Cremet, Christine Röckl, Matthias Zenger, "A Nominal Theory of Objects with  Dependent Types"
 
@@ -189,7 +189,7 @@ http://dreamsongs.com/Files/concepts.pdf, http://www.cs.cmu.edu/Groups/AI/html/c
  [3]: lisp.github.com/wilbur  
  [4]: http://www.franz.com/agraph/  
  [5]: http://en.wikipedia.org/wiki/Java_Data_Objects  
- [6]:  Papecke, Andreas, "PCLOS: A Critical Review", http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.8.3357&rep=rep1&type=pdf, http://www-db.stanford.edu/~paepcke/shared-documents/pclos-critical.ps  
+ [6]: Papecke, Andreas, "PCLOS: A Critical Review", http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.8.3357&rep=rep1&type=pdf, http://www-db.stanford.edu/~paepcke/shared-documents/pclos-critical.ps  
  [7]: Andreas Paepcke. "PCLOS: Stress Testing CLOS - Experiencing the Metaobject Protocol". In Proceedings of the Conference on Object-Oriented Programming Systems, 1990.  http://www-db.stanford.edu/~paepcke/shared-documents/pclosmeta.ps  
  [8]: Andreas Paepcke. "PCLOS: A Flexible Implementation of CLOS Persistence". In S. Gjessing and K. Nygaard, editors, Proceedings of the European Conference on Object-Oriented Programming (ECOOP). Lecture Notes in Computer Science, Springer Verlag, 1988. http://www-db.stanford.edu/~paepcke/shared-documents/pclos-report.ps  
  [9]: http://github.com/lisp/de.setf.cassandra
