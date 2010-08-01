@@ -1,0 +1,19 @@
+<urn:uuid:25050900-73eb-11df-908e-0c19b5f7e401> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+<urn:uuid:25050900-73eb-11df-908e-0c19b5f7e401> <http://xmlns.com/foaf/0.1/firstName> "baby" .
+<urn:uuid:25050900-73eb-11df-908e-0c19b5f7e401> <http://xmlns.com/foaf/0.1/age> "1"^^<xsd:integer> .
+<urn:uuid:25050900-73eb-11df-908e-0c19b5f7e401> <DE.SETF.RESOURCE.IMPLEMENTATION/HEIGHT> "50"^^<xsd:integer> .
+<urn:uuid:25050900-73eb-11df-908e-0c19b5f7e401> <DE.SETF.RESOURCE.IMPLEMENTATION/WEIGHT> "10"^^<xsd:integer> .
+<urn:uuid:25050900-73eb-11df-908e-0c19b5f7e401> <http://purl.org/vocab/relationship/childof> <urn:uuid:25050901-73eb-11df-908e-0c19b5f7e401> .
+<urn:uuid:25050900-73eb-11df-908e-0c19b5f7e401> <http://purl.org/vocab/relationship/childof> <urn:uuid:25050902-73eb-11df-908e-0c19b5f7e401> .
+
+<urn:uuid:25050901-73eb-11df-908e-0c19b5f7e401> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+<urn:uuid:25050901-73eb-11df-908e-0c19b5f7e401> <http://xmlns.com/foaf/0.1/firstName> "dad" .
+<urn:uuid:25050901-73eb-11df-908e-0c19b5f7e401> <http://xmlns.com/foaf/0.1/age> "21"^^<xsd:integer> .
+<urn:uuid:25050901-73eb-11df-908e-0c19b5f7e401> <DE.SETF.RESOURCE.IMPLEMENTATION/HEIGHT> "200"^^<xsd:integer> .
+<urn:uuid:25050901-73eb-11df-908e-0c19b5f7e401> <DE.SETF.RESOURCE.IMPLEMENTATION/WEIGHT> "70"^^<xsd:integer> .
+
+<urn:uuid:25050902-73eb-11df-908e-0c19b5f7e401> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+<urn:uuid:25050902-73eb-11df-908e-0c19b5f7e401> <http://xmlns.com/foaf/0.1/firstName> "mom" .
+<urn:uuid:25050902-73eb-11df-908e-0c19b5f7e401> <http://xmlns.com/foaf/0.1/age> "22"^^<xsd:integer> .
+<urn:uuid:25050902-73eb-11df-908e-0c19b5f7e401> <DE.SETF.RESOURCE.IMPLEMENTATION/HEIGHT> "180"^^<xsd:integer> .
+<urn:uuid:25050902-73eb-11df-908e-0c19b5f7e401> <DE.SETF.RESOURCE.IMPLEMENTATION/WEIGHT> "60"^^<xsd:integer> .

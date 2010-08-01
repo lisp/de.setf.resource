@@ -1,0 +1,42 @@
+accessors:
+
+via a writer function, that carries a type, thus the prototypal slot
+is ascribes a slot and replacement v/s augmentation via setf follows.
+ (w modification protocol)
+
+via (setf property-value)
+ (w/ modification protocol)
+ no type is declared, can extract it from the store and test for subtypep
+ {rdf}List
+
+via add-statement
+ (no modification protocol)
+ no type is declared, can extract it from the store and test for subtypep
+ {rdf}List
+
+
+
+RDF via CLOS issues (note not v/s)
+
+structural v/s nominal typeing
+opportunistic typing
+retrospective typing
+open-world typing
+
+
+? does one want the physical storage model (or even the schematic storage model)
+ to appear in any of the application logic.
+
+! culd take the implementation back to the logical extreme and represent everything
+as symbols (interned for each uri) and the property lists,
+ but that ignores the necessity to develop pattersn
+  which led to the introduction of frames and cases...
+
+for which classes are a reasonable implementation
+
+
+reasons to _not_ map naively:
+ - sometime do not intend to take the whole thing need a means to describe what parts to take
+ - need a means to locate/change behaviour subsequently - 
+   for which the cases, the named combinations of roles, serve storage, retrieval, and
+   subsequent combination

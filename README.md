@@ -6,10 +6,10 @@ DE.SETF.RESOURCE: a CLOS projection for RDF repositories
 Introduction
 ------------
  `de.setf.resource` implements transparent projection from RDF repositories into CLOS models.
- It relies on the CLOS-MOP support to implement a collection of metaclasses and operators to 
+ It relies on the CLOS-MOP to implement a collection of metaclasses and operators to 
  equate CLOS class/instance/slot[[0]] structure with a domain/resource/property oriented view of RDF graphs.
- It includes interfaces to wilbur[[1]],[[2]],[[3]] and allegro-graph[[4]] repositories and permits both memory-resident
- and remote repositories.
+ It includes interfaces to wilbur[[1]],[[2]],[[3]], , cassandra[[9]], and allegro-graph[[4]] repositories
+ which permits both memory-resident and remote repositories.
 
 Architecture
 ------------
@@ -68,15 +68,23 @@ The `de.setf.resource` resource-object protocol implements
 - URI-based object identity.
 - slot-based caching with automatic internalization/externalization based on the relation between declare property type and datatype.
 
+
 Repositories
 ------------
-Each concrete class binds a mediator between it and a concrete RDF repository. Two mediators are defined
-- wilbur-mediator
-- allegrostore-mediator
-Each provides a weak cache to unify instances in terms of the repository's representation resource identifiers,
+
+The abstract class resource-mediator embodies the interface to an RDF store.
+Each os its concrete specializations implements the requisite access operations based on its respective RDF repository.
+Mediators are implemented as
+
+- wilbur-mediator, for wilbur 2.0
+- cassandra-mediator, for cassandra 0.6.4
+- allegrostore-mediator, for allegrograph
+
+Each provides a cache to unify instances in terms of the repository's representation resource identifiers,
 a find-instance operator which accepts URI and locates or creates and interns an instance, a select-statements operator
 to constrain projection - in particular to those statements which relate to a node, and a delete-statements
 operator to delete or limit validity of statements as a consequence of property modification.
+
 
 Transactions
 ------------
@@ -93,6 +101,7 @@ prior to any modifications within the transaction. New instances are returned to
 are reinitialzed to reflect the state of the repository.
 
     with-transaction ((source) &body body)
+
 
 Classification
 --------------
@@ -130,7 +139,7 @@ If, on the other hand, no schema was present, then the best response would be to
 In the second case, when no class is associated with a subject's base uri - whether projected as an autonomous subject,
 or when projected as the object of an assertion, the options are similar to those for an isolated slot, depend on additional information.
 
-- signal an  unrecoverable error to abort the projection.
+- signal an unrecoverable error to abort the projection.
 - skip the resource, or project it as a literal uri.
 - create a prototype to represent resources in that domain as untyped individuals.
 - locate a class includes the requisite properties as slot.
@@ -145,44 +154,63 @@ Which means the operation cannot occur in-line, as the dynamic state may be in t
 It must instead be deferred to the end of the stream, at which point "forward-reference" instances can be classified either nominally or structurally.
 
 
-typing
-  
-  [] : Klaus Ostermann: Nominal and Structural Subtyping in  Component-Based Programming, in Journal of Object Technology, vol. 7, no. 1, January–February 2008, pages 121–145, http://www.jot.fm/issues/issues 2008 January-February/  
-  [] : Martin Odersky, Vincent Cremet, Christine Röckl, Matthias Zenger, "A Nominal Theory of Objects with  Dependent Types"
-
 ## Status
 
-At the moment, github has just notes and examples.
-The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) desribes the implementation based on wilbur.
-An persistent implementation is in progress based on Cassandra[[9]].
+The implementation has reached ["I want to see you"](http://www.loc.gov/exhibits/treasures/trr002.html) status.
+The wilbur and cassandra mediators are in-progress.
+The allegro interface is on-hold as it does not fit in the free edition.
+
+The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) desribes the implemented API.
 
 
 ### Evolution
 
-* The present implementation supports two representation for resource identifiers: UUID and symbols. The latter facilitate code which integrates
+* The present implementation supports three representations for resource identifiers: URI, in particular UUID, and symbols.
+The latter facilitate code which integrates
 link data schema, but it also entails some package housekeeping, as the identifiers are all interned gloablly.
 In order to operate one unbounded data with non UUID identifiers, it will be necessary to distinguish between identifiers for resources in a schema
 per se and those for 'instance' resources.
 
-* ?
-
 ## Downloading
 
-...
+[github](http://github.com/lisp/de.setf.resource)
 
 
 ## Building
 
-
-...
+In principle, `de.setf.resource` is built with [`asdf`](http://www.common-lisp.net/projects/asdf).
+Please consult the detailed instructions for the respective [runtime](./readmes/README-build.md) for more information.
  
 ## Licensing
 
-...
+This version is released under version 3 of the GNU Affero license (GAL).[[5]]
+The required components are included as per the respective licenses and covered,
+in this combined form, under the GAL as well
+
+- [com.github.ironclad](http://method-combination.net/lisp/ironclad/)
+  - 2009 [Nathan Froyd](froydnj@gmail.com)
+- [net.dardoria.uuid](http://www.dardoria.net/software/uuid.html)
+  - 2008 [Boian Tzonev](boiantz@gmail.com)
+- closer-mop :  MIT-style
+  - 2005 - 2010 [Pascal Costanza](http://p-cos.net)
+- [cl-ppcre]http://www.weitz.de : equivalent to MIT
+  - 2002-2008, [Dr. Edmund Weitz](http://www.weitz.de)
+- [com.b9.puri]() : LLGPL, by which com.b9.puri.puri-ppcre is also covered by the LLGPL
+  - 1999-2001 [Franz, Inc](mailto:opensource@franz.com).
+  - 2003 [Kevin Rosenberg](mailto:kevin@rosenberg.net)
+- [net.sourceforge.wilbur](wilbur-rdf.sourceforge.net/)
+  - 2010 [Ora Lassila](ora.lassila@nokia.com)
+
+It depends indirectly on the [de.setf.utility](http://github.com/lisp/de.setf.utility),
+[trivial-utf-8](http://common-lisp.net/project/trivial-utf-8/), and [usocket](http://common-lisp.net/project/usocket/) libraries.
 
  ---
-- Bobrow, Daniel G., DiMichiel, Linda G., Gabriel, Richard P., Keene, Sonya E., Kiczales, Gregor, and Moon, David A. "Common Lisp Object System specification: 1. Programmer interface concepts." Lisp and Symbolic Computation 1, 3/4 (January 1989), 245-298, 299-394 [[0]]
+- Bobrow, Daniel G., DiMichiel, Linda G., Gabriel, Richard P., Keene, Sonya E., Kiczales, Gregor, and Moon, David A.,
+ "Common Lisp Object System specification: 1. Programmer interface concepts." Lisp and Symbolic Computation 1, 3/4 (January 1989), 245-298, 299-394 [[0]]
 - Lassila, Ora, "Taking the RDF Model Theory Out For a Spin"[[1]]
+- Klaus Ostermann: Nominal and Structural Subtyping in  Component-Based Programming, in Journal of Object Technology, vol. 7, no. 1,
+ January–February 2008, pages 121–145, http://www.jot.fm/issues/issues 2008 January-February/  
+- Martin Odersky, Vincent Cremet, Christine Röckl, Matthias Zenger, "A Nominal Theory of Objects with  Dependent Types"
 
  [0]: http://dreamsongs.com/Files/concepts.pdf, http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node260.html
  [1]: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.100.6738&rep=rep1&type=pdf  
@@ -194,3 +222,5 @@ per se and those for 'instance' resources.
  [7]: Andreas Paepcke. "PCLOS: Stress Testing CLOS - Experiencing the Metaobject Protocol". In Proceedings of the Conference on Object-Oriented Programming Systems, 1990.  http://www-db.stanford.edu/~paepcke/shared-documents/pclosmeta.ps  
  [8]: Andreas Paepcke. "PCLOS: A Flexible Implementation of CLOS Persistence". In S. Gjessing and K. Nygaard, editors, Proceedings of the European Conference on Object-Oriented Programming (ECOOP). Lecture Notes in Computer Science, Springer Verlag, 1988. http://www-db.stanford.edu/~paepcke/shared-documents/pclos-report.ps  
  [9]: http://github.com/lisp/de.setf.cassandra
+ [10]: agpl.txt
+

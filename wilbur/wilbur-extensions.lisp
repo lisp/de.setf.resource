@@ -1,0 +1,126 @@
+;;; -*- Mode: lisp; Syntax: ansi-common-lisp; Base: 10; Package: WILBUR; -*-
+
+
+(in-package "WILBUR")
+
+(:documentation
+  "This file extends various wilbur operators."
+ 
+ (copyright
+  "Copyright 2010 [james anderson](mailto:james.anderson@setf.de)  All Rights Reserved"
+  "'de.setf.resource' is free software: you can redistribute it and/or modify it under the terms of version 3
+  of the GNU Affero General Public License as published by the Free Software Foundation.
+
+  'de.setf.resource' is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the Affero General Public License for more details.
+
+  A copy of the GNU Affero General Public License should be included with 'de.setf.resource' as `agpl.txt`.
+  If not, see the GNU [site](http://www.gnu.org/licenses/)."))
+
+
+
+(defgeneric db-has-statement? (db subject predicate object)
+  (:documentation "Searches the store for a match to the specified s-p-o combination.
+ VALUE : boolean : iff the constraint is satisfied.
+
+ Serves as the basis for has- operators for statement, subject, predicate, object.
+ Iterates across the internal collection and uses wilbur's equivalence operator to test each statement in 
+ turn, without constructing intermediate results.")
+
+  (:method ((db wilbur:db) subject predicate object)
+    (flet ((matching-triple-p (triple)
+	     (and (wilbur::eq~ (wilbur:triple-subject triple) subject)
+		  (wilbur::eq~ (wilbur:triple-predicate triple) predicate)
+		  (wilbur::eq~ (wilbur:triple-object triple) object))))
+      (declare (dynamic-extent #'matching-triple-p))
+      (find-if #'matching-triple-p (wilbur:db-triples db)))))
+
+#+(or)                                  ; handled by rdf:project
+(defmethod rdf:load-repository-as ((db wilbur:db) (source stream) (form mime:application/n3))
+  (let ((blanks (make-hash-table :test #'equal)))
+    (flet ((intern-resource (uri-namestring)
+             (wilbur:node uri-namestring))
+           (intern-literal (string datatype language)
+             (wilbur:literal string :datatype datatype :language language))
+           (intern-blank-node (id-string)
+             (or (gethash id-string blanks)
+                 (setf (gethash id-string blanks)
+                       (de.setf.resource.implementation::wilbur-blank-node id-string)))))
+      (let ((n3::*intern-resource* #'intern-resource)
+            (n3::*intern-literal* #'intern-literal)
+            (n3::*intern-blank-node* #'intern-blank-node)
+            (n3::*construct-statement* #'wilbur:triple))
+        (loop (let ((triple (n3:read source nil nil)))
+                (unless triple (return))
+                (wilbur:db-add-triple db triple)))))))
+
+(defmethod rdf:load-repository-as ((db wilbur:db) (source pathname) (form mime:application/rdf+xml))
+  (wilbur:db-load db source))
+
+
+(defmethod rdf:load-vocabulary ((db wilbur:db) (source t) &key)
+  (let ((source-desc (wilbur:db-load db source)))
+    (when source-desc
+      (values (wilbur:node-uri (wilbur:source-desc-url source-desc))
+              (wilbur:node-uri (wilbur:source-desc-loaded-from source-desc))))))
+
+
+(defmethod rdf:save-repository ((db wilbur:db) (stream stream))
+  (dolist (triple (wilbur:db-triples db))
+    (format stream "~&~/n3:format/" triple))
+  (terpri stream))
+
+
+(defmethod rdf:query ((db db) &key subject predicate object continuation context limit offset)
+  (declare (ignore context))
+  (let ((matched 0)
+        (collected 0))
+    (dsu:collect-list (collect)
+      (dolist (triple (db-triples db))
+        (when (and (eq~ (triple-subject triple) subject)
+                   (eq~ (triple-predicate triple) predicate)
+                   (eq~ (triple-object triple) object)
+                   (or (null offset) (> (incf matched) offset)))
+          (if continuation
+            (funcall continuation triple)
+            (collect triple))
+          (when (and limit (>= (incf collected) limit))
+            (return)))))))
+
+
+(defmethod rdf:query ((db indexed-db) &key subject predicate object continuation context limit offset)
+  "The original ignored the graph."
+  (declare (ignore context))
+  (let* ((collection (list nil))
+         (end collection)
+         (matched 0)
+         (collected 0))
+    (labels ((collect (stmt)
+               (when (or (null offset) (> (incf matched) offset))
+                 (if continuation
+                   (funcall continuation stmt)
+                   (setf (rest end) (list stmt) end (rest end)))
+                 (when (and limit (>= (incf collected) limit))
+                   (return-from rdf:query (values (rest collection) matched collected)))))
+             (filter-statements-by-object (object statements)
+               (dolist (statement statements)
+                 (when (eq (triple-object statement) object) (collect statement)))
+               (rest collection))
+             (collect-statements (statements)
+               (cond ((or offset limit)
+                      (map nil #'collect statements))
+                     (continuation
+                      (map nil continuation statements))
+                     (t
+                      statements))))
+      
+      (with-spo-case ((s p o) subject predicate object)
+        :spo (filter-statements-by-object o (triple-index-get (db-index-sp db) p s))
+        :sp  (collect-statements (triple-index-get (db-index-sp db) p s))
+        :so  (filter-statements-by-object o (triple-index-get (db-index-s db) s))
+        :s   (collect-statements (triple-index-get (db-index-s db) s))
+        :po  (collect-statements (triple-index-get (db-index-po db) p o))
+        :p   (collect-statements (triple-index-get (db-index-p db) p))
+        :o   (collect-statements (triple-index-get (db-index-o db) o))
+        :all (collect-statements (db-triples db))))))
