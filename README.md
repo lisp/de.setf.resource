@@ -221,6 +221,6 @@ It depends indirectly on the [de.setf.utility](http://github.com/lisp/de.setf.ut
  [6]: Papecke, Andreas, "PCLOS: A Critical Review", http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.8.3357&rep=rep1&type=pdf, http://www-db.stanford.edu/~paepcke/shared-documents/pclos-critical.ps  
  [7]: Andreas Paepcke. "PCLOS: Stress Testing CLOS - Experiencing the Metaobject Protocol". In Proceedings of the Conference on Object-Oriented Programming Systems, 1990.  http://www-db.stanford.edu/~paepcke/shared-documents/pclosmeta.ps  
  [8]: Andreas Paepcke. "PCLOS: A Flexible Implementation of CLOS Persistence". In S. Gjessing and K. Nygaard, editors, Proceedings of the European Conference on Object-Oriented Programming (ECOOP). Lecture Notes in Computer Science, Springer Verlag, 1988. http://www-db.stanford.edu/~paepcke/shared-documents/pclos-report.ps  
- [9]: http://github.com/lisp/de.setf.cassandra
+ [9]: cassandra.apache.org/
  [10]: agpl.txt
 
