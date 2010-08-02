@@ -22,13 +22,11 @@
 
 
 (test:test resource.statement.instantiation
-  (and (triple-p (make-triple :subject 'subject :predicate 'predicate :object 'object))
+  (and (triple-p (make-triple :subject 'subject :predicate 'predicate :object 'object :id 'id))
        (triple-p (rdf:triple 'subject 'predicate 'object))
        (triple-p (make-quad :subject 'subject :predicate 'predicate :object 'object :context nil))
        (quad-p (make-quad :subject 'subject :predicate 'predicate :object 'object :context nil))
-       (quad-p (rdf:quad 'subject 'predicate 'object 'context))
-       (statement-p (make-reified-quad :subject 'subject :predicate 'predicate :object 'object :context nil :id t))
-       (statement-p (rdf:reified-quad 'subject 'predicate 'object 'context 'id))))
+       (quad-p (rdf:quad 'subject 'predicate 'object 'context))))
 
 (test:test resource.statement.valid
   (and (valid? (make-triple :subject 'subject :predicate 'predicate :object 'object))
@@ -38,21 +36,20 @@
   (rdf:namestring (make-triple :subject "uri" :predicate "uri" :object "data")))
 
 (test:test resource.statement.accessors
-  (let ((s (rdf:reified-quad 'subject 'predicate 'object 'context 'id)))
-    (and (eq (reified-quad-subject s) (rdf:subject s))
-         (eq (reified-quad-predicate s) (rdf:predicate s))
-         (eq (reified-quad-object s) (rdf:object s))
-         (eq (reified-quad-context s) (rdf:graph s))
-         (eq (reified-quad-id s) (rdf:id s)))))
+  (let ((s (rdf:quad 'subject 'predicate 'object 'context 'id)))
+    (and (eq (quad-subject s) (rdf:subject s))
+         (eq (quad-predicate s) (rdf:predicate s))
+         (eq (quad-object s) (rdf:object s))
+         (eq (quad-context s) (rdf:context s))
+         (eq (quad-id s) (rdf:id s)))))
 
 (test:test resource.statement.assertion.type
   (every #'(lambda (s) (typecase s (statement t) (t nil)))
          (list (make-triple :subject 'subject :predicate 'predicate :object 'object)
-               (make-quad :subject 'subject :predicate 'predicate :object 'object :context nil)
-               (make-reified-quad :subject 'subject :predicate 'predicate :object 'object :context nil :id t))))
+               (make-quad :subject 'subject :predicate 'predicate :object 'object :context nil))))
 
 (test:test resource.statement.wilbur.1
-  (let ((m (resource-mediator 'wilbur-mediator))
+  (let ((m (repository-mediator 'wilbur-mediator))
         (new (wilbur:triple (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")
                             (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate")
                             (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"))))

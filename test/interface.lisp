@@ -22,19 +22,19 @@
 
 
 
-(test:test resource.interface.clear-store.wilbur.1
-  (let ((m (resource-mediator 'wilbur-mediator))
+(test:test resource.interface.repository-clear.wilbur.1
+  (let ((m (repository-mediator 'wilbur-mediator))
         (s (wilbur:triple (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")
                           (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate")
                           (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"))))
     (rdf:insert-statement m s)
-    (rdf:clear-store m)
+    (rdf:repository-clear m)
     (null (rdf:query m :subject nil :predicate nil :object nil))))
 
 
 (test:test resource.interface.delete.wilbur
   (let* ((object (resource :uri '{CL-USER}01 :state rdf:modified-persistent))
-         (m (object-source object))
+         (m (object-repository object))
          (stmt (rdf:triple '{CL-USER}01 '{COMMON-LISP}TYPE '{COMMON-LISP}STANDARD-OBJECT)))
     (rdf:insert-statement m stmt)
     (and (rdf:has-statement? m stmt)
@@ -43,7 +43,7 @@
 
 
 (test:test resource.interface.delete-statement.wilbur
-  (let* ((m (resource-mediator 'wilbur-mediator))
+  (let* ((m (repository-mediator 'wilbur-mediator))
          (stmt (rdf:triple '{rdf}subject '{rdf}predicate '{rdf}object)))
     (rdf:insert-statement m stmt)
     (and (rdf:has-statement? m stmt)
@@ -135,14 +135,14 @@
 
 
 (test:test resource.interface.project-graph
-  "Test primitive projection statement->store. Include statements typcial of an object's
- properties. Verify their presence in the store."
-  (let ((m (resource-mediator 'wilbur-mediator))
+  "Test primitive projection statement->repository. Include statements typcial of an object's
+ properties. Verify their presence in the repository."
+  (let ((m (repository-mediator 'wilbur-mediator))
         (statements (list (rdf:triple '{rdf}subject '{rdf}predicate '{rdf}object)
                           (rdf:triple '{CL}LIST '{rdf}type '{CL}CLASS)
                           (rdf:triple '{CL-USER}01 '{CL}SLOT-1 "a string")
                           (rdf:triple '{CL-USER}01 '{rdf}type '{RDF}RESOURCE-OBJECT))))
-    (rdf:clear-store m)
+    (rdf:repository-clear m)
     (rdf:project-graph statements m)
     (dolist (stmt statements t)
       (unless (rdf:has-statement? m stmt)
@@ -151,8 +151,8 @@
 
 (test:test resource.interface.map-property-slots
   (let ((object (resource :uri '{CL-USER}01
-                           :properties (list (rdf-prototypal-property-definition :name 'a :predicate :a :value 1)
-                                             (rdf-prototypal-property-definition :name 'b :predicate :b :value 2))))
+                           :properties (list (prototypal-property-definition :name 'a :predicate :a :value 1)
+                                             (prototypal-property-definition :name 'b :predicate :b :value 2))))
         (result ()))
     (rdf:map-property-slots #'(lambda (pd) (push (c2mop:slot-definition-name pd) result)) object)
     (null (set-exclusive-or result '(a b)))))
@@ -160,8 +160,8 @@
 
 (test:test resource.interface.map-property-predicates
   (let ((object (resource :uri '{CL-USER}01
-                           :properties (list (rdf-prototypal-property-definition :name 'a :predicate :a :value 1)
-                                             (rdf-prototypal-property-definition :name 'b :predicate :b :value 2))))
+                           :properties (list (prototypal-property-definition :name 'a :predicate :a :value 1)
+                                             (prototypal-property-definition :name 'b :predicate :b :value 2))))
         (result ()))
     (rdf:map-property-predicates #'(lambda (p) (push p result)) object)
     (null (set-exclusive-or result '(:a :b)))))
@@ -170,9 +170,9 @@
 (test:test resource.interface.map-property-values
   "Verify iteration over each value and skipping unbound properties"
   (let ((object (resource :uri '{CL-USER}01
-                           :properties (list (rdf-prototypal-property-definition :name 'a :predicate :a :value 1)
-                                             (rdf-prototypal-property-definition :name 'b :predicate :b :value '(2 3))
-                                             (rdf-prototypal-property-definition :name 'c :predicate :c))))
+                           :properties (list (prototypal-property-definition :name 'a :predicate :a :value 1)
+                                             (prototypal-property-definition :name 'b :predicate :b :value '(2 3))
+                                             (prototypal-property-definition :name 'c :predicate :c))))
         (result ()))
     (rdf:map-property-values #'(lambda (v) (push v result)) object)
     (null (set-exclusive-or result '(1 2 3) :test #'eql))))
@@ -180,8 +180,8 @@
 
 (test:test resource.interface.map-statements
   (let ((object (resource :uri '{CL-USER}01
-                           :properties (list (rdf-prototypal-property-definition :name 'a :predicate :a :value 1)
-                                             (rdf-prototypal-property-definition :name 'b :predicate :b :value 2))))
+                           :properties (list (prototypal-property-definition :name 'a :predicate :a :value 1)
+                                             (prototypal-property-definition :name 'b :predicate :b :value 2))))
         (result ()))
     (rdf:map-statements #'(lambda (s) (push (copy-triple s) result)) object)
     (null (set-exclusive-or result (list (rdf:triple '{CL-USER}01 :a 1) (rdf:triple '{CL-USER}01 :b 2)) :test #'rdf:equal))))
@@ -200,7 +200,7 @@
 
 (test:test resource.interface.query.0
   (let ((object (make-instance 'person :uri '{CL-USER}01 :name "name"
-                               :properties (list (rdf-prototypal-property-definition :name 'p :predicate :p :value 1)))))
+                               :properties (list (prototypal-property-definition :name 'p :predicate :p :value 1)))))
     (flet ((ok (set1 set2) (null (set-exclusive-or set1 set2 :test #'rdf:equal))))
       (list (ok (rdf:query object :subject '{CL-USER}01)
                (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")
@@ -225,10 +225,10 @@
 
 (test:test resource.interface.query.1
   (let* ((object (resource :uri '{CL-USER}01))
-         (m (object-source object))
+         (m (object-repository object))
          (statements (list (rdf:triple '{CL-USER}01 '{CL}SLOT-1 "a string")
                            (rdf:triple '{CL-USER}01 '{rdf}type '{RDF}RESOURCE-OBJECT))))
-    (rdf:clear-store m)
+    (rdf:repository-clear m)
     (rdf:project-graph statements m)
     (let ((query (rdf:query m :subject object)))
       (and (null (set-exclusive-or (mapcar #'rdf:predicate statements)
@@ -250,8 +250,8 @@
 (test:test resource.interface.unbind-property-slots
   "Verify that unbinding removes asserted properties, but retains the 'this' binding"
   (let ((object (resource :uri '{CL-USER}01
-                           :properties (list (rdf-prototypal-property-definition :name 'a :predicate :a :value 1)
-                                             (rdf-prototypal-property-definition :name 'b :predicate :b :value 2))))
+                           :properties (list (prototypal-property-definition :name 'a :predicate :a :value 1)
+                                             (prototypal-property-definition :name 'b :predicate :b :value 2))))
         (result ()))
     (rdf:unbind-property-slots object)
     (rdf:map-property-values #'(lambda (v) (push v result)) object)

@@ -5,10 +5,10 @@
 
 (:documentation
   "This file mediates access to allegrograph RDF stores for the `de.setf.resource` CLOS linked data library."
- 
- (copyright
-  "Copyright 2010 [james anderson](mailto:james.anderson@setf.de)  All Rights Reserved"
-  "'de.setf.resource' is free software: you can redistribute it and/or modify it under the terms of version 3
+  
+  (copyright
+   "Copyright 2010 [james anderson](mailto:james.anderson@setf.de)  All Rights Reserved"
+   "'de.setf.resource' is free software: you can redistribute it and/or modify it under the terms of version 3
   of the GNU Affero General Public License as published by the Free Software Foundation.
 
   'de.setf.resource' is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
@@ -17,8 +17,8 @@
 
   A copy of the GNU Affero General Public License should be included with 'de.setf.resource' as `agpl.txt`.
   If not, see the GNU [site](http://www.gnu.org/licenses/).")
-
- (description "Implement data, identifier, and instance mediation for a allegrograph rdf store.
+  
+  (description "Implement data, identifier, and instance mediation for a allegrograph rdf repository.
 
  - use the subject node instance as the identity cache
  - wrap the triple acessors
@@ -33,27 +33,36 @@
     (db.agraph:create-triple-store *agraph-db-path*))
   db.agraph:*db*)
 
-(defclass agraph-mediator (resource-mediator)
-  ((store
-    :initarg :db :initform (agraph-db)))
+(defclass agraph-mediator (repository-mediator)
+  ((repository
+    :initarg :db :initform (agraph-db))
+   (persistent
+    :initform t :allocation :class
+    :documentation "allegrograph is backed by a remote storage service or filesystem storage")
+   (readable
+    :initform t :allocation :class
+    :documentation "allegrograph supports read/write operations.")
+   (writable
+    :initarg :writable :initform t :allocation :class
+    :documentation "allegrograph supports read/write operations.")))
 
 
-(defmethod rdf:delete-statement ((source agraph-mediator) (triple vector))
-  (db.agraph:delete-triple (db.agraph:triple-id triple) :db (repository-store source)))
+(defmethod rdf:delete-statement ((mediator agraph-mediator) (triple vector))
+  (db.agraph:delete-triple (db.agraph:triple-id triple) :db (mediator-repository mediator)))
 
 
-(defmethod rdf:delete-statement ((source agraph-mediator) (triple rdf:triple))
-  (db.agraph:delete-triples :db (repository-store source)
-                            :s (rdf:repository-value source (triple-subject triple))
-                            :p (rdf:repository-value source (triple-predicate triple))
-                            :o (rdf:repository-value source (triple-object triple))))
+(defmethod rdf:delete-statement ((mediator agraph-mediator) (triple rdf:triple))
+  (db.agraph:delete-triples :db (mediator-repository mediator)
+                            :s (rdf:repository-value mediator (triple-subject triple))
+                            :p (rdf:repository-value mediator (triple-predicate triple))
+                            :o (rdf:repository-value mediator (triple-object triple))))
 
 
-(defmethod rdf:find-instance ((source agraph-mediator) (subject t))
-  (rdf:find-instance source (rdf:repository-value source subject)))
+(defmethod rdf:find-instance ((mediator agraph-mediator) (subject t))
+  (rdf:find-instance mediator (rdf:repository-value mediator subject)))
 
-(defmethod rdf:find-instance ((source agraph-mediator) (designator db.agraph:future-part))
-  (gethash designator (repository-instance-cache source)))
+(defmethod rdf:find-instance ((mediator agraph-mediator) (designator db.agraph:future-part))
+  (gethash designator (repository-instance-cache mediator)))
 
 
 (defmethod rdf:graph ((statement vector))
@@ -74,13 +83,15 @@
 (defmethod rdf:predicate ((statement vector))
   (db.agraph:predicate statement))
 
+(defmethod rdf:id ((statement vector))
+  (db.agraph:triple-id statement))
 
 (defmethod rdf:project-graph ((quad rdf:quad) (destination agraph-mediator))
   (db.agraph:add-triple  (rdf:repository-value destination (quad-subject quad))
                          (rdf:repository-value destination (quad-predicate quad))
                          (rdf:repository-value destination (rdf:quad-object quad))
                          :g (rdf:repository-value destination (rdf:quad-context quad))
-                         :db (repository-store destination)))
+                         :db (mediator-repository destination)))
 
 (defmethod rdf:project-graph ((statement vector) (object resource-object))
   "Given a vector, treat it as an opaque statement in order to support allegrograph.
@@ -89,77 +100,58 @@
     (rdf:insert-statement statement object)))
 
 
-(defmethod rdf:query ((source agraph-mediator) &key subject predicate object graph continuation)
+(defmethod rdf:query ((mediator agraph-mediator) &key subject predicate object graph continuation)
   (if continuation
-    (let ((cursor (db.agraph:get-triples :db (repository-store source)
-                                         :s (rdf:repository-value source subject)
-                                         :p (rdf:repository-value source predicate)
-                                         :o (rdf:repository-value source object)
-                                         :g (rdf:repository-value source graph))))
+    (let ((cursor (db.agraph:get-triples :db (mediator-repository mediator)
+                                         :s (rdf:repository-value mediator subject)
+                                         :p (rdf:repository-value mediator predicate)
+                                         :o (rdf:repository-value mediator object)
+                                         :g (rdf:repository-value mediator graph))))
       (loop (unless (db.agraph:cursor-next-p cursor) (return))
             (funcall continuation (db.agraph:cursor-next-row cursor))))
-    (db.agraph:get-triples-list :db (repository-store source) :s subject :p predicate :o object :g graph)))(defmethod rdf:repository-persistent? ((repository wilbur-mediator))
-  "The wilbur store in an in-memory cache. In order to persist its state, use save-repository."
-  nil)
+    (db.agraph:get-triples-list :db (mediator-repository mediator) :s subject :p predicate :o object :g graph)))
 
 
-(defmethod rdf:repository-persistent? ((repository agraph-mediator))
-  "The cassadra store is backed by a remote storage service"
-  t)
+(defmethod repository-uri ((mediator agraph-mediator) (uri t))
+  (rdf:repository-value mediator uri))
 
-(defmethod rdf:repository-readable? ((repository agraph-mediator))
-  "The cassadra store is backed."
-  t)
-
-(defmethod rdf:repository-transient? ((repository agraph-mediator))
-  "The allegrograph store is backed by filesystem storage"
-  nil)
-
-(defmethod rdf:repository-writable? ((repository agraph-mediator))
-  "allegrograph supports read/write operations."
-  t)     
+(defmethod repository-uri ((mediator agraph-mediator) (uri string))
+  (db.agraph:intern-remediator uri))
 
 
-(defmethod store-uri ((source agraph-mediator) (uri t))
-  (rdf:repository-value source uri))
-
-(defmethod store-uri ((source agraph-mediator) (uri string))
-  (db.agraph:intern-resource uri))
-
-
-(defmethod rdf:repository-value ((source t) (value db.agraph:future-part))
+(defmethod rdf:repository-value ((mediator t) (value db.agraph:future-part))
   value)
 
-(defmethod rdf:repository-value ((source agraph-mediator) (value string))
+(defmethod rdf:repository-value ((mediator agraph-mediator) (value string))
   (db.agraph:intern-typed-literal value (db.agraph:intern-resource "http://www.w3.org/2001/XMLSchema#string")))
 
-(defmethod rdf:repository-value ((source agraph-mediator) (value float))
+(defmethod rdf:repository-value ((mediator agraph-mediator) (value float))
   (db.agraph:intern-typed-literal (princ-to-string value)
                                   (db.agraph:intern-resource "http://www.w3.org/2001/XMLSchema#float")))
 
-(defmethod rdf:repository-value ((source agraph-mediator) (value double-float))
+(defmethod rdf:repository-value ((mediator agraph-mediator) (value double-float))
   (db.agraph:intern-typed-literal (princ-to-string value)
                                   (db.agraph:intern-resource "http://www.w3.org/2001/XMLSchema#double")))
 
-(defmethod rdf:repository-value ((source agraph-mediator) (value integer))
+(defmethod rdf:repository-value ((mediator agraph-mediator) (value integer))
   (db.agraph:intern-typed-literal (princ-to-string value)
-                                 (db.agraph:intern-resource "http://www.w3.org/2001/XMLSchema#integer")))
+                                  (db.agraph:intern-resource "http://www.w3.org/2001/XMLSchema#integer")))
 
-(defmethod rdf:repository-value ((source resource-mediator) (value symbol))
-  (flet ((canonicalize (symbol) (canonicalize-identifier source symbol)))
+(defmethod rdf:repository-value ((mediator agraph-mediator) (value symbol))
+  (flet ((canonicalize (symbol) (canonicalize-identifier mediator symbol)))
     (declare (dynamic-extent #'canonicalize))
     (symbol-uri-namestring value #'canonicalize)))
 
-(defmethod rdf:repository-value ((source agraph-mediator) (identifier uuid:uuid))
+(defmethod rdf:repository-value ((mediator agraph-mediator) (identifier uuid:uuid))
   ;;;??? should this be transformed into a URI to make the node?
-  (store-uri source (uri-namestring identifier)))
+  (repository-uri mediator (uri-namestring identifier)))
 
 #+de.setf.xml
-(defmethod rdf:repository-value ((source agraph-mediator) (identifier xqdm:uname))
+(defmethod rdf:repository-value ((mediator agraph-mediator) (identifier xqdm:uname))
   (let ((uri-base (xqdm:namespace-name (xqdm:namespace identifier))))
-    (store-uri source (concatenate 'string uri-base
-                                   (unless (uri-has-separator-p uri-base) "/")
-                                   (xqdm:local-part identifier)))))
+    (repository-uri mediator (concatenate 'string uri-base
+                                          (unless (uri-has-separator-p uri-base) "/")
+                                          (xqdm:local-part identifier)))))
 
 
 

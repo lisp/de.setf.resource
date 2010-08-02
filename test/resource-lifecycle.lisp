@@ -92,7 +92,7 @@
 
 (test:test resource.resource-lifecycle.project-graph.resource-object.2
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil))
-         (source (object-source p)))
+         (source (object-repository p)))
     (rdf:project-graph (list (rdf:triple (uri p) 'height 200)
                              (rdf:triple (uri p) 'weight 70))
                        p)
@@ -105,13 +105,13 @@
 
 
 (test:test resource.resource-lifecycle.project-graph.resource-class
-  "Project a three-instance graph from the store to the model; test atomic slots and
+  "Project a three-instance graph from the repository to the model; test atomic slots and
  the simple parent relation. The model does not specify inverse relations.
  Since {foaf}Person is the datatype of the declared PERSON class, for which the PARENTS slot is
  declared of type (CONS PERSON), no statement yiels the result NIL."
    (progn (rdf:find-class 'person '{foaf}Person)
           (rdf:find-class 'person '{foaf}Agent)
-          (let ((s (class-source '{foaf}Person)))
+          (let ((s (class-repository '{foaf}Person)))
             (load-family s)
             (let ((people (rdf:project-graph s (find-class '{foaf}Person))))
               (list (= (length people) 3)
@@ -131,9 +131,9 @@
 
 ;;; (map nil 'print (wilbur:db-triples wilbur:*db*))
 
-;;; (let ((m (class-source 'person))) (model-value m (rdf-value m 'weight)))
-;;; (unregister-value (class-source 'person) 'weight !"DE.SETF.RESOURCE.IMPLEMENTATION/WEIGHT")
-;;; (unregister-value (class-source 'person) 'height !"DE.SETF.RESOURCE.IMPLEMENTATION/HEIGHT")
+;;; (let ((m (class-repository 'person))) (model-value m (rdf-value m 'weight)))
+;;; (unregister-value (class-repository 'person) 'weight !"DE.SETF.RESOURCE.IMPLEMENTATION/WEIGHT")
+;;; (unregister-value (class-repository 'person) 'height !"DE.SETF.RESOURCE.IMPLEMENTATION/HEIGHT")
 
 ;; (eq (wilbur::db-make-literal wilbur::*db* "10") (wilbur::db-make-literal wilbur::*db* "10"))
 ;; (eq (wilbur::node "http://x") (wilbur::node "http://x"))

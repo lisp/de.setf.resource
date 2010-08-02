@@ -37,17 +37,13 @@
  "))
 
 
-(defgeneric rdf:clear-repository (store)
-  (:documentation "Remove all statements from the store."))
-
-
 (defgeneric rdf:class-not-found (metaclass type)
   (:documentation "Invoked from rdf:find-class when no metaclass instance comprises the statement.
  The base method signals an rdf:class-not-found-error."))
 
 
 (defgeneric rdf:commit (object)
-  (:documentation "Given a new or modified persistent object, write content to the persistent store, and
+  (:documentation "Given a new or modified persistent object, write content to the persistent repository, and
  make the object hollow. This performs both of the phases which complete a transaction in order to prevent
  stale state."))
 
@@ -60,35 +56,35 @@
 (defgeneric rdf:delete (object)
   (:documentation "Given a persistent object, delete all concrete statements which include it as subject.
  If the objects is hollow, it comprises its URI only. This is used to retrieve anew and delete all related
- assertions form the store. If the object has been read from the store, the related statements are
- cached in relation to the slots. These cached statements are deleted from the store."))
+ assertions form the repository. If the object has been read from the repository, the related statements are
+ cached in relation to the slots. These cached statements are deleted from the repository."))
 
 
 (defgeneric rdf:delete-subject (context subject)
   (:documentation "Delete all statements relatd to this object from the given CONTEXT.
- CONTEXT : (or store resource-object)
+ CONTEXT : (or repository resource-object)
  SUBJECT : identifier
 
- If the context is a store, remove all triples with that subject. If the context is an
- object remove it fron it's store's index."))
+ If the context is a repository, remove all triples with that subject. If the context is an
+ object remove it fron it's repository's index."))
 
 
 (defgeneric rdf:delete-statement (context statement)
   (:documentation "Delete the statement from the given CONTEXT.
- CONTEXT : (or store resource-object)
+ CONTEXT : (or repository resource-object)
  STATEMENT : rdf:statement
 
- If the context is a store, remove the statement's triple. If the context is an
+ If the context is a repository, remove the statement's triple. If the context is an
  object unbind the predicated property."))
 
 
 (defgeneric rdf:ensure-instance (context identifier)
   (:documentation "Attempt to find the designated instance relative to the context. (cf find-instance).
- CONTEXT : (or resource-class resource-mediator)
+ CONTEXT : (or resource-class repository-mediator)
  IDENTIFIER : identifier
 
  The identifier forms depend on the context. For a mediated context, any model representation is mapped to
- that of the respective store. If no instance exists create one.")
+ that of the respective repository. If no instance exists create one.")
 
   (:method ((class-name symbol) identifier)
     (rdf:ensure-instance (find-class class-name) identifier)))
@@ -101,12 +97,12 @@
 
 (defgeneric rdf:equal (object1 object2)
   (:documentation "Return true iff the two objects denote the same resource or literal.
- Resource objects map to their respective URI, URI are compared as namestrings, and other
- domain-model objects with equal. Store-domain object are compared for identity or namestring and
- type equivalence.")
+ Resource objects map to their respective URI, URI are compared bu component, and other
+ domain-model objects according to repository mediator.")
 
   (:method ((object1 t) (object2 t))
     (equalp object1 object2))
+
   (:method ((object1 puri:uri) (object2 puri:uri))
     (macrolet ((part-equal (accessor)
                  `(equal (,accessor object1) (,accessor object2))))
@@ -126,10 +122,10 @@
 
 (defgeneric rdf:find-class (context type &key error-p)
   (:documentation "Find the class designated by TYPE in the specifiec CONTEXT.
- CONTEXT : (or resource-class resource-mediator)
+ CONTEXT : (or resource-class repository-mediator)
  TYPE : rdf:identifier
  If the context is a resource-class, look for an instance of its vocabulary or delegate to its source.
- If the context is a resource-mediator, seach the vocabularies.
+ If the context is a repository-mediator, seach the vocabularies.
  If none is found and error-p is true, apply the metaclass' class-not-found-function to it and the type.
  By default this signals a continuable class-not-found-error.")
 
@@ -161,71 +157,82 @@
  Return nil if none is found."))
 
 
-(defgeneric rdf:has-predicate? (context predicate)
-  (:documentation "Return true of the context state includes an assertion with the predicate
- CONTEXT : (or resource-object store)
- predicate : identifier"))
-
-
-(defgeneric rdf:has-object? (context object)
-  (:documentation "Return true of the context state includes an assertion with the object
- CONTEXT : store
+(defgeneric rdf:has-context? (repository context)
+  (:documentation "Return true of the repository state includes an assertion with the object
+ REPOSITORY : repository
  OBJECT : t"))
 
 
-(defgeneric rdf:has-statement? (context statement)
-  (:documentation "Return true of the context state includes the assertion
- CONTEXT : (or resource-object store)
+(defgeneric rdf:has-predicate? (repository predicate)
+  (:documentation "Return true of the repository state includes an assertion with the predicate
+ REPOSITORY : (or resource-object repository)
+ PREDICATE : identifier"))
+
+
+(defgeneric rdf:has-object? (repository object)
+  (:documentation "Return true of the repository state includes an assertion with the object
+ REPOSITORY : repository
+ OBJECT : t"))
+
+
+(defgeneric rdf:has-statement? (repository statement)
+  (:documentation "Return true of the repository state includes the assertion
+ REPOSITORY : (or resource-object repository)
  STATEMENT : statement"))
 
 
-(defgeneric rdf:has-subject? (context subject-identifier)
+(defgeneric rdf:has-subject? (repository subject)
   (:documentation "Return true of the context state includes an assertion about the subject
- CONTEXT : (or resource-object store)
+ REPOSITORY : (or resource-object repository)
  SUBJECT : identifier"))
 
 
-(defgeneric rdf:insert-statement (context statement)
-  (:documentation "Assert the statement in the given context.
- CONTEXT : (or store resource-object)
+(defgeneric rdf:id (statement)
+  (:documentation "Return the statement's id if it has one.")
+  (:method ((statement null)) nil))
+
+
+(defgeneric rdf:insert-statement (repository statement)
+  (:documentation "Assert the statement in the given repository.
+ REPOSITORY : (or resource-object repository)
  STATEMENT : rdf:statement
 
- If the context is a store, add the statement as a triple. If the context is an
+ If the context is a repository, add the statement as a triple. If the context is an
  object bind the predicated object to the subject."))
 
 
 (defgeneric rdf:instance-not-found (class identifier)
   (:documentation "Invoked from find-instance if the given uri does not designate an instance
- in the context of the class and/or its respective persistent store.")
+ in the context of the class and/or its respective persistent repository.")
 
   (:method ((class standard-class) (identifier t))
     (rdf:instance-not-found-error :class class :uri identifier)))
 
 
-(defgeneric rdf:load-repository (store location)
-  (:documentation "Load a STORE from a give LOCATION.
- STORE : resource-mediator
+(defgeneric rdf:load-repository (repository location)
+  (:documentation "Load a REPOSITORY from a give LOCATION.
+ REPOSITORY : repository-mediator
  LOCATION : (or pathname uri stream)
 
- Reads RDF content from a location and adds the triples to the mediated data store."))
+ Reads RDF content from a location and adds the triples to the mediated repository."))
 
 
-(defgeneric rdf:load-repository-as (store location form)
+(defgeneric rdf:load-repository-as (repository location form)
   (:documentation "Decode the content from the source LOCATION as FORM and load it into the
- repository store."))  
+ repository."))  
 
 
 (defgeneric rdf:load-vocabulary (repository vocabulary-uri &key )
   (:documentation "Load the vocabulary schema identified by the given URI into the runtime.
- SOURCE : (or resource-mediator pathname) 
+ SOURCE : (or repository-mediator pathname) 
  URI : string : a URI namestring which locates the vocabulary schema directly, or a URI reference,
    which identifies one of the vocabulary terms.
  VALUE : vocabulary : the instantiated vocabulary.
  :RESOURCE-VOCABULARY : some methods accept the keyword to specify the vocabulary uri explicitly
 
  Given a repository as the context, the URI is adjusted as required to identify
- the vocabulary and used to load the vocabulary into the store. The vocabulary class definitions are extracted
- from the store and used to initialize the vocabulary.
+ the vocabulary and used to load the vocabulary into the repository. The vocabulary class definitions are extracted
+ from the repository and used to initialize the vocabulary.
 
  GIven a pathname as the context, the file is read as a vocabulary definition.
 
@@ -290,12 +297,12 @@
     (rdf:project-graph source function)))
 
 
-(defgeneric rdf:model-value (store object)
-  (:documentation "Map the given OBJECT from the STORE's domain to the model domain.
+(defgeneric rdf:model-value (repository object)
+  (:documentation "Map the given OBJECT from the REPOSITORY store's domain to the model domain.
  Decode literal values according to their annotation and transform URI into uuid or symbols.
  Each source implements its own methods for literals and URI to operate on the respective
  representation. Return objects already in the model domain unchanged.")
-  (:argument-precedence-order object store)
+  (:argument-precedence-order object repository)
 
   (:method ((source t) (value t))
     "The default method serves as the primary for :around's which short-circuit the cache"
@@ -322,40 +329,40 @@
 
 (defgeneric rdf:object (statement)
   (:documentation "Return the statement's object as a URI, a node, or a literal, as per
- the source store's representation.")
+ the source repository's representation.")
   (:method ((statement null)) nil))
 
 (defgeneric rdf:object-value (source statement)
   (:documentation "Return the statement's object as a URI or a literal in the model domain, as
- translated by the store mediator."))
+ translated by the repository mediator."))
 
 
 (defgeneric rdf:predicate (statement)
   (:documentation "Return the statement's predicate as a URI, a node, or a literal, as per
- the source store's representation.")
+ the source repository's representation.")
   (:method ((statement null)) nil))
 
-(defgeneric rdf:predicate-value (store statement)
+(defgeneric rdf:predicate-value (repository statement)
   (:documentation "Return the statement's predicate as a URI or a literal in the model domain, as
- translated by the store mediator."))
+ translated by the repository mediator."))
 
 
 (defgeneric rdf:project-graph (source destination)
-  (:documentation "Project a model/graph/store from a source onto a destination.
- SOURCE : (or stream list resource-object resource-mediator function)
- DESTINATION : (or stream list resource-object resource-mediator function)
+  (:documentation "Project a model/graph/repository from a source onto a destination.
+ SOURCE : (or stream list resource-object repository-mediator function)
+ DESTINATION : (or stream list resource-object repository-mediator function)
 
  The source can be in the form of a repository, a concrete statement extension, an enumerable extension, or a
  model instance. For a model which exists as a concrete instance of a statement extension, this projects
  the statement set, for example, by iterating the set and adding each statement to the destination. For a
- store, the extent is constrained by combining the store with a selection query.
+ repository, the extent is constrained by combining the repository with a selection query.
 
  The destination can be specified as a single instance, in which case each applicable statement is applied to
  the instance in turn to the respective property slot, a class, in which case an instance extension results,
  based on those statements which pertain to instances of the class, or a meta-class, in which case an
  extension results based on the entire ontology comprised by the meta-class.
 
- Default methods are defined for stream, list, resource-object, and resource-mediator to operate on
+ Default methods are defined for stream, list, resource-object, and repository-mediator to operate on
  the respective content.")
 
   (:method ((source stream) (function function))
@@ -405,21 +412,25 @@
                                   :predicate property-name :operation operation :value value)))
 
 
-(defgeneric rdf:query (store &key subject predicate object context continuation offset limit)
-  (:documentation "Perform a query against the STORE. Permit  SUBJECT PREDICATE OBJECT and GRAPH constraints.
- STORE : resource-mediator : the store mediator
+(defgeneric rdf:query (repository &key subject predicate object context continuation offset limit)
+  (:documentation "Perform a query against the REPOSITORY. Permit  SUBJECT PREDICATE OBJECT and CONTEXT
+ constraints.
+
+ REPOSITORY : repository-mediator : the RDF repository mediator
  SUBJECT, PREDICATE, OBJECT, GRAPH : t : a value in the model domain
  CONTINUATION : (or function null) : an optional function of one argument, a statement in the store domain.
  VALUE : list : if no continuation is supplied, a list of the selected statement in the store domain.
 
- The given statement constituents are transformed from the model domain to the respective store's literal and
- resource domains and formulated as a query in the store's terms, whereby the NIL value denotes a wildcard.
- If a continuation is supplied it is applied in turn to each result statement. Otherwise statement list is
- returned. The possible constraints depend on the context.
- - When applied to a source/db the constraints can be
+ The given statement constituents are transformed from the model domain to the respective repositor's literal
+ and resource domains and formulated as a query in the rpository's terms, whereby the NIL value denotes a
+ wildcard. If no argument is provided for CONTEXT, the repository's default context applies.
+ If a continuation is supplied it is applied in turn to each result statement. Otherwise a statement list is
+ returned. The possible constraints depend on the initial argument type.
+
+ - When applied to a repository-mediator the constraints can be
    - an object : which delegates to its URI
    - an URI, which is interpreted as the subject uri
- - When applied to an object the constraint can be
+ - When applied to a resource-object the constraint can be
    - an URI, which is interpreted as a predicate
    - nil, which is a wildcard
    - an object or a literal, which is interpreted as a constraint on the object.
@@ -435,64 +446,70 @@
  If the object is modified-persistent, discard any modifications. Any other intiial state signals an error."))
 
 
+(defgeneric rdf:repository-clear (repository)
+  (:documentation "Remove all statements from the repository."))
+
+
+(defgeneric rdf:repository-close (repository)
+  (:documentation "Close the repository and release any instance-specific resources."))
+
+
 (defgeneric rdf:repository-count (repository)
   (:documentation "Return the count of statements in the repository."))
 
 
-(defgeneric rdf:repository-persistent? (repository)
-  (:documentation "Return true iff the repository store is persistent. The inverse of repository-transient?.
- The default method returns nil and must be specialized for each concrete repository and/or repository class.")
+(defgeneric rdf:repository-indelible? (repository)
+  (:documentation "Return true iff the repository is is write-only.
+ The abstract class binds a class slot to nil. A concrete repository class may shadow this."))
 
-  (:method ((repository t))
-    nil))
+
+(defgeneric rdf:repository-empty? (repository)
+  (:documentation "Return true iff the repository contains no statement. Each concrete repository class
+ must implement this."))
+
+
+(defgeneric rdf:repository-persistent? (repository)
+  (:documentation "Return true iff the repository is persistent. The inverse of repository-transient?.
+ The default method returns nil and must be specialized for each concrete repository and/or repository class."))
 
            
 (defgeneric rdf:repository-readable? (repository)
   (:documentation "Return true iff the repository support query operations.
- The default method returns t and must be specialized for each concrete repository and/or repository class.")
-
-  (:method ((repository t))
-    t))
+ The default method returns t and must be specialized for each concrete repository and/or repository class."))
 
            
 (defgeneric rdf:repository-transient? (repository)
-  (:documentation "Return true iff the repository store is not persistent. The inverse of repository-persistent?.
- The default method returns t and must be specialized for each concrete repository and/or repository class.")
-
-  (:method ((repository t))
-    t))
+  (:documentation "Return true iff the repository is not persistent. The inverse of repository-persistent?.
+ The default method inverts repository-persistent?."))
 
            
 (defgeneric rdf:repository-writable? (repository)
   (:documentation "Return true iff the repository support insert and delete operations.
- The default method returns nil and must be specialized for each concrete repository and/or repository class.")
-
-  (:method ((repository t))
-    nil))
+ The default method returns nil and must be specialized for each concrete repository and/or repository class."))
 
            
-(defgeneric rdf:require (uri &key pathname)
+(defgeneric rdf:require-vocabulary (uri &key pathname)
   (:documentation "Load a vocabulary from the respective file if it has not yet been loaded.
  The file is derived from the path component of the URI, with the addition of the name 'vocabulary', and
  the type 'lisp', and rooted in the directory bound to '*uri-pathname-root*'."))
 
 
-(defgeneric rdf:save-repository (store location)
-  (:documentation "Load a STORE from a give LOCATION.
- STORE : resource-mediator
+(defgeneric rdf:save-repository (repository location)
+  (:documentation "Load a REPOSITORY from a give LOCATION.
+ REPOSITORY : repository-mediator
  LOCATION : (or pathname uri stream)
 
- Save the content of the mediated data store as N3-encoded RDF content to the given location.")
+ Save the content of the mediated data repository as N3-encoded RDF content to the given location.")
 
-  (:method (store (location pathname))
+  (:method (repository (location pathname))
     (with-open-file (stream location :direction :input)
-      (rdf:save-repository store stream))))
+      (rdf:save-repository repository stream))))
 
 
-(defgeneric rdf:repository-value (store object)
+(defgeneric rdf:repository-value (repository object)
   (:documentation "Map the given OBJECT from its representation in the model domain to its representation for
- a particular RDF data STORE.
- STORE : resource-mediator
+ a particular RDF data REPOSITORY.
+ REPOSITORY : repository-mediator
  OBJECT : t : comprises literals (number, string) and resource-object instances or their symbol or
   uri designators.
 
@@ -500,8 +517,8 @@
  a cache as appropriate to effect whatever identity is required for queries. For example, wilbur's
  interning db class identifies literals and URI, which means the mediator must just ensure that
  resource objects are reduced to their URI designators and maintain identity in the URI-to-object
- direction.  Return objects already in the store's domain unchanged.")
-  (:argument-precedence-order object store)
+ direction.  Return objects already in the repository's domain unchanged.")
+  (:argument-precedence-order object repository)
   
   (:method ((source t) (value t))
     "The default method serves as the primary for :around's which sort-circuit the cache"
@@ -521,17 +538,17 @@
 
 (defgeneric rdf:subject (statement)
   (:documentation "Return the statement's subject as a URI, a node, or a literal, as per
- the source store's representation.")
+ the source repository's representation.")
   (:method ((statement null)) nil))
 
-(defgeneric rdf:subject-value (store statement)
+(defgeneric rdf:subject-value (repository statement)
   (:documentation "Return the statement's subject as a URI or a literal in the model domain, as
- translated by the store mediator."))
+ translated by the repository mediator."))
 
 
-(defgeneric rdf:type-of (context identifier)
+(defgeneric rdf:type-of (repository identifier)
   (:documentation "Determine the type of the designated resource.
- CONTEXT : (or store resource-object)
+ REPOSITORY : (or repository resource-object)
  IDENTIFIER : rdf:identifier 
 
  If the designated resource is already present in the model, return its instance type directly.
@@ -551,7 +568,7 @@
 
 
 (defgeneric rdf:write-properties (object)
-  (:documentation "Synchronize the instance content to the persistent store.
+  (:documentation "Synchronize the instance content to the persistent repository.
  This is done by inserting new statements and deleting obsolete ones.
  If the object is new, that entails all statements, but if it is already just a projection of the source,
  only the statements which pertain to modified properties must be used."))

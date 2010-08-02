@@ -4,7 +4,7 @@
 (in-package :de.setf.resource.implementation)
 
 (:documentation
-  "This file defines tests for RDF vocabulary interatction with stores."
+  "This file defines tests for RDF vocabulary interatction with repositories."
  
  (copyright
   "Copyright 2010 [james anderson](mailto:james.anderson@setf.de)  All Rights Reserved"
@@ -21,38 +21,38 @@
 ;;; (test:execute-test :resource.vocabulary-ts.**)
 
 
-(test:test resource.vocabulary-ts.add-vocabulary.1
-  (let ((source (resource-mediator 'resource-mediator
-                                   :store nil
+(test:test resource.vocabulary-ts.load-vocabulary.1
+  (let ((mediator (repository-mediator 'repository-mediator
+                                   :repository nil
                                    :identifier-function 'camel-dash-canonicalizer))
         (vocabulary (make-instance 'vocabulary :uri "x")))
-    (add-vocabulary source vocabulary)
-    (eq (find-vocabulary source "x") vocabulary)))
+    (load-vocabulary mediator vocabulary)
+    (eq (find-vocabulary mediator "x") vocabulary)))
 
 
-(test:test resource.vocabulary-ts.add-vocabulary.2
-  (let ((source (resource-mediator 'resource-mediator :store nil))
+(test:test resource.vocabulary-ts.load-vocabulary.2
+  (let ((mediator (repository-mediator 'repository-mediator :repository nil))
         (vocabulary (make-instance 'vocabulary :uri "x"
                                    :identifier-map '((:uri-1 . "x/uri_1") (:uri-2 . "x/uri_2")))))
-    (and (add-vocabulary source vocabulary)
-         ;(maphash #'(lambda (k v) (print (list k v))) (source-model2repository-value-map source))
-         (eq :uri-1 (rdf:model-value source (intern "uri_1" (find-package "x/")))))))
+    (and (load-vocabulary mediator vocabulary)
+         ;(maphash #'(lambda (k v) (print (list k v))) (mediator-model2repository-value-map mediator))
+         (eq :uri-1 (rdf:model-value mediator (intern "uri_1" (find-package "x/")))))))
 
 
 (test:test resource.vocabulary-ts.uri-symbol.2
-  (let ((source (resource-mediator 'resource-mediator
-                                   :store nil
+  (let ((mediator (repository-mediator 'repository-mediator
+                                   :repository nil
                                    :identifier-function 'camel-dash-canonicalizer))
         (vocabulary (make-instance 'vocabulary :uri "x"
                                    :identifier-map '((:uri-1 . "uri/1")  (:uri-2 . "uri/2")))))
-    ;; (maphash #'(lambda (k v) (print (list k v))) (source-model2repository-value-map source))
-    (add-vocabulary source vocabulary)
-    (and (eq (rdf:model-value source (rdf:repository-value source :uri-1)) :uri-1)
-         (eq (rdf:model-value source (rdf:repository-value source :uri-2)) :uri-2)
-         (eq (rdf:model-value source (rdf:repository-value source :uri-3)) :uri-3)
-         (equal (rdf:repository-value source :uri-1) (intern "1" (find-package "uri/")))
-         (equal (rdf:repository-value source :uri-2) (intern "2" (find-package "uri/")))
-         (equal (rdf:repository-value source :uri-3) :|uri3|)
+    ;; (maphash #'(lambda (k v) (print (list k v))) (mediator-model2repository-value-map mediator))
+    (load-vocabulary mediator vocabulary)
+    (and (eq (rdf:model-value mediator (rdf:repository-value mediator :uri-1)) :uri-1)
+         (eq (rdf:model-value mediator (rdf:repository-value mediator :uri-2)) :uri-2)
+         (eq (rdf:model-value mediator (rdf:repository-value mediator :uri-3)) :uri-3)
+         (equal (rdf:repository-value mediator :uri-1) (intern "1" (find-package "uri/")))
+         (equal (rdf:repository-value mediator :uri-2) (intern "2" (find-package "uri/")))
+         (equal (rdf:repository-value mediator :uri-3) :|uri3|)
          (delete-package "uri/"))))
 
 
@@ -71,7 +71,7 @@
   "Load the foaf vocabulary through a triple-store, check that the names and definitions
  are complete."
   (let* ((*load-verbose* (eq test::*test-unit-mode* :verbose))
-         (m (resource-mediator 'wilbur-mediator :identifier-function 'camel-dash-canonicalizer))
+         (m (repository-mediator 'wilbur-mediator :identifier-function 'camel-dash-canonicalizer))
          (v (load-vocabulary m "http://xmlns.com/foaf/0.1/"))
          (class-names '("AGENT" "ONLINE-CHAT-ACCOUNT" "ONLINE-ECOMMERCE-ACCOUNT" "ONLINE-GAMING-ACCOUNT"
                         "ONLINE-ACCOUNT" "IMAGE" "PROJECT" "ORGANIZATION" "DOCUMENT" "PERSON"
@@ -86,7 +86,7 @@
 (test:test resource.vocabulary-ts.load-vocabulary.3
   "Load the foaf vocabulary through a triple-store. Use a concrete term uri to designate it and
  check that the base uri is recognized as the ontology designator."
-  (let* ((m (resource-mediator 'wilbur-mediator :identifier-function 'camel-dash-canonicalizer))
+  (let* ((m (repository-mediator 'wilbur-mediator :identifier-function 'camel-dash-canonicalizer))
          (*load-verbose* (eq test::*test-unit-mode* :verbose))
          (v (load-vocabulary m "http://xmlns.com/foaf/0.1/Agent")))
     (and (equal "foaf" (vocabulary-name v))
@@ -96,7 +96,7 @@
 (test:test resource.vocabulary-ts.wilbur-mediator.1
   "This tests that the literal mapping is adopted from the default vocabularies despite the
  specified identifier canonicalizer."
-  (let ((m (resource-mediator 'wilbur-mediator :identifier-function 'camel-dash-canonicalizer)))
+  (let ((m (repository-mediator 'wilbur-mediator :identifier-function 'camel-dash-canonicalizer)))
     (and (eq '|http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|subject|
              (rdf:model-value m (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")))
          (eq (rdf:repository-value m '|http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|subject|)
@@ -104,7 +104,7 @@
 
 
 (test:test resource.vocabulary-ts.find-vocabulary.1
-  (let ((m (resource-mediator 'resource-mediator :store nil)))
+  (let ((m (repository-mediator 'repository-mediator :repository nil)))
     (and (eq *rdf-vocabulary*
              (find-vocabulary m "http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
          (eq *rdfs-vocabulary*

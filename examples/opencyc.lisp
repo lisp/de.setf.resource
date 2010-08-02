@@ -6,13 +6,13 @@
 
 (defpackage "http://www.franz.com/simple#" (:use) (:nicknames "simple"))
 
-(rdf:defaccessor person-first-name :property '{simple}first-name)
-(rdf:defaccessor person-last-name :property '{simple}last-name)
-(rdf:defaccessor person-spouse :property '{simple}spouse :type (cons {simple}person))
-(rdf:defaccessor person-sex :property '{simple}sex)
-(rdf:defaccessor person-children :property '{simple}has-child :type (cons {simple}person))
+(rdf:defaccessor person-first-name (person) :property '{simple}first-name)
+(rdf:defaccessor person-last-name (person) :property '{simple}last-name)
+(rdf:defaccessor person-spouse (person) :property '{simple}spouse :type (cons {simple}person))
+(rdf:defaccessor person-sex (person) :property '{simple}sex)
+(rdf:defaccessor person-children (person) :property '{simple}has-child :type (cons {simple}person))
 
-;;; (rdf:clear-repository (wilbur-mediator))
+;;; (rdf:repository-clear (wilbur-mediator))
 ;;; (xmlp:document-parser #P"LIBRARY:examples;data;opencyc-latest.owl")
 ;;; mcl5.2/g5x1.8 = +/- 30 min, 14,740,383 elements and about 400MB
 

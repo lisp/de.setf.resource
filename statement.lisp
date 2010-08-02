@@ -64,6 +64,7 @@
 (defmethod rdf:object-value ((source t) (triple rdf:triple)) (triple-object triple))
 (defmethod rdf:context ((triple rdf:triple)) nil)
 (defmethod rdf:context ((quad rdf:quad)) (quad-context quad))
+(defmethod rdf:id ((triple rdf:triple)) (triple-id triple))
 
 
 (deftype rdf:statement ()
@@ -91,3 +92,8 @@
            (rdf:equal (triple-object s1) (triple-object s2))
            (rdf:equal (quad-context s1) (quad-context s2)))))
 
+(defgeneric copy-statement (statement)
+  (:method ((statement rdf:triple))
+    (copy-triple statement))
+  (:method ((statement rdf:quad))
+    (copy-quad statement)))

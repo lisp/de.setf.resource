@@ -3,7 +3,7 @@
 (in-package :de.setf.resource.implementation)
 
 (:documentation
-  "This file mediates access to a cassandra store with an rdf.rd schema the 'de.setf.resource' CLOS
+  "This file mediates access to a cassandra repository with an rdf.rd schema the 'de.setf.resource' CLOS
  linked data library."
  
  (copyright
@@ -23,13 +23,13 @@
 
 (defclass cassandra-rdfrb-index-mediator (cassandra-mediator)
   ((resources-family
-    :reader store-resources-family
+    :reader repository-resources-family
     :documentation "a column family for the bas resource storage")
    (index-family
-    :reader store-index-family
+    :reader repository-index-family
     :documentation "a column family for the index")
    (cache-family
-    :reader store-cache-family
+    :reader repository-cache-family
     :documentation "a cache column family.")
    (dsc:version-class-map
     :initform '(("2.1.0" . cassandra-rdfrb-index-mediator_2.1.0)
@@ -69,9 +69,9 @@
   (let* ((s-subject (repository-value mediator subject))
          (s-predicate (repository-value mediator predicate))
          (s-object (repository-value mediator object))
-         (index-cf (store-index-family mediator))
-         (resources-cf (store-resources-family mediator))
-         (cache-cf (store-cache-family mediator)))
+         (index-cf (repository-index-family mediator))
+         (resources-cf (repository-resources-family mediator))
+         (cache-cf (repository-cache-family mediator)))
     (flet ((index-predicate ()
              (let ((predicate-id (compute-spoc-sha1-hex-id s-predicate)))
                (dsc:set-attributes index-cf (list predicate-id :info) (compute-spoc-sha1-id s-predicate) s-predicate)
@@ -117,7 +117,7 @@
     (handler-case 
       (spoc-case (mediator (s-subject s-predicate s-object s-context) subject predicate object nil)
         :spo-                           ; look for all equivalent statement 
-        (let ((column (dsc:get-column (store-resources-family mediator) (list s-subject s-predicate) (compute-spoc-sha1-hex-id s-object))))
+        (let ((column (dsc:get-column (repository-resources-family mediator) (list s-subject s-predicate) (compute-spoc-sha1-hex-id s-object))))
           (when column
             (funcall continuation subject predicate object context (dsc:column-name column))))
         
@@ -125,20 +125,20 @@
         (flet ((do-constituents (object-sha1 object)
                  (funcall continuation subject predicate object context object-sha1)))
           (declare (dynamic-extent #'do-constituents))
-          (map-resource-family #'do-constituents (store-resources-family mediator) s-subject s-predicate))
+          (map-resource-family #'do-constituents (repository-resources-family mediator) s-subject s-predicate))
         
         :s-o-                           ; interate over subject row's supercolumns/columns filtering for object
         (flet ((do-constituents (predicate object-sha1 test-object)
                  (when (equal object test-object)
                    (funcall continuation subject predicate object context object-sha1))))
           (declare (dynamic-extent #'do-constituents))
-          (map-resource-family #'do-constituents (store-resources-family mediator) s-subject nil))
+          (map-resource-family #'do-constituents (repository-resources-family mediator) s-subject nil))
         
         :s---                           ;interate over subject row's supercolumns/columns
         (flet ((do-constituents (predicate object-sha1 object)
                  (funcall continuation subject predicate object context object-sha1)))
           (declare (dynamic-extent #'do-constituents))
-          (map-resource-family #'do-constituents (store-resources-family mediator) s-subject nil))
+          (map-resource-family #'do-constituents (repository-resources-family mediator) s-subject nil))
         
         :-po-                         ; retrieve p.o across contexts
         (flet ((do-key-slice (key-slice)
@@ -149,7 +149,7 @@
                                   when (equal object (model-value mediator (dsc:column-value column)))
                                   do (funcall continuation subject predicate object (dsc:column-value column)))))))
           (declare (dynamic-extent #'do-key-slice))
-          (dsc:map-range-slices #'do-key-slice mediator :column-family (dsc:column-family-name (store-resources-family mediator))
+          (dsc:map-range-slices #'do-key-slice mediator :column-family (dsc:column-family-name (repository-resources-family mediator))
                                 :start-key "" :finish-key "" :super-column s-predicate))
         
         :-p--                           ; iterate over all rows and filtered for predicate
@@ -162,7 +162,7 @@
                                               (model-value mediator (dsc:column-value column))
                                               (dsc:column-value column)))))))
           (declare (dynamic-extent #'do-key-slice))
-          (dsc:map-range-slices #'do-key-slice mediator :column-family (dsc:column-family-name (store-resources-family mediator))
+          (dsc:map-range-slices #'do-key-slice mediator :column-family (dsc:column-family-name (repository-resources-family mediator))
                                            :start-key "" :finish-key "" :super-column s-predicate))
         
         :--o-                           ; retrieve all o across all contexts
@@ -175,7 +175,7 @@
                                   when (equal object (model-value mediator (dsc:column-value column)))
                                   do (funcall continuation subject predicate object (dsc:column-value column)))))))
           (declare (dynamic-extent #'do-key-slice))
-          (dsc:map-range-slices #'do-key-slice mediator :column-family (dsc:column-family-name (store-resources-family mediator))
+          (dsc:map-range-slices #'do-key-slice mediator :column-family (dsc:column-family-name (repository-resources-family mediator))
                                            :start-key "" :finish-key ""))
         
         :----                         ; retrieve all statements
@@ -189,7 +189,7 @@
                                               (model-value mediator (dsc:column-value column))
                                               (dsc:column-value column)))))))
           (declare (dynamic-extent #'do-key-slice))
-          (dsc:map-range-slices #'do-key-slice mediator :column-family (dsc:column-family-name (store-resources-family mediator))
+          (dsc:map-range-slices #'do-key-slice mediator :column-family (dsc:column-family-name (repository-resources-family mediator))
                                            :start-key "" :finish-key "")))
 
       (cassandra_2.1.0:notfoundexception (c) (declare (ignore c)) nil))))
@@ -204,9 +204,9 @@
   (let* ((s-subject (repository-value mediator subject))
          (s-predicate (repository-value mediator predicate))
          (s-object (repository-value mediator object))
-         (index-cf (store-index-family mediator))
-         (resources-cf (store-resources-family mediator))
-         (cache-cf (store-cache-family mediator)))
+         (index-cf (repository-index-family mediator))
+         (resources-cf (repository-resources-family mediator))
+         (cache-cf (repository-cache-family mediator)))
     (flet ((unindex-predicate ()
              (let ((predicate-id (compute-spoc-sha1-hex-id s-predicate)))
                (dsc:set-attributes index-cf (list predicate-id :info) predicate-id nil)

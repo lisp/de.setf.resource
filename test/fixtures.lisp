@@ -19,8 +19,8 @@
   If not, see the GNU [site](http://www.gnu.org/licenses/)."))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defvar *foaf-vocabulary* (rdfs:require "http://xmlns.com/foaf/0.1/"))
-  (defvar *rel-vocabulary* (rdfs:require "http://purl.org/vocab/relationship/")))
+  (defvar *foaf-vocabulary* (rdf:require-vocabulary "http://xmlns.com/foaf/0.1/"))
+  (defvar *rel-vocabulary* (rdf:require-vocabulary "http://purl.org/vocab/relationship/")))
 
 (setf (logical-pathname-translations "SPIRA")
       '(("**;*.*" "LIBRARY:com;github;datagraph;spira;**;*.*")))
@@ -28,12 +28,12 @@
 (defpackage "http://example.com" (:use ))
 
 ;;; clozure lacks a generic function change-class
-(rdfs:defaccessor person-name :property '{foaf}firstName :name name :type string)
-(rdfs:defaccessor person-age :property '{foaf}age :name age :type number)
-(rdfs:defaccessor person-parents :property '{rel}childof :name parents :type (cons person))
-(rdfs:defaccessor person-height :property height :name height :type string)
-(rdfs:defaccessor person-weight :property weight :name weight :type string)
-(rdfs:defaccessor person-gender :property gender :name gender :type string)
+(rdfs:defaccessor person-name (person) :property '{foaf}firstName :name name :type string)
+(rdfs:defaccessor person-age (person) :property '{foaf}age :name age :type number)
+(rdfs:defaccessor person-parents (person) :property '{rel}childof :name parents :type (cons person))
+(rdfs:defaccessor person-height (person) :property height :name height :type string)
+(rdfs:defaccessor person-weight (person) :property weight :name weight :type string)
+(rdfs:defaccessor person-gender (person) :property gender :name gender :type string)
 
 (defclass person (resource-object)
   ((name
@@ -66,14 +66,14 @@
 ;;; (inspect (c2mop:class-slots (find-class 'person)))
 
 
-(defun load-graph (store source &optional (clear-p t))
+(defun load-graph (repository source &optional (clear-p t))
   (when clear-p
-    (clear-store store)
+    (rdf:repository-clear repository)
     (maphash #'(lambda (k v) (declare (ignore k))
                  (when (typep v 'resource-object)
                    (unbind-property-slots v)))
-             (source-instance-cache store)))
-  (rdf:project-graph source store))
+             (mediator-instance-cache repository)))
+  (rdf:project-graph source repository))
 
 ;;;
 

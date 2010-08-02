@@ -6,11 +6,11 @@
 
 (defpackage "http://www.franz.com/simple#" (:use) (:nicknames "simple"))
 
-(rdf:defaccessor person-first-name :property '{simple}first-name)
-(rdf:defaccessor person-last-name :property '{simple}last-name)
-(rdf:defaccessor person-spouse :property '{simple}spouse :type (cons {simple}person))
-(rdf:defaccessor person-sex :property '{simple}sex)
-(rdf:defaccessor person-children :property '{simple}has-child :type (cons {simple}person))
+(rdf:defaccessor person-first-name (person) :property '{simple}first-name)
+(rdf:defaccessor person-last-name (person) :property '{simple}last-name)
+(rdf:defaccessor person-spouse (person) :property '{simple}spouse :type (cons {simple}person))
+(rdf:defaccessor person-sex (person) :property '{simple}sex)
+(rdf:defaccessor person-children (person) :property '{simple}has-child :type (cons {simple}person))
   
 (rdf:load-repository (wilbur-mediator) #P"LIBRARY:examples;data;kennedy.ntriples")
 

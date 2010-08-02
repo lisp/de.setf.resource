@@ -57,7 +57,7 @@ property-value, (setf property-value), property-boundp,
   (:export
    :*class.archetypal-property-definition*
    :*class.prototypal-property-definition*
-   :*class.resource-mediator*
+   :*class.repository-mediator*
    :*class.resource*
    :agraph-mediator
    :archetypal-property-definition
@@ -69,11 +69,10 @@ property-value, (setf property-value), property-boundp,
    :class-not-found-error
    :class-not-found
    :class-property-slots
-   :class-source
+   :class-repository
    :class-uri-function
    :clean
    :clean-persistent
-   :clear-repository
    :commit
    :context
    :defaccessor
@@ -124,17 +123,20 @@ property-value, (setf property-value), property-boundp,
    :make-prototypal-property-definition
    :make-transient
    :make-repository-value
-   :make-resource-mediator
+   :make-repository-mediator
    :make-resource
    :map-collection
+   :map-contexts
    :map-objects
    :map-property-predicates
    :map-property-slots
    :map-property-values
    :map-predicates 
-   :map-quads
    :map-statements
    :map-subjects
+   :mediator-state
+   :mediator-repository
+   :mediator-default-context
    :model-value
    :modify
    :modified
@@ -179,8 +181,11 @@ property-value, (setf property-value), property-boundp,
    :rdf-slot-reader
    :read-properties
    :refresh
+   :repository-clear
+   :repository-close
    :repository-count
-   :repository-default-context
+   :repository-empty?
+   :repository-indelible?
    :repository-persistent?
    :repository-readable?
    :repository-transient?
@@ -188,8 +193,6 @@ property-value, (setf property-value), property-boundp,
    :repository-class-definition
    :repository-property-definition
    :repository-namespace-bindings
-   :repository-state
-   :repository-store
    :repository-value
    :repository-value-binary
    :repository-value-double
@@ -203,12 +206,12 @@ property-value, (setf property-value), property-boundp,
    :repository-value-string
    :repository-value-uuid
    :repository-value-uri
-   :require
+   :require-vocabulary
    :resource
    :resource-class
    :resource-not-found-error
-   :resource-mediator
-   :resource-mediator-p
+   :repository-mediator
+   :repository-mediator-p
    :resource-object
    :resource-p
    :retain-values?
@@ -255,8 +258,7 @@ property-value, (setf property-value), property-boundp,
    :wilbur-mediator
    :with-transaction
    :write-properties
-   :*urn.cl-package*
-   :*rdf-sources*))
+   :*urn.cl-package*))
 
 
 (defpackage :de.setf.resource.implementation
@@ -270,7 +272,6 @@ property-value, (setf property-value), property-boundp,
                           :require
                           :string
                           :set
-                          :store-value
                           :type-of)
   (:shadowing-import-from :de.setf.utility
                           :ensure-package)

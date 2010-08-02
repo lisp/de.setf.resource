@@ -252,7 +252,7 @@
                      (assert (typep package 'package) () 
                              (error "Invalid package definition: ~s." form))
                      (setq *package* package)))
-                  (rdf:require
+                  (rdf:require-vocabulary
                    (eval form))
                   (rdf:defvocabulary
                     (let ((vocabulary (eval form)))
@@ -276,14 +276,14 @@
   (uri-pathname uri :name "vocabulary"))
 
 
-(defmethod rdf:require ((uri-namestring string) &key (pathname (vocabulary-pathname uri-namestring)))
+(defmethod rdf:require-vocabulary ((uri-namestring string) &key (pathname (vocabulary-pathname uri-namestring)))
   (or (gethash uri-namestring *vocabularies*)
       (setf (gethash uri-namestring *vocabularies*)
             (load-vocabulary pathname uri-namestring))))
 
-(defmethod rdf:require ((uri symbol) &rest args)
+(defmethod rdf:require-vocabulary ((uri symbol) &rest args)
   (declare (dynamic-extent args))
-  (apply #'rdf:require (symbol-uri-namestring uri) args))
+  (apply #'rdf:require-vocabulary (symbol-uri-namestring uri) args))
 
 
 
@@ -291,12 +291,12 @@
 ;;;
 ;;; load standard vocabularies
 
-(defvar *rdf-vocabulary* (rdf:require "http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
-(defvar *rdfs-vocabulary* (rdf:require "http://www.w3.org/2000/01/rdf-schema#"))
-(defvar *owl-vocabulary* (rdf:require "http://www.w3.org/2002/07/owl#"))
-(defvar *xsd-vocabulary* (rdf:require "http://www.w3.org/2001/XMLSchema-datatypes#"))
+(defvar *rdf-vocabulary* (rdf:require-vocabulary "http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
+(defvar *rdfs-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2000/01/rdf-schema#"))
+(defvar *owl-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2002/07/owl#"))
+(defvar *xsd-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2001/XMLSchema-datatypes#"))
 
-;;; (mapcar #'rdf:require *default-vocabulary-names*)
+;;; (mapcar #'rdf:require-vocabulary *default-vocabulary-names*)
 
 ;; (camel-dash-canonicalizer (make-symbol (camel-dash-canonicalizer "asdfQwer")))
               

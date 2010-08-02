@@ -27,7 +27,7 @@
  to the SKOS[4][5] ontology. As of version 8.06, the documentation suggests about 6,000 headings and 18,000
  entry terms. The data itself indicates 6,524 nodes and 31,425 distinct related labels.
 
- This example demonstrates how to use the resource library together with an RDF store to render concept
+ This example demonstrates how to use the resource library together with an RDF repository to render concept
  networks as visual graphs. It starts with the RDF/XML version of the document[6] which is available from
  the ZBW web site.
 
@@ -47,10 +47,10 @@
 
     rapper stw.rdf > stw.nt
 
- Given which, it is a simple operation to load it into the rdf store. Should it be necessary to first
+ Given which, it is a simple operation to load it into the rdf repository. Should it be necessary to first
  clear the repository:
 
-    (rdf:clear-repository (wilbur-mediator))
+    (rdf:repository-clear (wilbur-mediator))
 
  On a vintage G5-2x1.8 with mcl, the process takes about two minutes, yields about 114K nodes and uses
  about 150 megabutes.
@@ -242,11 +242,10 @@
         (color.related "#555555"))
     (labels ((put-node (concept &key (color color.normal) label (fontcolor color.normal))
                ;; emit just the node itself and register it
-               (unless (gethash concept nodes)
-                 (setf (gethash concept nodes) t)
-                 (dot:put-eol)
-                 (dot:put-node concept :label label :color color :fontcolor fontcolor)
-                 (incf node-count)))
+               (setf (gethash concept nodes) t)
+               (dot:put-eol)
+               (dot:put-node concept :label label :color color :fontcolor fontcolor)
+               (incf node-count))
              (put-edges (concept &key (color.broader color.broader) (color.narrower color.narrower))
                (dolist (narrower (concept-narrower concept))
                  ;; double-check for duplicate entries
@@ -257,7 +256,7 @@
                ;; double check the broader concepts - they should already have been emitted
                (dolist (broader (concept-broader concept))
                  (unless (gethash (cons broader concept) b-n)
-                   (dot:put-edge broader concept :color color.broader)
+                   (dot:put-edge broader concept :color color.broader :dir "back")
                    (incf edge-count)))
                (when related 
                  (dolist (other (concept-related concept))

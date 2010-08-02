@@ -3,7 +3,7 @@
 (in-package :de.setf.resource.implementation)
 
 (:documentation
-  "This file mediates access to a cassandra store with an SPOC schema the 'de.setf.resource' CLOS
+  "This file mediates access to a cassandra repository with an SPOC schema the 'de.setf.resource' CLOS
  linked data library."
  
  (copyright
@@ -21,43 +21,43 @@
 
 (defclass cassandra-spoc-index-mediator (cassandra-mediator)
   ((c-index
-    :reader store-c-index
+    :reader repository-c-index
     :documentation "a column family index: (context . (spoc-id . context)* )*")
    (o-index
-    :reader store-o-index
+    :reader repository-o-index
     :documentation "a column family index: (object . (spoc-id . context)* )*")
    (p-index
-    :reader store-p-index
+    :reader repository-p-index
     :documentation "a column family index: (predicate . (spoc-id . context)* )*")
    (s-index
-    :reader store-s-index
+    :reader repository-s-index
     :documentation "a column family index: (subject . (spoc-id . context)* )*")
    (cos-index
-    :reader store-cos-index
+    :reader repository-cos-index
     :documentation "a super-column family index: ([..object.context] . (subject . (predicate . spoc-id)* )* )*")
    (cpo-index
-    :reader store-cpo-index
+    :reader repository-cpo-index
     :documentation "a super-column family index: ([.predicate..context] . (object . (subject . spoc-id)* )* )*")
    (cso-index
-    :reader store-cso-index
+    :reader repository-cso-index
     :documentation "a super-column family index: ([subject...context] . (object . (predicate . spoc-id)* )* )*")
    (csp-index
-    :reader store-csp-index
+    :reader repository-csp-index
     :documentation "a super-column family index: ([subject...context] . (predicate . (object . spoc-id)* )* )*")
    (poc-index
-    :reader store-poc-index
+    :reader repository-poc-index
     :documentation "a super-column family index: ([.predicate.object.] . (context . (subject . spoc-id)* )* )*")
    (soc-index
-    :reader store-soc-index
+    :reader repository-soc-index
     :documentation "a super-column family index: ([subject..object.] . (context . (predicate . spoc-id)* )* )*")
    (spc-index
-    :reader store-spc-index
+    :reader repository-spc-index
     :documentation "a super-column family index: ([subject.predicate..] . (context . (subject . spoc-id)* )* )*")
    (spo-index
-    :reader store-spo-index
+    :reader repository-spo-index
     :documentation "a super-column family index: ([subject.predicate..] . (object . (context . spoc-id)* )* )*")
    (spoc-index
-    :reader store-spoc-index
+    :reader repository-spoc-index
     :documentation "a column family index:
      ([subject.predicate.object.context] . ((:subject . 's') (:predicate . 'p') (:object . 'o') (:context . 'c') ...))
      It enumerates the respective statement's constituents."))
@@ -118,29 +118,29 @@
              (store-column-index (index key name value)
                (when index (dsc:set-attribute index key name value)))
              (store-statement ()
-               (dsc:set-attributes (store-spoc-index mediator) spoc-id
+               (dsc:set-attributes (repository-spoc-index mediator) spoc-id
                                    :subject s-subject :predicate s-predicate :object s-object
                                    :context s-context)
 
                ;; the single-constituent index maps its key to the set of ids and the respective contexts
-               (store-column-index (store-c-index mediator) s-context spoc-id s-context)        ; redundant. better?
-               (store-column-index (store-o-index mediator) s-object spoc-id s-context)
-               (store-column-index (store-p-index mediator) s-predicate spoc-id s-context)
-               (store-column-index (store-s-index mediator) s-subject spoc-id s-context)
+               (store-column-index (repository-c-index mediator) s-context spoc-id s-context)        ; redundant. better?
+               (store-column-index (repository-o-index mediator) s-object spoc-id s-context)
+               (store-column-index (repository-p-index mediator) s-predicate spoc-id s-context)
+               (store-column-index (repository-s-index mediator) s-subject spoc-id s-context)
                
                ;; the multi-constituent index maps the 3/4 quad to the fourth constituent and the respective id
-               (store-supercolumn-index (store-cos-index mediator) (compute-spoc-id nil nil s-object s-context) s-subject s-predicate spoc-id)
-               (store-supercolumn-index (store-cpo-index mediator) (compute-spoc-id nil s-predicate nil  s-context) s-object s-subject spoc-id)
-               (store-supercolumn-index (store-cso-index mediator) (compute-spoc-id s-subject nil nil s-context) s-object s-predicate spoc-id)
-               (store-supercolumn-index (store-csp-index mediator) (compute-spoc-id s-subject nil nil s-context) s-predicate s-object spoc-id)
-               (store-supercolumn-index (store-poc-index mediator) (compute-spoc-id nil s-predicate s-object nil) s-context s-subject spoc-id)
-               (store-supercolumn-index (store-soc-index mediator) (compute-spoc-id s-subject nil s-object nil) s-context s-predicate spoc-id)
-               (store-supercolumn-index (store-spc-index mediator) (compute-spoc-id s-subject s-predicate nil nil) s-context s-object spoc-id)
-               (store-supercolumn-index (store-spo-index mediator) (compute-spoc-id s-subject s-predicate nil nil) s-object s-context spoc-id)))
+               (store-supercolumn-index (repository-cos-index mediator) (compute-spoc-id nil nil s-object s-context) s-subject s-predicate spoc-id)
+               (store-supercolumn-index (repository-cpo-index mediator) (compute-spoc-id nil s-predicate nil  s-context) s-object s-subject spoc-id)
+               (store-supercolumn-index (repository-cso-index mediator) (compute-spoc-id s-subject nil nil s-context) s-object s-predicate spoc-id)
+               (store-supercolumn-index (repository-csp-index mediator) (compute-spoc-id s-subject nil nil s-context) s-predicate s-object spoc-id)
+               (store-supercolumn-index (repository-poc-index mediator) (compute-spoc-id nil s-predicate s-object nil) s-context s-subject spoc-id)
+               (store-supercolumn-index (repository-soc-index mediator) (compute-spoc-id s-subject nil s-object nil) s-context s-predicate spoc-id)
+               (store-supercolumn-index (repository-spc-index mediator) (compute-spoc-id s-subject s-predicate nil nil) s-context s-object spoc-id)
+               (store-supercolumn-index (repository-spo-index mediator) (compute-spoc-id s-subject s-predicate nil nil) s-object s-context spoc-id)))
 
-      (handler-case (progn (dsc:get-attribute (store-spoc-index mediator) spoc-id :context)
+      (handler-case (progn (dsc:get-attribute (repository-spoc-index mediator) spoc-id :context)
                            ;; if this completes, the statement is already present in the graph
-                           (signal 'duplicate-statement :statement (list subject predicate object context) :store mediator)
+                           (duplicate-statement mediator :statement (list subject predicate object context))
                            ;; if the signal is not handled, just return nil
                            nil)
         ;; if there was none, compute the id and add the properties
@@ -174,7 +174,7 @@
            (flet ((cmv (column) (model-value mediator (dsc:column-value column))))
              (declare (dynamic-extent #'mv))
              (loop for column-id.c in (dsc:get-columns index key)
-                   for s-columns = (dsc:get-columns (store-spoc-index mediator)
+                   for s-columns = (dsc:get-columns (repository-spoc-index mediator)
                                                     (dsc:column-name column-id.c)
                                                     :column-names column-names)
                    do (apply op 
@@ -186,7 +186,7 @@
       (spoc-case (mediator (s-subject s-predicate s-object s-context) subject predicate object context)
         :spoc                           ; check for a context-specific statement
         (let ((spoc-id (compute-spoc-id s-subject s-predicate s-object s-context)))
-          (when (dsc:get-attributes (store-spoc-index mediator) spoc-id :column-names '(:context))
+          (when (dsc:get-attributes (repository-spoc-index mediator) spoc-id :column-names '(:context))
             ;; if it completes with an equivalent object
             (funcall continuation subject predicate object context spoc-id)))
         
@@ -194,11 +194,11 @@
         (flet ((do-constituents (context id)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-supercolumn-family #'do-constituents (store-spo-index mediator) (compute-spoc-id s-subject s-predicate nil nil) s-object))
+          (map-supercolumn-family #'do-constituents (repository-spo-index mediator) (compute-spoc-id s-subject s-predicate nil nil) s-object))
         
         :sp-c                           ; retrieve for subject and predicate in the context
-        (let ((spc-index (store-spc-index mediator))
-              (csp-index (store-csp-index mediator)))
+        (let ((spc-index (repository-spc-index mediator))
+              (csp-index (repository-csp-index mediator)))
           (flet ((do-constituents (object id)
                    (funcall continuation subject predicate object context id)))
             (declare (dynamic-extent #'do-constituents))
@@ -211,17 +211,17 @@
                             (when (and (equal subject test-subject) (equal predicate test-predicate) (equal context test-context))
                               (funcall continuation subject predicate object context id))))
                      (declare (dynamic-extent #'do-constituents))
-                     (map-spoc-columns #'do-constituents (store-o-index mediator) s-subject '(:predicate :subject)))))))
+                     (map-spoc-columns #'do-constituents (repository-o-index mediator) s-subject '(:predicate :subject)))))))
         
         :sp--                           ; look for subject and predicates across contexts
         (flet ((do-constituents (object context id)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-supercolumn-family #'do-constituents (store-spo-index mediator) (compute-spoc-id s-subject s-predicate nil nil)))
+          (map-supercolumn-family #'do-constituents (repository-spo-index mediator) (compute-spoc-id s-subject s-predicate nil nil)))
         
         :s-oc                          ; look for s.o in the context
-        (let ((soc-index (store-soc-index mediator))
-              (cso-index (store-cso-index mediator)))
+        (let ((soc-index (repository-soc-index mediator))
+              (cso-index (repository-cso-index mediator)))
           (flet ((do-constituents (predicate id)
                    (funcall continuation subject predicate object context id)))
             (declare (dynamic-extent #'do-constituents))
@@ -234,29 +234,29 @@
                             (when (and (equal subject test-subject) (equal object test-object) (equal context test-context))
                               (funcall continuation subject predicate object context id))))
                      (declare (dynamic-extent #'do-constituents))
-                     (map-spoc-columns #'do-constituents (store-p-index mediator) s-subject '(:object :subject)))))))
+                     (map-spoc-columns #'do-constituents (repository-p-index mediator) s-subject '(:object :subject)))))))
         
         :s-o-                           ; retrieve s.o across contexts
         (flet ((do-constituents (context predicate id)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-supercolumn-family #'do-constituents (store-soc-index mediator) (compute-spoc-id s-subject nil s-object nil)))
+          (map-supercolumn-family #'do-constituents (repository-soc-index mediator) (compute-spoc-id s-subject nil s-object nil)))
         
         :s--c                           ; retrieve all s in the context
         (flet ((do-constituents (object predicate id)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-supercolumn-family #'do-constituents (store-cso-index mediator) (compute-spoc-id s-subject nil nil s-context)))
+          (map-supercolumn-family #'do-constituents (repository-cso-index mediator) (compute-spoc-id s-subject nil nil s-context)))
         
         :s---                           ; retrieve all s across all contexts
         (flet ((do-constituents (context id object predicate)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-spoc-columns #'do-constituents (store-s-index mediator) s-subject '(:object :predicate)))
+          (map-spoc-columns #'do-constituents (repository-s-index mediator) s-subject '(:object :predicate)))
         
         :-poc                          ; look for p.o in the context
-        (let ((poc-index (store-poc-index mediator))
-              (cpo-index (store-cpo-index mediator)))
+        (let ((poc-index (repository-poc-index mediator))
+              (cpo-index (repository-cpo-index mediator)))
           (flet ((do-constituents (subject id)
                    (funcall continuation subject predicate object context id)))
             (declare (dynamic-extent #'do-constituents))
@@ -269,46 +269,46 @@
                             (when (and (equal predicate test-predicate) (equal object test-object) (equal context test-context))
                               (funcall continuation subject predicate object context id))))
                      (declare (dynamic-extent #'do-constituents))
-                     (map-spoc-columns #'do-constituents (store-s-index mediator) s-subject '(:object :predicate)))))))
+                     (map-spoc-columns #'do-constituents (repository-s-index mediator) s-subject '(:object :predicate)))))))
         
         :-po-                         ; retrieve p.o across contexts
         (flet ((do-constituents (context subject id)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-supercolumn-family #'do-constituents (store-poc-index mediator) (compute-spoc-id nil s-predicate s-object nil)))
+          (map-supercolumn-family #'do-constituents (repository-poc-index mediator) (compute-spoc-id nil s-predicate s-object nil)))
         
         :-p-c                         ; retrieve all p in the context
         (flet ((do-constituents (object subject id)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-supercolumn-family #'do-constituents (store-cpo-index mediator) (compute-spoc-id nil s-predicate nil s-context)))
+          (map-supercolumn-family #'do-constituents (repository-cpo-index mediator) (compute-spoc-id nil s-predicate nil s-context)))
         
         :-p--                           ; retrieve all p across all contexts
         (flet ((do-constituents (context id object subject)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-spoc-columns #'do-constituents (store-p-index mediator) s-predicate '(:object :subject)))
+          (map-spoc-columns #'do-constituents (repository-p-index mediator) s-predicate '(:object :subject)))
         
         :--oc                         ; retrieve all o in the context
         (flet ((do-constituents (subject predicate id)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-supercolumn-family #'do-constituents (store-cos-index mediator) (compute-spoc-id nil nil s-object s-context)))
+          (map-supercolumn-family #'do-constituents (repository-cos-index mediator) (compute-spoc-id nil nil s-object s-context)))
         
         :--o-                           ; retrieve all o across all contexts
         (flet ((do-constituents (context id predicate subject)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-spoc-columns #'do-constituents (store-o-index mediator) s-object '(:predicate :subject)))
+          (map-spoc-columns #'do-constituents (repository-o-index mediator) s-object '(:predicate :subject)))
         
         :---c                         ; retrieve all from a context
         (flet ((do-constituents (context id object predicate subject)
                  (funcall continuation subject predicate object context id)))
           (declare (dynamic-extent #'do-constituents))
-          (map-spoc-columns #'do-constituents (store-c-index mediator) s-context '(:object :predicate :subject)))
+          (map-spoc-columns #'do-constituents (repository-c-index mediator) s-context '(:object :predicate :subject)))
         
         :----                         ; retrieve all statements
-        (let ((spoc-index (store-spoc-index mediator)))
+        (let ((spoc-index (repository-spoc-index mediator)))
           (flet ((do-key-slice (key-slice)
                    (let ((id (dsc:keyslice-key key-slice))
                          (columns (dsc:keyslice-columns key-slice)))
@@ -347,22 +347,22 @@
              (when index (dsc:set-attribute index (list key sc-key) name nil))))
       
       ;;(dolist (dsc:column-name '(:subject :predicate :object :context))
-      ;;  (dsc:set-attribute (store-spoc-index mediator) spoc-id column-name nil))
-      (dsc:remove mediator :key spoc-id :column-family (dsc:column-family-name (store-spoc-index mediator)))
+      ;;  (dsc:set-attribute (repository-spoc-index mediator) spoc-id column-name nil))
+      (dsc:remove mediator :key spoc-id :column-family (dsc:column-family-name (repository-spoc-index mediator)))
       
-      (delete-column-index (store-c-index mediator) s-context spoc-id)
-      (delete-column-index (store-o-index mediator) s-object spoc-id)
-      (delete-column-index (store-p-index mediator) s-predicate spoc-id)
-      (delete-column-index (store-s-index mediator) s-subject spoc-id)
+      (delete-column-index (repository-c-index mediator) s-context spoc-id)
+      (delete-column-index (repository-o-index mediator) s-object spoc-id)
+      (delete-column-index (repository-p-index mediator) s-predicate spoc-id)
+      (delete-column-index (repository-s-index mediator) s-subject spoc-id)
       
-      (delete-supercolumn-index (store-cos-index mediator) (compute-spoc-id nil nil s-object s-context) s-subject s-predicate)
-      (delete-supercolumn-index (store-cpo-index mediator) (compute-spoc-id nil s-predicate nil  s-context) s-object s-subject)
-      (delete-supercolumn-index (store-cso-index mediator) (compute-spoc-id s-subject nil nil s-context) s-object s-predicate)
-      (delete-supercolumn-index (store-csp-index mediator) (compute-spoc-id s-subject nil nil s-context) s-predicate s-object)
-      (delete-supercolumn-index (store-poc-index mediator) (compute-spoc-id nil s-predicate s-object nil) s-context s-subject)
-      (delete-supercolumn-index (store-soc-index mediator) (compute-spoc-id s-subject nil s-object nil) s-context s-predicate)
-      (delete-supercolumn-index (store-spc-index mediator) (compute-spoc-id s-subject s-predicate nil nil) s-context s-object)
-      (delete-supercolumn-index (store-spo-index mediator) (compute-spoc-id s-subject s-predicate nil nil) s-object s-context))))
+      (delete-supercolumn-index (repository-cos-index mediator) (compute-spoc-id nil nil s-object s-context) s-subject s-predicate)
+      (delete-supercolumn-index (repository-cpo-index mediator) (compute-spoc-id nil s-predicate nil  s-context) s-object s-subject)
+      (delete-supercolumn-index (repository-cso-index mediator) (compute-spoc-id s-subject nil nil s-context) s-object s-predicate)
+      (delete-supercolumn-index (repository-csp-index mediator) (compute-spoc-id s-subject nil nil s-context) s-predicate s-object)
+      (delete-supercolumn-index (repository-poc-index mediator) (compute-spoc-id nil s-predicate s-object nil) s-context s-subject)
+      (delete-supercolumn-index (repository-soc-index mediator) (compute-spoc-id s-subject nil s-object nil) s-context s-predicate)
+      (delete-supercolumn-index (repository-spc-index mediator) (compute-spoc-id s-subject s-predicate nil nil) s-context s-object)
+      (delete-supercolumn-index (repository-spo-index mediator) (compute-spoc-id s-subject s-predicate nil nil) s-object s-context))))
 
 
 

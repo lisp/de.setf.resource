@@ -23,13 +23,13 @@
 
 (defparameter *uri-pathname-root* "LIBRARY:de;setf;xml;namespaces;")
 
-(defparameter *rdf-sources* (make-hash-table))
-
-(defvar +unbound-marker+ (list :unbound))
-
 (defvar *prototype-slot-name* :prototype)
 
 (defvar *property-slot-name* :properties)
+
+(defparameter *repository-mediator.default* '(wilbur-mediator))
+
+(defvar +unbound-marker+ (list :unbound))
 
 (defvar *vocabularies* (make-hash-table :test 'equal))
 

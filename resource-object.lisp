@@ -24,10 +24,10 @@
     :initarg :uri
     :reader get-object-uri :writer setf-object-uri
     :type (or uuid:uuid symbol))
-   (source
-    :initform nil :initarg :source
-    :reader get-object-source
-    :documentation "Binds the source for the instance. The default is the class source.")
+   (repository
+    :initform nil :initarg :repository
+    :reader get-object-repository
+    :documentation "Binds the repository for the instance. The default is the class repository.")
    (state
     :initform rdf:transient :initarg :state
     :reader object-state :writer setf-object-state
@@ -43,7 +43,7 @@
    (graph
      :initform nil :initarg :graph
      :accessor object-graph
-     :documentation "Specifies the individual graph, within the object's source, which comprises the object's
+     :documentation "Specifies the individual graph, within the object's repository, which comprises the object's
       description. The default value is NIL.")
    (history
     :initform ()
@@ -55,12 +55,12 @@
     :documentation "Bind the property-slot-definition metaobjects which bind non-slot properties for
      structural variations and prototypes."))
   (:metaclass abstract-resource-class)
-  (:source t)
+  (:repository t)
   (:compute-uri-function compute-object-uuid)
   (:property-missing-function rdf:property-missing)
 
   (:documentation "The resource-object class describes the abstract features of 'resource' linked data entities.
- Each object comprises an identifier - either a symbol or a UUID, a repository source -either directly, or by
+ Each object comprises an identifier - either a symbol or a UUID, a repository -either directly, or by
  delegation through its class, a complement of archetypal properties and a complement of prototypal properties.
  Archetypal properties are those slots for which a datatype or a predicate is declared.
  Prototypal properties are those additional values which are associated with an instance through a property
@@ -136,7 +136,7 @@
   (rdf:ensure-instance (class-of object) identifier))
 
 
-(defmethod rdf:model-value ((source resource-mediator) (object resource-object))
+(defmethod rdf:model-value ((mediator repository-mediator) (object resource-object))
   "In the context of a repository, the model domain value of a resource-object instance
  is the instance itself."
   object)
@@ -147,11 +147,11 @@
   (rdf:model-value (class-of object) identifier))
 
 
-(defmethod rdf:repository-value :around ((source resource-mediator) (object resource-object))
+(defmethod rdf:repository-value :around ((mediator repository-mediator) (object resource-object))
   "In the context of a repository, a resource-object is identified with its URI.
  This is present as an :around method to delegate immediately to the URI in order that it appear in the
  repositories cache in relation to the concrete repository-value."
-  (rdf:repository-value source (rdf:uri object)))
+  (rdf:repository-value mediator (rdf:uri object)))
 
 
 (defmethod compute-object-uuid ((object resource-object))
@@ -172,11 +172,11 @@
   (rdf:equal (rdf:uri object) uri))
 
 
-(defmethod object-source ((object resource-object))
+(defmethod object-repository ((object resource-object))
   "Given a RESOURCE-OBJECT, return its immediate repository or delegate to its class if none
  was specified."
-  (or (get-object-source object)
-      (class-source (class-of object))))
+  (or (get-object-repository object)
+      (class-repository (class-of object))))
 
 
 (defmethod rdf:prototypal-property-definition ((object resource-object) &rest initargs)
@@ -219,9 +219,8 @@
   (:method ((new-value t) (class resource-class) object predicate)
     (let ((definition (find-archetypal-property-definition-by-predicate class predicate)))
       (cond (definition
-             (let* ((writer (slot-definition-writer definition))
-                    (type (c2mop:slot-definition-type definition)))
-               (funcall writer (internalize-resource-object new-value type))))
+             (let* ((writer (slot-definition-writer definition)))
+               (funcall writer new-value object)))
             (t
              (setf (prototypal-property-value object predicate) new-value))))))
 
@@ -510,16 +509,6 @@
   (find-archetypal-property-definition-by-predicate (class-of object) predicate))
 
 
-(defgeneric rdf-source (designator)
-  (:method ((designator symbol))
-    (gethash designator *rdf-sources*)))
-
-
-(defgeneric (setf rdf-source) (source designator)
-  (:method (source (designator symbol))
-    (setf (gethash designator *rdf-sources*) source)))
-
-
 ;;;
 ;;; rdf enumeration interface
 
@@ -575,11 +564,11 @@
 ;;; life-cycle support
 
 (defmethod (setf rdf:find-instance) (instance (object resource-object) identifier)
-  (setf (rdf:find-instance (object-source object) identifier) instance))
+  (setf (rdf:find-instance (object-repository object) identifier) instance))
 
 
-(defmethod repository-register ((source resource-mediator) (object resource-object))
-  (setf (gethash object (repository-transaction-cache source))
+(defmethod repository-register ((mediator repository-mediator) (object resource-object))
+  (setf (gethash object (mediator-transaction-cache mediator))
         (object-state object)))
 
 

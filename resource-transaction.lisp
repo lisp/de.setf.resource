@@ -22,70 +22,70 @@
 ;;; life-cycle suport
 
 
-(defmethod abort-transaction (source)
-  (transaction-step source (repository-state source) transaction-abort))
+(defmethod abort-transaction (mediator)
+  (transaction-step mediator (mediator-state mediator) transaction-abort))
 
-(defmethod commit-transaction (source)
-  (transaction-step source (repository-state source) transaction-commit))
+(defmethod commit-transaction (mediator)
+  (transaction-step mediator (mediator-state mediator) transaction-commit))
 
-(defmethod open-transaction (source)
-  (transaction-step source (repository-state source) transaction-open))
+(defmethod open-transaction (mediator)
+  (transaction-step mediator (mediator-state mediator) transaction-open))
 
-(defgeneric transaction-evict (source object)
+(defgeneric transaction-evict (mediator object)
   (:documentation "Remove the object from the transactional cache.")
 
-  (:method ((source resource-mediator) object)
-    (remhash object (repository-transaction-cache source))))
+  (:method ((mediator repository-mediator) object)
+    (remhash object (mediator-transaction-cache mediator))))
 
-(defgeneric transaction-register (source object)
+(defgeneric transaction-register (mediator object)
   (:documentation "Register the object and state in the transaction cache.")
 
-  (:method ((source resource-mediator) object)
-    (setf (gethash object (repository-transaction-cache source)) (object-state object))))
+  (:method ((mediator repository-mediator) object)
+    (setf (gethash object (mediator-transaction-cache mediator)) (object-state object))))
 
 
 
-(defgeneric transaction-step (source start-state end-state)
-  (:method ((source resource-mediator) (start t) (end t))
-    (invalid-state-error :object source :start-state start :end-state end))
+(defgeneric transaction-step (mediator start-state end-state)
+  (:method ((mediator repository-mediator) (start t) (end t))
+    (invalid-state-error :object mediator :start-state start :end-state end))
 
-  (:method ((source resource-mediator) (start non-transactional) (end transaction-commit))
+  (:method ((mediator repository-mediator) (start non-transactional) (end transaction-commit))
     ;; ignore it
     end)
 
-  (:method ((source resource-mediator) (start transaction-open) (end transaction-commit))
+  (:method ((mediator repository-mediator) (start transaction-open) (end transaction-commit))
     "Iterate twice over the transaction cache. In the first pass write all modified object properties. Once
  that has succeeded, update the object states to either hollow or non-transactional. Finally, clear the cache."
-    (setf-repository-state end source)
+    (setf-mediator-state end mediator)
     ;; push any changes (or deletion) to the repository
-    (maphash #'write-properties-in-state (repository-transaction-cache source))
+    (maphash #'write-properties-in-state (mediator-transaction-cache mediator))
     ;; then mark comitted
-    (maphash #'commit-in-state (repository-transaction-cache source))
-    (clrhash (repository-transaction-cache source))
-    (setf-repository-state non-transactional source))
+    (maphash #'commit-in-state (mediator-transaction-cache mediator))
+    (clrhash (mediator-transaction-cache mediator))
+    (setf-mediator-state non-transactional mediator))
 
-  (:method ((source resource-mediator) (start non-transactional) (end transaction-open))
-    (setf-repository-state end source))
+  (:method ((mediator repository-mediator) (start non-transactional) (end transaction-open))
+    (setf-mediator-state end mediator))
 
-  (:method ((source resource-mediator) (start non-transactional) (end transaction-abort))
+  (:method ((mediator repository-mediator) (start non-transactional) (end transaction-abort))
     ;; ignore it
     end)
 
-  (:method ((source resource-mediator) (start transaction-open) (end transaction-abort))
-    (setf-repository-state end source)
-    (maphash #'rollback-in-state (repository-transaction-cache source))
-    (clrhash (repository-transaction-cache source))
-    (setf-repository-state non-transactional source)))
+  (:method ((mediator repository-mediator) (start transaction-open) (end transaction-abort))
+    (setf-mediator-state end mediator)
+    (maphash #'rollback-in-state (mediator-transaction-cache mediator))
+    (clrhash (mediator-transaction-cache mediator))
+    (setf-mediator-state non-transactional mediator)))
 
-(defmacro rdf:with-transaction ((source) &body body)
+(defmacro rdf:with-transaction ((mediator) &body body)
   (let ((op (cons-symbol nil :transaction))
-        (repository-var (cons-symbol nil :source)))
+        (repository-var (cons-symbol nil :mediator)))
     `(flet ((,op () ,@body))
-       (let ((,repository-var ,source))
-         (typecase (repository-state ,repository-var)
+       (let ((,repository-var ,mediator))
+         (typecase (mediator-state ,repository-var)
            (transactional (,op))
            (t (unwind-protect (progn (open-transaction ,repository-var)
                                      (multiple-value-prog1 (,op)
                                        (commit-transaction ,repository-var)))
-                (typecase (repository-state ,repository-var)
-                  (transactional (abort-transaction source))))))))))
+                (typecase (mediator-state ,repository-var)
+                  (transactional (abort-transaction mediator))))))))))

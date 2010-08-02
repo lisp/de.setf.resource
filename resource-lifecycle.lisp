@@ -24,7 +24,7 @@
  In the transient state mo content is tracked and nothing happens to maintain a relation with the source.
  In the persistent states changes history is tracked and object content reflects persistent state plus the
  tracked delta. Hollow, as a special case, contains no state, as the instance should be identical with the
- store.
+ repository data.
 
  ---
  [1] : http://db.apache.org/jdo/state_transition.html"))
@@ -35,7 +35,7 @@
 
 (defmethod rdf:commit ((object resource-object))
   "Invoked at the successful conclusion of a transaction to transfer the object state to its
- respective persistent store. Calls write-properties-in-state, which acts according to whether
+ respective persistent repository. Calls write-properties-in-state, which acts according to whether
  the instane is new, has been modified, or deleted, etc."
   (write-properties-in-state object (object-state object))
   (commit-in-state object (object-state object)))
@@ -99,7 +99,7 @@
 
 (defgeneric delete-in-state (object state)
   (:documentation "Given a permitted initial state, mark the instance as deleted and 'write' its properties,
-    to delete them from the store.")
+    to delete them from the repository.")
 
   (:method (object (state rdf:hollow))
     (setf-object-state rdf:deleted-persistent object)
@@ -128,8 +128,8 @@
   (:method (object (state rdf:clean-persistent))
     "If the object is unmodified, remove it from the collection of tracked objects, by default unbind
  its properties, reset its state."
-    (transaction-evict (object-source object) object)
-    (unless (rdf:retain-values? (object-source object))
+    (transaction-evict (object-repository object) object)
+    (unless (rdf:retain-values? (object-repository object))
       (rdf:unbind-property-slots object))
     (setf-object-state rdf:hollow object)))
 
@@ -190,7 +190,7 @@
     (invalid-state-error :object object :start-state state :end-state rdf:transient))
 
   (:method (object (state rdf:hollow))
-    (rdf:project-graph (object-source object) object)
+    (rdf:project-graph (object-repository object) object)
     (setf-object-state rdf:clean-persistent object)))
 
 
@@ -204,7 +204,7 @@
   (:method (object (state rdf:modified-persistent))
     (unbind-property-slots object)
     (setf-object-history nil object)
-    (rdf:project-graph (object-source object) object)
+    (rdf:project-graph (object-repository object) object)
     (setf-object-state rdf:clean-persistent object)))
 
 
@@ -247,7 +247,7 @@
 
   (:method (object (state rdf:new-persistent))
     "For a new object, emit all statements to the source."
-    (rdf:project-graph object (object-source object)))
+    (rdf:project-graph object (object-repository object)))
 
   (:method (object (state rdf:modified-persistent))
     "For an existing persistent object, for each modified property slot, delete the original statements, emit
@@ -276,16 +276,16 @@
                             (funcall (funcall (slot-definition-writer statement-sd) object)
                                      (project-slot-value (slot-value (c2mop:slot-definition-name slot) object))
                                      object))))))
-        (rdf:project-graph #'project-modified (object-source object)))))
+        (rdf:project-graph #'project-modified (object-repository object)))))
 
   (:method (object (state rdf:deleted-persistent))
     "Given a persistent object which is to be deleted, delete all statements which refer to it in any
  role. For this, retrieve the subject-role anew as well, in order to avoid version skew."
     (flet ((delete-each (statement)
-             (rdf:delete-statement (object-source object) statement)))
-      (rdf:query (object-source object) :subject object :continuation #'delete-each)
-      (rdf:query (object-source object) :predicate object :continuation #'delete-each)
-      (rdf:query (object-source object) :object object :continuation #'delete-each)
+             (rdf:delete-statement (object-repository object) statement)))
+      (rdf:query (object-repository object) :subject object :continuation #'delete-each)
+      (rdf:query (object-repository object) :predicate object :continuation #'delete-each)
+      (rdf:query (object-repository object) :object object :continuation #'delete-each)
       (setf-object-state rdf:transient object))))
 
 
@@ -308,9 +308,10 @@
   a continuable error is signaled.
 
  Given a resource-object target, retrieve its properties as a statement sequence and apply each in turn.
- Prepare for the eventuality, that the CLOS model is incomplete by collecting relations which specify absent properties
- ans signal a conclusive error, with continuations to abort the process or reclassify the instance. 
- If continued, allow to interrogate the store for further type information or reclassify based on a structural analysis.
+ Prepare for the eventuality, that the CLOS model is incomplete by collecting relations which specify absent
+ properties ans signal a conclusive error, with continuations to abort the process or reclassify the
+ instance.  If continued, allow to interrogate the repository for further type information or reclassify
+ based on a structural analysis.
  NB. this process may also occur on a higerlevel, when mapping entire graphs, to augment the CLOS model
  proactively."
  
@@ -341,15 +342,15 @@
   (let ((object nil)
         (object-uri nil))
     (dolist (statement source)
-      (let* ((store-uri (rdf:subject statement)))
-        (unless (and object-uri (rdf:equal object-uri store-uri))       ; reuse the latest object
-          (setf object (rdf:ensure-instance class store-uri)
+      (let* ((subject-uri (rdf:subject statement)))
+        (unless (and object-uri (rdf:equal object-uri subject-uri))       ; reuse the latest object
+          (setf object (rdf:ensure-instance class subject-uri)
                 object-uri (rdf:uri object)))
         (rdf:insert-statement object statement)))
     class))
 
 
-(defmethod rdf:project-graph ((source resource-mediator) (class resource-class))
+(defmethod rdf:project-graph ((source repository-mediator) (class resource-class))
   "Given a source, enumerate the statements which match the resource-class, project the source statements
  onto instances of that class.
  Choose the concrete instance by matching the statement subject uri to the instance URI."
@@ -358,8 +359,8 @@
         (datatypes ()))
     (labels ((project-class (class)
                (flet ((project-subject-graph (statement)
-                        (let* ((store-uri (rdf:subject statement))
-                               (subject (rdf:ensure-instance class store-uri)))
+                        (let* ((subject-uri (rdf:subject statement))
+                               (subject (rdf:ensure-instance class subject-uri)))
                           (pushnew subject subjects)
                           (rdf:project-graph source subject))))
                  (declare (dynamic-extent #'project-subject-graph))
@@ -373,13 +374,13 @@
     (values subjects datatypes)))
 
 
-(defmethod rdf:project-graph ((source resource-mediator) (object resource-object))
+(defmethod rdf:project-graph ((source repository-mediator) (object resource-object))
   (dolist (statement (rdf:query source :subject (rdf:uri object)))
     (rdf:project-graph statement object))
   object)
 
 
-(defmethod rdf:project-graph ((source resource-mediator) (destination (eql t)))
+(defmethod rdf:project-graph ((source repository-mediator) (destination (eql t)))
   "When the destination class is unspecific, project all type resources."
   (let ((subjects ())
         (datatypes '({owl}Class {rdfs}Class)))          ; don't touch the metaclasses
@@ -398,8 +399,8 @@
                      (t
                       (let ((class (rdf:find-class source datatype)))
                         (flet ((project-subject-graph (statement)
-                                 (let* ((store-uri (rdf:subject statement))
-                                        (subject (rdf:ensure-instance class store-uri)))
+                                 (let* ((subject-uri (rdf:subject statement))
+                                        (subject (rdf:ensure-instance class subject-uri)))
                                    (pushnew subject subjects)
                                    (rdf:project-graph source subject))))
                           (declare (dynamic-extent #'project-subject-graph))
@@ -411,19 +412,19 @@
 
 
 
-(defmethod rdf:project-graph ((object resource-object) (store resource-mediator))
+(defmethod rdf:project-graph ((object resource-object) (mediator repository-mediator))
   (let ((statement (make-quad :subject object :context (object-graph object))))
     (labels ((project-slot (sd)
                (project-slot-using-statement object sd statement #'project-statement))
              (project-statement (stmt)
-               (rdf:insert-statement store stmt)))
+               (rdf:insert-statement mediator stmt)))
       (declare (dynamic-extent #'project-slot #'project-statement))
       (rdf:map-property-slots #'project-slot object))
-    store))
+    mediator))
 
 
 
-;;; it is not practical to attempt this unless the statements are coherent. a store, for example, has
+;;; it is not practical to attempt this unless the statements are coherent. a repository, for example, has
 ;;; so many spurious assertions that a coherent model would spend an inordinate portion of the time rejecting
 ;;; meta and other spurious statements.
 #+(or)
@@ -441,7 +442,7 @@
                  (cond ((and object (rdf:equal (rdf:uri object) uri)))          ; reuse the latest object
                        ((setf object (find uri objects :test #'rdf:equal :key #'rdf:uri)))    ; or one of those already targeted
                        ((setf object (rdf:find-instance class uri)))
-                       ((setf type (rdf:type-of (class-source metaclass) uri))
+                       ((setf type (rdf:type-of (class-repository metaclass) uri))
                         ; if the type is known, construct a new instance of the respective class
                         (unless (and class (rdf:equal (class-name class) type))
                           (setf class (rdf:find-class metaclass type))
@@ -641,7 +642,7 @@
 
 (defmethod rdf:delete-subject ((object resource-object) (subject t))
   (when (rdf:equal subject object)
-    (rdf:delete-subject (object-source object) subject)))
+    (rdf:delete-subject (object-repository object) subject)))
 
 
 

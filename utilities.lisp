@@ -19,13 +19,48 @@
  A copy of the GNU Lesser General Public License should be included with 'de.setf.resource', as `lgpl.txt`.
  If not, see the GNU [site](http://www.gnu.org/licenses/)."))
 
-(defgeneric internalize-resource-object (object type)
-  (:method ((object t) (type t))
-    object))
 
-(defgeneric externalize-resource-object (object type)
-  (:method ((object t) (type t))
-    object))
+;;; component conditional macro
+
+
+(defmacro spoc-case ((mediator (sub pre obj con) subject predicate object context)
+                     &key spoc spo (spo- spo) spc (sp-c spc) sp (sp-- sp)
+                     soc (s-oc soc) so (s-o- so) sc (s--c sc) s (s--- s)
+                     poc (-poc poc) po (-po- po) pc (-p-c pc) p (-p-- p)
+                     oc (--oc oc) o (--o- o) c (---c c) all (---- all))
+  "Consists of a sequence of forms, each identifier by a combination of statement components.
+ The arguments are a mediator, s sequence of constituent variable and a matching series of
+ constituent forms. If the mediator is not the constant nil, the variables are bound to the respective
+ repository value. If nil, to the forms direct value. Then that clause is evaluated which indicates the
+ non-null constituents. if no constituent is present, control passes to the :---- clause."
+
+  `(let ((,sub ,(if mediator `(repository-value ,mediator ,subject) subject))
+         (,pre ,(if mediator `(repository-value ,mediator ,predicate) predicate))
+         (,obj ,(if mediator `(repository-value ,mediator ,object) object))
+         (,con ,(if mediator `(repository-value ,mediator ,context) context)))
+     (ecase (logior (if ,sub #b1000 0) (if ,pre #b0100 0) (if ,obj #b0010 0) (if ,con #b0001 0))
+       (#b1111 ,spoc)
+       (#b1110 ,spo-)
+       (#b1101 ,sp-c)
+       (#b1100 ,sp--)
+       (#b1011 ,s-oc)
+       (#b1010 ,s-o-)
+       (#b1001 ,s--c)
+       (#b1000 ,s---)
+       (#b0111 ,-poc)
+       (#b0110 ,-po-)
+       (#b0101 ,-p-c)
+       (#b0100 ,-p--)
+       (#b0011 ,--oc)
+       (#b0010 ,--o-)
+       (#b0001 ,---c)
+       (#b0000 ,----))))
+
+#+digitool
+(setf (ccl:assq 'spoc-case ccl:*fred-special-indent-alist*) 1)
+
+
+;;; life-cycle states
 
 (defclass rdf-state () ())
 (defclass rdf:deleted (rdf-state) ())
@@ -265,7 +300,7 @@
 
 (defgeneric rdf:identifier-p (object)
   (:documentation "Return true when the object is an identifier. This includes URI as represented
- by a store, symbols, and UUID.")
+ by a repository, symbols, and UUID.")
   (:method ((identifier symbol)) t)
   (:method ((identifier uuid:uuid)) t)
   (:method ((object null)) nil)

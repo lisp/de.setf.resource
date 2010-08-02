@@ -260,8 +260,9 @@
     (or literal (setf literal (wilbur:literal "")))))
 
 (defun wilbur-datatype (type)
-  (or (gethash type *model-to-store-datatype-map*)
-      (setf (gethash type *model-to-store-datatype-map*)
+  (declare (special *model-to-repository-datatype-map*))
+  (or (gethash type *model-to-repository-datatype-map*)
+      (setf (gethash type *model-to-repository-datatype-map*)
             (wilbur:node (symbol-uri-namestring type)))))
 
 (defmethod decode-literal-value (string (type symbol))

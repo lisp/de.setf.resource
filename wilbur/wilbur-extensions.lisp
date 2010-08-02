@@ -20,8 +20,76 @@
 
 
 
+(defmethod rdf:load-repository-as ((db wilbur:db) (source pathname) (form mime:application/rdf+xml))
+  (wilbur:db-load db source))
+
+
+(defmethod rdf:load-vocabulary ((db wilbur:db) (source t) &key)
+  (let ((source-desc (wilbur:db-load db source)))
+    (when source-desc
+      (values (wilbur:node-uri (wilbur:source-desc-url source-desc))
+              (wilbur:node-uri (wilbur:source-desc-loaded-from source-desc))))))
+
+
+(defmethod map-statements* ((db db) subject predicate object continuation context)
+  "The no-index repository just iterates over the statement list."
+  (declare (ignore context))
+  (dolist (triple (db-triples db))
+    (when (and (eq~ (triple-subject triple) subject)
+               (eq~ (triple-predicate triple) predicate)
+               (eq~ (triple-object triple) object))
+      (funcall continuation triple))))
+
+
+(defmethod map-statements* (continuation (db indexed-db) subject predicate object context)
+  "The indexed repository tries to focus iteration over the respective index.
+ The indices are at three level, so the context constrain requires a test against the
+ matched statements' sources."
+  (labels ((filter-statements-by-object-by-context (object context statements)
+             (dolist (statement statements)
+               (when (and (eq (triple-object statement) object)
+                          (find context (triple-sources statement)))
+                 (funcall continuation statement))))
+           (filter-statements-by-object (object statements)
+             (dolist (statement statements)
+               (when (and (eq (triple-object statement) object))
+                 (funcall continuation statement))))
+           (filter-statements-by-context (context statements)
+             (dolist (statement statements)
+               (when (find context (triple-sources statement))
+                 (funcall continuation statement))))
+           (filter-statements (statements)
+             (map nil continuation statements)))
+    
+    (de.setf.resource.implementation::spoc-case (nil (s p o c) subject predicate object context)
+      :spoc (filter-statements-by-object-by-context o c (triple-index-get (db-index-sp db) p s))
+      :spo (filter-statements-by-object o (triple-index-get (db-index-sp db) p s))
+      :spc  (filter-statements-by-context c (triple-index-get (db-index-sp db) p s))
+      :sp  (filter-statements (triple-index-get (db-index-sp db) p s))
+      :soc  (filter-statements-by-object-by-context o c (triple-index-get (db-index-s db) s))
+      :so  (filter-statements-by-object o (triple-index-get (db-index-s db) s))
+      :sc  (filter-statements-by-context c (triple-index-get (db-index-s db) s))
+      :s   (filter-statements (triple-index-get (db-index-s db) s))
+      :poc  (filter-statements-by-context c (triple-index-get (db-index-po db) p o))
+      :po  (filter-statements (triple-index-get (db-index-po db) p o))
+      :pc   (filter-statements-by-context c (triple-index-get (db-index-p db) p))
+      :p   (filter-statements (triple-index-get (db-index-p db) p))
+      :oc   (filter-statements-by-context c (triple-index-get (db-index-o db) o))
+      :o   (filter-statements (triple-index-get (db-index-o db) o))
+      :c (filter-statements-by-context c (db-triples db))
+      :all (filter-statements (db-triples db)))))
+
+(defmethod rdf:save-repository ((db wilbur:db) (stream stream))
+  (dolist (triple (wilbur:db-triples db))
+    (format stream "~&~/n3:format/" triple))
+  (terpri stream))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+#+(or) ;; implmeneted in terms of map-statements*
 (defgeneric db-has-statement? (db subject predicate object)
-  (:documentation "Searches the store for a match to the specified s-p-o combination.
+  (:documentation "Searches the repository for a match to the specified s-p-o combination.
  VALUE : boolean : iff the constraint is satisfied.
 
  Serves as the basis for has- operators for statement, subject, predicate, object.
@@ -55,42 +123,9 @@
                 (unless triple (return))
                 (wilbur:db-add-triple db triple)))))))
 
-(defmethod rdf:load-repository-as ((db wilbur:db) (source pathname) (form mime:application/rdf+xml))
-  (wilbur:db-load db source))
-
-
-(defmethod rdf:load-vocabulary ((db wilbur:db) (source t) &key)
-  (let ((source-desc (wilbur:db-load db source)))
-    (when source-desc
-      (values (wilbur:node-uri (wilbur:source-desc-url source-desc))
-              (wilbur:node-uri (wilbur:source-desc-loaded-from source-desc))))))
-
-
-(defmethod rdf:save-repository ((db wilbur:db) (stream stream))
-  (dolist (triple (wilbur:db-triples db))
-    (format stream "~&~/n3:format/" triple))
-  (terpri stream))
-
-
-(defmethod rdf:query ((db db) &key subject predicate object continuation context limit offset)
-  (declare (ignore context))
-  (let ((matched 0)
-        (collected 0))
-    (dsu:collect-list (collect)
-      (dolist (triple (db-triples db))
-        (when (and (eq~ (triple-subject triple) subject)
-                   (eq~ (triple-predicate triple) predicate)
-                   (eq~ (triple-object triple) object)
-                   (or (null offset) (> (incf matched) offset)))
-          (if continuation
-            (funcall continuation triple)
-            (collect triple))
-          (when (and limit (>= (incf collected) limit))
-            (return)))))))
-
-
+#+(or) ;; replaced by the map-statements* method which tests contexts
 (defmethod rdf:query ((db indexed-db) &key subject predicate object continuation context limit offset)
-  "The original ignored the graph."
+  "The indexed repository tries to focus iteration over the respective index."
   (declare (ignore context))
   (let* ((collection (list nil))
          (end collection)

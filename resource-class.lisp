@@ -68,7 +68,7 @@
  Comparing general persistence architectures:[2]
  The RDF-based persistence architecture is analogous to that of elephant, in that the object is decimated
  into its slots. where elephant identifies each slot value with a _serialized descriptor_ which comprises
- the class, a class-relative oid, and the slot name, in an RDF store each subject is designated with an URI,
+ the class, a class-relative oid, and the slot name, in an RDF repository each subject is designated with an URI,
  which is logically independent of the class, and each slot value is specified with a predicate, which
  is logically independent of the slot name.  The mop issues are not strictly relevant, since any change
  is reflected in a new vrsion.
@@ -88,7 +88,7 @@
  the ancillary issues are subsumed
  - caching by identity mechanisms
  - evolution by versioned identity
- - indexing is entirely handled by the store
+ - indexing is entirely handled by the repository
 
  don't bother with slot-value-using-class, encode the protocol in the accessors.
  proxies are not necessary if the instance itself has a full life-cycle.
@@ -98,20 +98,20 @@
  each instance is named. in the spira example the instance name and the value of the 'name' attribute were similar,
  but actually unrelated. The instane uri was extrinsic. In order to support intrinsic uri, the class requires a
  compute-uri operator which can be applied to the instance to generate the uri on demand in order to name the
- new instance in the store and applied to an initialization argument list to find an external instance in the store.
+ new instance in the repository and applied to an initialization argument list to find an external instance in the repository.
 
  in which classes
  represents the direct content of a persistent relations as well as relational references
  on the basis of declared immediate data and foreign key attributes. The approach is similar to other
  object-relational mappings - such as CL-SQL, but stands apart in that the projection is expressed
  concisely in terms integrated with Ruby's object model.
- Elephant, sets a similar goal, to project CLOS class extensions onto a persistent store, but targets
+ Elephant, sets a similar goal, to project CLOS class extensions onto a persistent repository, but targets
  a key-value store, rather than relational. Which means that slot values exist as isolated attributes,
  each of which is independently associated with an instance.
 
  Any one of the direct Lisp RDF interfaces which make data available as triples, suffices as the primitive
  access layer for this projection. Both wilbur, and allegro-store afford sufficient access to a triple store.
- In the first case an in-memory store, in the second both immediate and  persistent stores.
+ In the first case an in-memory repository, in the second both immediate and  persistent repositories.
 
  Identification
  --------------
@@ -166,15 +166,15 @@
   Create a new instance. The default protocol is standard CLOS cl:standard-class instantiation protocol.
   No additional slot value processing occurs beyond distinguishing the the initial state as modified-new
   if arguments were provided.
-  The new instance is transient. It must either be registered with the store or bound to a slot in an
+  The new instance is transient. It must either be registered with the repository or bound to a slot in an
   already persistent instance.
-  No identifier is generated until the instance is written to the store.
+  No identifier is generated until the instance is written to the repository.
 
  rdf:find-instance (class . designators) :
-  Retrieve the designated instance from the class' persistence store.
+  Retrieve the designated instance from the class' persistence repository.
 
- rdf:find-instance-with-store (class store . designators) :
-  Retrieve the designated instance of the given class from the given persistence store.
+ rdf:find-instance-with-repository (class repository . designators) :
+  Retrieve the designated instance of the given class from the given persistent repository.
   The resource can be designated with a URI, or it can be specified by associations, in which case
   the related subject URI are retrieved, to be used as resource designators. count, offset, and order-by
   parameters arrange and subset the result. an if-does-not-exist parameter determines whether a null result
@@ -189,12 +189,12 @@
 
  rdf:project-graph (source destination)
   Project data between instance and rdf models. Permitted (source x destination) combinations are
-    (resource-object store)
-    ((set resource-object) store)
+    (resource-object repository)
+    ((set resource-object) repository)
     ((set statement) (resource-class + resource-object))
-    (query (store + resource-class))
+    (query (repository + resource-class))
 
-  When a resource-object is projected onto a store, the first step is to construct a URI for it.
+  When a resource-object is projected onto a repository, the first step is to construct a URI for it.
   The operation is delegated from the respective instance's class to its bound class-compute-uri-function.
   Two implementation are available: compute-temporal-uri and compute-content-uri.
   The first method generates a time-dependent UUID based on the system time and the network node id.
@@ -207,7 +207,7 @@
   vocabulary as a fragment parameter.
 
   The first forms provide the quality, that the URI is completely opaque. In the first version it can be generated
-  entirely independent of the store. The latter three forms require knowledge of the schema URI to form
+  entirely independent of the repository. The latter three forms require knowledge of the schema URI to form
   the UUID and/or URI stem.
 
  slot access (reader / writer ) :
@@ -231,7 +231,7 @@
  encode-instance (instance slots destination) : send the instane's tuples to the destination
   can also be used for list-tupls
  delete-instance (instance) : removes it from the cache ? ends it's temporal limit?
- save-instance (instance) : encodes the object to the store independent of transactions
+ save-instance (instance) : encodes the object to the repository independent of transactions
 
 
  MOP Support
@@ -246,7 +246,7 @@
  Literal slot values are internalized/externalized according to a data flow implemented in the rdf:internalize-value
  and rdf:externalize-value functions. Reference slot values require further retrieval according to the
  immediate URI and construction of the respective instances to comprise the related attributes. This process
- employes either the declared slot datatype, the type furnished by the store in relation to the subject,
+ employes either the declared slot datatype, the type furnished by the repository in relation to the subject,
  of introspective analysis of available classes (see rdf:find-class).
 
 
@@ -254,7 +254,7 @@
  ---------------------
 
  Despite the RDF "open-world" paradigm, which requires a processing mechanism accommodate unforseen data, it
- is imperative that a store mediator afford an application a stable projection of unpredicatable content.
+ is imperative that a repository mediator afford an application a stable projection of unpredicatable content.
  If a CLOS application is to rely on class and generic function definitions to behave as intended, they must
  be bound to data as it appears, `de.setf.resource` serves this goal in several ways:
  - it implements instance identity within a given mediation interface according to subject URI
@@ -264,13 +264,13 @@
  know class structure and admits additional prototypical attributes.
 
  + instance identity, indexing, and caching
- Each store mediator adopts the respective store's interened URI 'nodes' as unifying identifiers to ensure
+ Each repository mediator adopts the respective repository's interened URI 'nodes' as unifying identifiers to ensure
  a one-to-one relation between identified objects and external resources. The URI serve as keys in an
  hash table which is used in query operations to yield identical instances for equivalent URI.
- The cache is not held weak, as the store's URI designator-to-node cache is itself static.
+ The cache is not held weak, as the repository's URI designator-to-node cache is itself static.
 
  Query operations are expressed either in terms of predicate property lists or query expressions.
- Both cases are translated into a store's native query interface without any additional internal indexing.
+ Both cases are translated into a repository's native query interface without any additional internal indexing.
  The mediator only unifies resource designators with its identity cache when instantiating the resulting
  objects.
 
@@ -280,12 +280,12 @@
  can either be augmented direct catenation with a UUID to serve as unique, structured instance identifiers,
  or they can be combined with an initial UUID to serve as an opaque identifier.
 
- Each store implementation supports its own representation for URI - which would include UUID. 
+ Each repository implementation supports its own representation for URI - which would include UUID. 
  URI references can be expressed in absolute terms in all implementations as inflected strings, that is, as
  character sequences adjacent to syntax markers in additon to or instead of the double quote
  characters used in the standard i/o syntax. Wilbur preceeeds a standard string representation with the
  additional '!' marker, while allegrograph encloses he URI namestring with '<' '>' and preceeds tha sequence
- with a '!'. In addition the store implementations support the  RDF encoding as qualified names ('Q-Names')
+ with a '!'. In addition the repository implementations support the  RDF encoding as qualified names ('Q-Names')
  by permitting definition of namespace prefix bindings and interpreting the universal name designated by
  a Q-Name as equivalent to the URI with the same namestring.
 
@@ -334,9 +334,9 @@
 ;;; in this case add a prototype to the slot definitions
 
 (defclass abstract-resource-class (standard-class)
-  ((direct-source
+  ((direct-repository
     :initform nil
-    :reader class-direct-source)
+    :reader class-direct-repository)
    (direct-vocabulary
     :initform nil
     :reader class-direct-vocabulary)
@@ -346,17 +346,17 @@
    (compute-uri-function
     :reader get-class-compute-uri-function
     :documentation "A function of two arguments, the class and an instance, which computes a URI for the
-     instance on-demand in the context of the class' source.")
+     instance on-demand in the context of the class' repository.")
    (property-missing-function
     :reader get-class-property-missing-function
     :documentation "A function of two arguments, the class and the property name, which is invoked should
      an attempt be made to read a property which an instance does not own."))
 
   (:documentation "An abstract-resource-class embodies the relation between a collection of clos instances and
-    a stored rdf graph. The class sets the context in terms of a default source and a vocabulary,
-    and permits the instance to specify an individual source. Instances comprise five kinds of slots
+    a stored rdf graph. The class sets the context in terms of a default repository and a vocabulary,
+    and permits the instance to specify an individual repository. Instances comprise five kinds of slots
 
-    - transient : standard clos slots with accessors and no projection into the external store
+    - transient : standard clos slots with accessors and no projection into the external repository
     - persistent-pair
       - statement : caches the respective statement
       - literal : numbers, strings, and other atomic values
@@ -370,17 +370,17 @@
     duality and the instance's persistence state.
     The abstract-resource-class serves as a part of the modeling infrastructure, for example, the
     resource-object class, but is never instantiated. Concrete classes use the resource-class metaclass
-    instead, in order to cause inheritance among the values specified for source, datatype, and vocabulary,
+    instead, in order to cause inheritance among the values specified for repository, datatype, and vocabulary,
     which are initially bound to a 'direct-' slot and resolved after finalization to yied the concrete
     slot values."))
 
 
 (defclass resource-class (abstract-resource-class)
-  ((source
-    :reader get-class-source
-    :documentation "The default source for persistent instances of this individual class.
+  ((repository
+    :reader get-class-repository
+    :documentation "The default repository for persistent instances of this individual class.
      An initialized class may bind value to this slot. If not, it is determined on-demand as the most-specific
-     declared source in the class' precedence list.  The base class resource-object specifies t as the base
+     declared repository in the class' precedence list.  The base class resource-object specifies t as the base
      value.")
    (vocabulary
     :reader get-class-vocabulary
@@ -388,7 +388,7 @@
      related class and datatype definitions. By default the vocabulary which comprises the datatype."))
 
   (:documentation "The resource-class is the concrete metaclass for instantiated resource classes.
-    It adds the slots for concrete values for source, datatype, and vocabulary."))
+    It adds the slots for concrete values for repository, datatype, and vocabulary."))
 
 (setf (find-class '{rdfs}Class) (find-class 'resource-class))
 (setf (find-class '{owl}Class) (find-class 'resource-class))
@@ -420,7 +420,7 @@
 
  The hierarchy distinguishes the archetypal from the prototypal properties, and the literal from the
  resource properties. A mirror slot is provided for the archetypal slot to describe respective slots
- to store statement instances.
+ to repository statement instances.
 
  - rdf-relation-definition
    - rdf-direct-relation-definition
@@ -460,7 +460,7 @@
 
  The distinction between literal and resource properties can be specified in the declarations in terms
  of encoding and decoding operators. Absent declarations the distinction is made based on the type
- of the declared datatype with recourse to the respective store, should the type be unknown. The
+ of the declared datatype with recourse to the respective repository, should the type be unknown. The
  determination is delayed until the time of the first actual slot reference in order to permit
  circular type references.
 
@@ -507,7 +507,7 @@
     :initarg :decoder
     :reader get-slot-definition-decoder
     :documentation "A function of three arguments, the instance, the slot definition, and the
-     store value. If no value is declared, the value is computed based on the declared datatype.
+     repository value. If no value is declared, the value is computed based on the declared datatype.
      If none can be determined, the decoding is determined introspectively"))
   (:documentation "The accessor-slot-definition class mixes in slots for a reader and a writer operator
  into abstract standard-slot-definition class.
@@ -608,8 +608,8 @@
 ;;; manage class bindings which are inherited from super-classes
 
 
-(defmethod setf-class-source (source (class-name symbol))
-  (setf-class-source source (find-class class-name)))
+(defmethod setf-class-repository (repository (class-name symbol))
+  (setf-class-repository repository (find-class class-name)))
 
 (defmethod setf-class-vocabulary (vocabulary (class-name symbol))
   (setf-class-vocabulary vocabulary (find-class class-name)))
@@ -630,7 +630,7 @@
 ;;; the extensions must fit in initialize-instance and reinitialize-instance and prepare any required slots
 ;;; before shared initialize, but not depend on them until compute-slots. 
 
-(defmethod canonicalize-initarg ((class abstract-resource-class) (arg (eql :source)) (value cons))
+(defmethod canonicalize-initarg ((class abstract-resource-class) (arg (eql :repository)) (value cons))
   value)
 
 (defmethod canonicalize-initarg ((class abstract-resource-class) (arg (eql :datatype)) (value symbol))
@@ -656,9 +656,9 @@
 
 
 (defmethod initialize-instance ((class abstract-resource-class) &rest initargs &key direct-slots
-                                source datatype vocabulary
+                                repository datatype vocabulary
                                 compute-uri-function property-missing-function)
-  (declare (ignore source datatype vocabulary compute-uri-function property-missing-function))
+  (declare (ignore repository datatype vocabulary compute-uri-function property-missing-function))
   (apply #'call-next-method class
          :direct-slots (compute-extended-slot-specifications class direct-slots)
          initargs)
@@ -668,9 +668,9 @@
   (ensure-resource-accessors class))
 
 (defmethod reinitialize-instance ((class abstract-resource-class) &rest initargs &key direct-slots
-                                  source datatype vocabulary
+                                  repository datatype vocabulary
                                   compute-uri-function property-missing-function)
-  (declare (ignore source datatype vocabulary compute-uri-function property-missing-function))
+  (declare (ignore repository datatype vocabulary compute-uri-function property-missing-function))
   (apply #'call-next-method class
          :direct-slots (compute-extended-slot-specifications class direct-slots)
          initargs)
@@ -680,14 +680,14 @@
 
 
 (defmethod initialize-slots ((class abstract-resource-class) &key
-                             (name (class-name class)) source datatype vocabulary
+                             (name (class-name class)) repository datatype vocabulary
                              compute-uri-function property-missing-function
                              &allow-other-keys)
   (flet ((reinitialize-slot (name value &optional set-p)
            (slot-makunbound class name)
            (when (or value set-p) (setf (slot-value class name) value))))
-    (reinitialize-slot 'direct-source
-                       (when source (canonicalize-initarg class :source source))
+    (reinitialize-slot 'direct-repository
+                       (when repository (canonicalize-initarg class :repository repository))
                        t)
     (reinitialize-slot 'direct-vocabulary
                        (when vocabulary
@@ -794,7 +794,7 @@
 
 ;;; inherited slot accessors
 
-(:documentation  class-source class-datatype class-vocabulary
+(:documentation  class-repository class-datatype class-vocabulary
   "Various class attributes are specified alternatively
  - in the class definition proper or via a superclass
  - as literal argument values or as designators to be resolved upon first reference.
@@ -803,18 +803,18 @@
  the direct slot. The active slot value is computed by resolving whatever value is inherited over direct slots.
 
  The resolution is delayed until first reference in order to permit values to depend on the existence of a
- source to mediate access to the store.")
+ mediator operate on the repository. (see class-vocabulary)")
 
 
-;;; source and vocabulary slots values are inherited and resolved
+;;; repository and vocabulary slots values are inherited and resolved
 
-(defgeneric class-direct-source (class)
+(defgeneric class-direct-repository (class)
   (:documentation "Augment the slot reader with alternative methods for designators and for other
     classes in the precedence list.")
   (:method ((class class))
     nil)
   (:method ((class symbol))
-    (class-direct-source (find-class class))))
+    (class-direct-repository (find-class class))))
 
 (defgeneric class-direct-vocabulary (class)
   (:documentation "Augment the slot reader with alternative methods for designators and for other
@@ -825,21 +825,21 @@
     (class-direct-vocabulary (find-class class))))
 
 
-(defgeneric class-source (class)
+(defgeneric class-repository (class)
   (:method ((class symbol))
-    (class-source (find-class class)))
+    (class-repository (find-class class)))
   (:method ((class class))
     nil)
   (:method ((class abstract-resource-class))
     "An abstract class returns the direct value only, without inheriting"
-    (class-direct-source class))
+    (class-direct-repository class))
   (:method ((class resource-class))
-    (if (slot-boundp class 'source)
-      (get-class-source class)
-      (setf (slot-value class 'source)
-            (resource-mediator (or (class-direct-source class)
-                                   (some #'class-source (c2mop:class-direct-superclasses class))
-                                   (slot-unbound (class-of class) class 'source)))))))
+    (if (slot-boundp class 'repository)
+      (get-class-repository class)
+      (setf (slot-value class 'repository)
+            (repository-mediator (or (class-direct-repository class)
+                                     (some #'class-repository (c2mop:class-direct-superclasses class))
+                                     (slot-unbound (class-of class) class 'repository)))))))
 
 (defgeneric class-vocabulary (class)
   (:method ((class symbol))
@@ -850,7 +850,7 @@
     (if (slot-boundp class 'vocabulary)
       (get-class-vocabulary class)
       (setf (slot-value class 'vocabulary)
-            (ensure-vocabulary (class-source class)
+            (ensure-vocabulary (class-repository class)
                                (or (some #'class-direct-vocabulary (c2mop:class-precedence-list class))
                                    (symbol-uri-namestring (class-datatype class))))))))
 
@@ -1254,33 +1254,33 @@
 ;;; contingent instantiation and searching 
 
 (defmethod model-value ((class resource-class) identifier)
-  (model-value (class-source class) identifier))
+  (model-value (class-repository class) identifier))
 
 (defmethod rdf:ensure-instance ((class resource-class) identifier)
   (handler-case (rdf:find-instance class identifier)
     (instance-not-found-error ()
-      (let* ((type (rdf:type-of (class-source class) identifier))
+      (let* ((type (rdf:type-of (class-repository class) identifier))
              (identified-class (or (rdf:find-class class type) 'resource)))
         (if (typep identified-class 'resource-class)
           ; if the type is known, construct a new instance of the respective class
           (setf (rdf:find-instance class identifier)
                 (make-instance identified-class :uri (model-value class identifier)
-                               :source (class-source class)))
+                               :repository (class-repository class)))
           identified-class)))))
 
 
 (defmethod rdf:find-instance ((class resource-class) identifier)
-  (or (rdf:find-instance (class-source class) identifier)
+  (or (rdf:find-instance (class-repository class) identifier)
       (rdf:instance-not-found class identifier)))
 
 
 (defmethod (setf rdf:find-instance) (instance (class resource-class) identifier)
-  (setf (rdf:find-instance (class-source class) identifier) instance))
+  (setf (rdf:find-instance (class-repository class) identifier) instance))
 
 
 (defmethod rdf:find-class ((class resource-class) (name symbol) &key (error-p t))
   "GIven a concrete class, first delegate to the abstract version to look for sibling classes,
- then try the vocabularies loaded from the store. If none is found optionally signal an error."
+ then try the vocabularies loaded from the repository. If none is found optionally signal an error."
 
   (or (rdf:find-class (class-of class) name :error-p nil)
       (let ((definition (rdf:find-class (class-vocabulary class) name :error-p nil)))
@@ -1288,7 +1288,7 @@
           (prog1 (eval definition)
             (dolist (superclass (third definition))
               (rdf:find-class class superclass)))))
-      (rdf:find-class (class-source class) name :error-p nil)
+      (rdf:find-class (class-repository class) name :error-p nil)
       (when error-p
         (rdf:class-not-found class name))))
 
@@ -1312,7 +1312,7 @@
 
 (defmethod rdf:find-class ((class resource-class) (identifier t) &rest args)
   (declare (dynamic-extent args))
-  (apply #'rdf:find-class class (rdf:model-value (class-source class) identifier) args))
+  (apply #'rdf:find-class class (rdf:model-value (class-repository class) identifier) args))
 
 
 
@@ -1321,7 +1321,7 @@
 
 
 (defmethod rdf:type-of ((class resource-class) identifier)
-  (rdf:type-of (class-source class) identifier))
+  (rdf:type-of (class-repository class) identifier))
 
 
 (defgeneric rdf:class-property-slots (class)

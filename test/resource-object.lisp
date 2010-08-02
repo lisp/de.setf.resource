@@ -86,24 +86,24 @@
   "verify statement enquiry for intrinsic slots and augmentation with a property."
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil)))
     (and (setf (property-value p 'height) 100)
-         (rdf:has-subject p p)
-         (rdf:has-subject p (rdf:uri p))
-         (rdf:has-subject p (wilbur:node (uri-namestring (rdf:uri p)))))))
+         (rdf:has-subject? p p)
+         (rdf:has-subject? p (rdf:uri p))
+         (rdf:has-subject? p (wilbur:node (uri-namestring (rdf:uri p)))))))
 
 
 (test:test resource.resource-object.has-object
   "verify statement enquiry for intrinsic slots and augmentation with a property."
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil)))
     (and (setf (property-value p 'height) 100)
-         (rdf:has-object p "name")
-         (rdf:has-object p 1)
-         (rdf:has-object p 100))))
+         (rdf:has-object? p "name")
+         (rdf:has-object? p 1)
+         (rdf:has-object? p 100))))
 
 (test:test resource.resource-object.has-predicate
   "verify statement enquiry for intrinsic slots and augmentation with a property."
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil)))
     (and (setf (property-value p 'height) 100)
-         (rdf:has-predicate p '{foaf}firstName)
-         (rdf:has-predicate p '{foaf}age)
-         (rdf:has-predicate p 'height))))
+         (rdf:has-predicate? p '{foaf}firstName)
+         (rdf:has-predicate? p '{foaf}age)
+         (rdf:has-predicate? p 'height))))
 
