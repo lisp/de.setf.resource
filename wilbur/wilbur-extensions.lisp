@@ -31,7 +31,7 @@
               (wilbur:node-uri (wilbur:source-desc-loaded-from source-desc))))))
 
 
-(defmethod map-statements* ((db db) subject predicate object continuation context)
+(defmethod de.setf.resource.implementation::map-statements* (continuation (db db) subject predicate object context)
   "The no-index repository just iterates over the statement list."
   (declare (ignore context))
   (dolist (triple (db-triples db))
@@ -41,7 +41,7 @@
       (funcall continuation triple))))
 
 
-(defmethod map-statements* (continuation (db indexed-db) subject predicate object context)
+(defmethod de.setf.resource.implementation::map-statements* (continuation (db indexed-db) subject predicate object context)
   "The indexed repository tries to focus iteration over the respective index.
  The indices are at three level, so the context constrain requires a test against the
  matched statements' sources."

@@ -385,7 +385,11 @@
    (vocabulary
     :reader get-class-vocabulary
     :documentation "Attaches the vocabulary which includes this class, the namespace/package, and the
-     related class and datatype definitions. By default the vocabulary which comprises the datatype."))
+     related class and datatype definitions. By default the vocabulary which comprises the datatype.")
+   (indelible
+    :initarg :indelible :initform nil :allocation :class
+    :reader rdf:repository-indelible?
+    :documentation "Analogous to repository-indelible? for mediators."))
 
   (:documentation "The resource-class is the concrete metaclass for instantiated resource classes.
     It adds the slots for concrete values for repository, datatype, and vocabulary."))

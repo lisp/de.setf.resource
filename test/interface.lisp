@@ -18,7 +18,7 @@
   If not, see the GNU [site](http://www.gnu.org/licenses/)."))
 
 
-;;; (test:execute-test :resource.interface.** :mode :report)
+;;; (test:execute-test :resource.interface.**)
 
 
 
@@ -146,7 +146,7 @@
     (rdf:project-graph statements m)
     (dolist (stmt statements t)
       (unless (rdf:has-statement? m stmt)
-        (return (values nil stmt))))))
+        (return (values nil stmt (wilbur:db-triples (mediator-repository m))))))))
 
 
 (test:test resource.interface.map-property-slots
@@ -203,24 +203,24 @@
                                :properties (list (prototypal-property-definition :name 'p :predicate :p :value 1)))))
     (flet ((ok (set1 set2) (null (set-exclusive-or set1 set2 :test #'rdf:equal))))
       (list (ok (rdf:query object :subject '{CL-USER}01)
-               (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")
-                     (rdf:triple '{CL-USER}01 :p 1)))
-           (ok (rdf:query object :predicate '{foaf}firstName)
-               (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")))
-           (ok (rdf:query object :predicate :p)
-               (list (rdf:triple '{CL-USER}01 :p 1)))
-           (ok (rdf:query object :object "name")
-               (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")))
-           (ok (rdf:query object :object 1)
-               (list (rdf:triple '{CL-USER}01 :p 1)))
-           (ok (rdf:query object :subject '{CL-USER}01 :predicate '{foaf}firstName)
-               (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")))
-           (ok (rdf:query object :subject '{CL-USER}01 :predicate :p)
-               (list (rdf:triple '{CL-USER}01 :p 1)))
-           (ok (rdf:query object :subject '{CL-USER}01 :object "name")
-               (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")))
-           (ok (rdf:query object :subject '{CL-USER}01 :object 1)
-               (list (rdf:triple '{CL-USER}01 :p 1)))))))
+                (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")
+                      (rdf:triple '{CL-USER}01 :p 1)))
+            (ok (rdf:query object :predicate '{foaf}firstName)
+                (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")))
+            (ok (rdf:query object :predicate :p)
+                (list (rdf:triple '{CL-USER}01 :p 1)))
+            (ok (rdf:query object :object "name")
+                (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")))
+            (ok (rdf:query object :object 1)
+                (list (rdf:triple '{CL-USER}01 :p 1)))
+            (ok (rdf:query object :subject '{CL-USER}01 :predicate '{foaf}firstName)
+                (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")))
+            (ok (rdf:query object :subject '{CL-USER}01 :predicate :p)
+                (list (rdf:triple '{CL-USER}01 :p 1)))
+            (ok (rdf:query object :subject '{CL-USER}01 :object "name")
+                (list (rdf:triple '{CL-USER}01 '{foaf}firstName "name")))
+            (ok (rdf:query object :subject '{CL-USER}01 :object 1)
+                (list (rdf:triple '{CL-USER}01 :p 1)))))))
 
 
 (test:test resource.interface.query.1

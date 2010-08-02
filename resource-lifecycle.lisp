@@ -328,14 +328,6 @@
   object)
 
 
-(defmethod rdf:project-graph ((object resource-object) (function function))
-  (let ((statement (make-quad :subject (rdf:uri object) :context (object-graph object))))
-    (flet ((project-slot (sd)
-             (project-slot-using-statement object sd statement function)))
-      (rdf:map-property-slots #'project-slot object))
-    function))
-
-
 (defmethod rdf:project-graph ((source list) (class resource-class))
   "Combine a list and a class by locating the designated the instance of the class and adding the
  Statement to it."
@@ -600,6 +592,10 @@
         (and sd (unbind-property-using-definition object sd) predicate))
       (let ((sd (find-prototypal-property-definition object predicate)))
         (and sd (unbind-property-using-definition object sd) predicate))))
+
+
+(defmethod rdf:repository-indelible? ((object resource-object))
+  (rdf:repository-indelible? (class-of object)))
 
 
 (defmethod rdf:delete-statement ((object resource-object) statement)

@@ -79,6 +79,22 @@
   (wilbur:copy-triple statement))
 
 
+;;;
+;;;
+
+(defmethod add-statement* ((mediator wilbur-mediator) subject predicate object context)
+  "Constuct and add the statement to the repository db. Leaves duplication check to db-add-triple."
+  (wilbur:db-add-triple (mediator-repository mediator)
+                        (wilbur:triple (repository-value mediator subject)
+                                       (repository-value mediator predicate)
+                                       (repository-value mediator object)
+                                       (repository-value mediator context))))
+
+
+(defmethod rdf:context ((statement wilbur:triple))
+  (first (wilbur:triple-sources statement)))
+
+
 (defmethod rdf:delete-statement ((mediator wilbur-mediator) (triple wilbur:triple))
   "Given an actual wilbur:triple, remove it as-is."
   (wilbur:db-del-triple (mediator-repository mediator) triple))
@@ -95,37 +111,6 @@
                          (model-value wm (wilbur:triple-predicate statement))
                          (model-value wm (wilbur:triple-object statement))
                          context))))
-
-
-(defmethod rdf:insert-statement ((mediator wilbur-mediator) (statement wilbur:triple))
-  "Given an actual wilbur:triple, add it directly as-is."
-  (wilbur:db-add-triple (mediator-repository mediator) statement))
-
-(defmethod rdf:insert-statement ((destination repository-mediator) (statement wilbur:triple))
-  "A method to deconstruct wilbur triples for insertion elsewhere."
-  (let* ((wm (wilbur-mediator))
-         (contexts (loop for  source in (wilbur:triple-sources statement)
-                         collect (model-value wm source))))
-    (dolist (context (or contexts (list (mediator-default-context destination))))
-      (add-statement* destination
-                      (model-value wm (wilbur:triple-subject statement))
-                      (model-value wm (wilbur:triple-predicate statement))
-                      (model-value wm (wilbur:triple-object statement))
-                      context))))
-
-
-(defmethod add-statement* ((mediator wilbur-mediator) subject predicate object context)
-  "Constuct and add the statement to the repository db. Leaves duplication check to db-add-triple."
-  (wilbur:db-add-triple (mediator-repository mediator)
-                        (wilbur:triple subject predicate object)
-                        context))
-
-
-(defmethod rdf:statement-p ((object wilbur:triple))
-  t)
-
-(defmethod rdf:repository-clear ((mediator wilbur-mediator))
-  (wilbur:db-clear (mediator-repository mediator)))
 
 
 (defmethod rdf:delete-object ((mediator wilbur-mediator) (object t))
@@ -238,7 +223,7 @@
   (wilbur::db-find-triple (mediator-repository mediator) statement))
 
 
-(defmethod rdf:has-statement? ((mediator repository-mediator) (statement rdf:triple))
+(defmethod rdf:has-statement? ((mediator repository-mediator) (statement wilbur:triple))
   "Deconstruct wilbur triples for search elsewhere."
   (flet ((probe (statement)
            (declare (ignore statement))
@@ -256,54 +241,36 @@
         (map-statements* #'probe mediator m-subject m-predicate m-object nil)))))
 
 
+(defmethod rdf:id ((triple wilbur:triple))
+  nil)
+
+
 (defmethod rdf:identifier-p ((object wilbur:node))
   "Guard against literals, as they can include node as a superclass."
   (not (typep object 'wilbur:literal)))
+
+
+(defmethod rdf:insert-statement ((mediator wilbur-mediator) (statement wilbur:triple))
+  "Given an actual wilbur:triple, add it directly as-is."
+  (wilbur:db-add-triple (mediator-repository mediator) statement))
+
+(defmethod rdf:insert-statement ((destination repository-mediator) (statement wilbur:triple))
+  "A method to deconstruct wilbur triples for insertion elsewhere."
+  (let* ((wm (wilbur-mediator))
+         (contexts (loop for  source in (wilbur:triple-sources statement)
+                         collect (model-value wm source))))
+    (dolist (context (or contexts (list (mediator-default-context destination))))
+      (add-statement* destination
+                      (model-value wm (wilbur:triple-subject statement))
+                      (model-value wm (wilbur:triple-predicate statement))
+                      (model-value wm (wilbur:triple-object statement))
+                      context))))
 
 
 (defmethod rdf::literal-p ((object wilbur:literal))
   "Guard against literals, as they can include node as a superclass."
   t)
 
-
-(defmethod rdf:subject ((statement wilbur:triple))
-  (wilbur:triple-subject statement))
-
-(defmethod rdf:subject-value ((mediator repository-mediator) (statement wilbur:triple))
-  (model-value mediator (wilbur:triple-subject statement)))
-
-(defmethod rdf:predicate ((statement wilbur:triple))
-  (wilbur:triple-predicate statement))
-
-(defmethod rdf:predicate-value ((mediator repository-mediator) (statement wilbur:triple))
-  (model-value mediator (wilbur:triple-predicate statement)))
-
-(defmethod rdf:object ((statement wilbur:triple))
-  (wilbur:triple-object statement))
-
-(defmethod rdf:object-value ((mediator repository-mediator) (statement wilbur:triple))
-  (model-value mediator (wilbur:triple-object statement)))
-
-(defmethod rdf:context ((statement wilbur:triple))
-  (first (wilbur:triple-sources statement)))
-
-(defmethod rdf:id ((triple wilbur:triple))
-  nil)
-
-(defmethod rdf:type-of ((mediator repository-mediator) (identifier symbol))
-  (assert identifier () "Invalid identifier: ~s." identifier)
-  (rdf:type-of mediator (rdf:repository-value mediator identifier)))
-
-(defmethod rdf:type-of ((mediator repository-mediator) (identifier uuid:uuid))
-  (rdf:type-of mediator (rdf:repository-value mediator identifier)))
-
-(defmethod rdf:type-of ((mediator repository-mediator) (identifier wilbur:node))
-  "Iff the node is cached, return its type, otherwise retrieve the type from the repository."
-  (or (let ((instance (gethash identifier (mediator-instance-cache mediator))))
-        (when instance (type-of instance)))
-      (let ((type (first (rdf:query mediator :subject identifier :predicate '{rdf}type))))
-        (when type (rdf:object-value mediator type)))
-      '{rdfs}Resource))
 
 ;;; (rdf:type-of (make-instance 'wilbur-mediator) '{foaf}Person)
 ;;; (let ((m (make-instance 'wilbur-mediator))) (rdf:object-value m (first (rdf:query m :subject '{foaf}Person :predicate '{rdf}type))))
@@ -328,12 +295,11 @@
   (wilbur:parse-db-from-stream stream ""))
 
 
-(defmethod rdf:repository-count ((mediator wilbur-mediator))
-  (wilbur::db-count-triples (mediator-repository mediator)))
+(defmethod rdf:statement-p ((object wilbur:triple))
+  t)
 
-
-(defmethod rdf:repository-namespace-bindings ((mediator wilbur-mediator))
-  (wilbur:dictionary-namespaces wilbur:*nodes*))
+(defmethod rdf:repository-clear ((mediator wilbur-mediator))
+  (wilbur:db-clear (mediator-repository mediator)))
 
 
 (defmethod map-statements* (continuation (mediator wilbur-mediator) subject predicate object context)
@@ -344,6 +310,32 @@
                    (repository-value mediator predicate)
                    (repository-value mediator object)
                    (repository-value mediator context)))
+
+
+(defmethod rdf:model-value ((mediator wilbur-mediator) (value wilbur:literal))
+  (wilbur:literal-value value))
+
+(defmethod rdf:model-value ((mediator wilbur-mediator) (value wilbur:node))
+  (flet ((canonicalize (fragment)
+           (canonicalize-identifier mediator fragment)))
+    (declare (dynamic-extent #'canonicalize))
+    (let ((namestring (wilbur:node-uri value)))
+      (if (string-equal "_:" namestring :end2 2)
+        (make-symbol (subseq namestring 2))
+        (uri-namestring-identifier namestring #'canonicalize)))))
+
+
+(defmethod rdf:predicate ((statement wilbur:triple))
+  (wilbur:triple-predicate statement))
+
+(defmethod rdf:predicate-value ((mediator repository-mediator) (statement wilbur:triple))
+  (model-value mediator (wilbur:triple-predicate statement)))
+
+(defmethod rdf:object ((statement wilbur:triple))
+  (wilbur:triple-object statement))
+
+(defmethod rdf:object-value ((mediator repository-mediator) (statement wilbur:triple))
+  (model-value mediator (wilbur:triple-object statement)))
 
 
 (defmethod rdf:project-graph ((location pathname) (destination wilbur-mediator))
@@ -392,6 +384,36 @@
   (map nil destination (wilbur:db-triples (mediator-repository mediator))))
 
 
+(defmethod rdf:repository-count ((mediator wilbur-mediator))
+  (wilbur::db-count-triples (mediator-repository mediator)))
+
+
+(defmethod rdf:repository-namespace-bindings ((mediator wilbur-mediator))
+  (wilbur:dictionary-namespaces wilbur:*nodes*))
+
+
+(defmethod rdf:subject ((statement wilbur:triple))
+  (wilbur:triple-subject statement))
+
+(defmethod rdf:subject-value ((mediator repository-mediator) (statement wilbur:triple))
+  (model-value mediator (wilbur:triple-subject statement)))
+
+(defmethod rdf:type-of ((mediator repository-mediator) (identifier symbol))
+  (assert identifier () "Invalid identifier: ~s." identifier)
+  (rdf:type-of mediator (rdf:repository-value mediator identifier)))
+
+(defmethod rdf:type-of ((mediator repository-mediator) (identifier uuid:uuid))
+  (rdf:type-of mediator (rdf:repository-value mediator identifier)))
+
+(defmethod rdf:type-of ((mediator repository-mediator) (identifier wilbur:node))
+  "Iff the node is cached, return its type, otherwise retrieve the type from the repository."
+  (or (let ((instance (gethash identifier (mediator-instance-cache mediator))))
+        (when instance (type-of instance)))
+      (let ((type (first (rdf:query mediator :subject identifier :predicate '{rdf}type))))
+        (when type (rdf:object-value mediator type)))
+      '{rdfs}Resource))
+
+
 (defmethod repository-uri ((mediator wilbur-mediator) (uri string))
   (wilbur:node uri))
 
@@ -433,19 +455,6 @@
     (wilbur:node (concatenate 'string uri-base
                               (unless (uri-has-separator-p uri-base) "/")
                               (xqdm:local-part identifier)))))
-
-
-(defmethod rdf:model-value ((mediator wilbur-mediator) (value wilbur:literal))
-  (wilbur:literal-value value))
-
-(defmethod rdf:model-value ((mediator wilbur-mediator) (value wilbur:node))
-  (flet ((canonicalize (fragment)
-           (canonicalize-identifier mediator fragment)))
-    (declare (dynamic-extent #'canonicalize))
-    (let ((namestring (wilbur:node-uri value)))
-      (if (string-equal "_:" namestring :end2 2)
-        (make-symbol (subseq namestring 2))
-        (uri-namestring-identifier namestring #'canonicalize)))))
 
 
 (defmethod rdf:uri-match-p ((node wilbur:node) object)

@@ -90,7 +90,7 @@
     (rdf:ensure-instance (find-class class-name) identifier)))
 
 
-(defgeneric rdf:ensure-vocabulary (source uri &key)
+(defgeneric rdf:ensure-vocabulary (mediator uri &key)
   (:documentation "Iff the vocabulary is not integrated into the source mediator, load it from the source,
  incorporate its terms and register it as a handle on the class declarations."))
 
@@ -152,7 +152,7 @@
     (setf (rdf:find-instance (find-class class-name) identifier) instance)))
 
 
-(defgeneric rdf:find-vocabulary (source uri)
+(defgeneric rdf:find-vocabulary (mediator uri)
   (:documentation "Attempt to locate a vocabulary given its base URI or that of a term.
  Return nil if none is found."))
 
@@ -304,7 +304,7 @@
  representation. Return objects already in the model domain unchanged.")
   (:argument-precedence-order object repository)
 
-  (:method ((source t) (value t))
+  (:method ((mediator t) (value t))
     "The default method serves as the primary for :around's which short-circuit the cache"
     value)
   (:method ((source t) (value null))

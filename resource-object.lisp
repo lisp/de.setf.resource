@@ -41,8 +41,8 @@
      reachable transents are changed to persistent.
      see [JDO](http://www.jpox.org/docs/jdo/jdo_state_transition.html).")
    (graph
-     :initform nil :initarg :graph
-     :accessor object-graph
+     :initform nil :initarg :graph :initarg :context
+     :accessor object-graph :accessor object-context
      :documentation "Specifies the individual graph, within the object's repository, which comprises the object's
       description. The default value is NIL.")
    (history
@@ -573,35 +573,56 @@
 
 
 (defmethod rdf:query ((resource-object resource-object) &key subject predicate object context continuation offset limit)
-  (declare (ignore context))
-  (when (or (null subject) (rdf:equal resource-object subject))
+  (when (and (or (null subject) (rdf:equal resource-object subject))
+             (or (null context) (equal context (object-context resource-object))))
     (unless subject (setf subject (rdf:uri resource-object)))
-    (let ((result ()))
-      (flet ((collector (stmt)
+
+    (dsu:collect-list (collect)
+      (flet ((dynamic-collect (statement)
                (when (or (null offset) (minusp (decf offset)))
-                 (when (or (null limit) (not (minusp (decf limit))))
-                   (if continuation
-                     (funcall continuation stmt)
-                     (push stmt result))))))
-        (declare (dynamic-extent #'collector))
-        (unless continuation (setf continuation #'collector))
-        
-        (if predicate
-          (if object
-            (rdf:map-collection #'(lambda (value)
-                                    (when (rdf:equal value object)
-                                      (funcall continuation (rdf:triple subject predicate value))))
-                                (bound-property-value resource-object predicate))
-            (rdf:map-collection #'(lambda (value)
-                                    (funcall continuation (rdf:triple subject predicate value)))
-                                (bound-property-value resource-object predicate)))
-          (if object
-            (rdf:map-property-slots #'(lambda (sd)
-                                        (when (property-boundp resource-object sd)
-                                          (project-slot-using-statement resource-object sd (rdf:triple subject nil nil)
-                                                                        #'(lambda (stmt)
-                                                                            (when (rdf:equal object (triple-object stmt))
-                                                                              (funcall continuation stmt))))))
-                                    resource-object)
-            (rdf:project-graph resource-object #'(lambda (stmt) (funcall continuation (copy-triple stmt)))))))
-      (nreverse result))))
+                 (if (or (null limit) (not (minusp (decf limit))))
+                   (collect (copy-triple statement))
+                   (return))))
+             (constrained-continue (statement)
+               (when (or (null offset) (minusp (decf offset)))
+                 (if (or (null limit) (not (minusp (decf limit))))
+                   (funcall continuation statement)))))
+        (declare (dynamic-extent #'dynamic-collect #'static-collect #'constrained-continue))
+        (flet ((collector (stmt) 
+                 (when (or (null offset) (minusp (decf offset)))
+                   (when (or (null limit) (not (minusp (decf limit))))
+                     (if continuation
+                       (funcall continuation stmt)
+                       (push stmt result))))))
+          (declare (dynamic-extent #'collector))
+          (let ((continuation (if continuation
+                                (if (or offset limit) #'constrained-continue continuation)
+                                #'dynamic-collect)))
+            (if predicate
+              (if object
+                (rdf:map-collection #'(lambda (value)
+                                        (when (rdf:equal value object)
+                                          (funcall continuation (rdf:triple subject predicate value))))
+                                    (bound-property-value resource-object predicate))
+                (rdf:map-collection #'(lambda (value)
+                                        (funcall continuation (rdf:triple subject predicate value)))
+                                    (bound-property-value resource-object predicate)))
+              (if object
+                (rdf:map-property-slots #'(lambda (sd)
+                                            (when (property-boundp resource-object sd)
+                                              (project-slot-using-statement resource-object sd (rdf:triple subject nil nil)
+                                                                            #'(lambda (stmt)
+                                                                                (when (rdf:equal object (triple-object stmt))
+                                                                                  (funcall continuation stmt))))))
+                                        resource-object)
+                (rdf:project-graph resource-object #'(lambda (stmt) (funcall continuation (copy-triple stmt))))))))))))
+
+
+(defmethod rdf:project-graph ((object resource-object) (function function))
+  (let ((statement (make-quad :subject (rdf:uri object) :context (object-context object))))
+    (flet ((project-slot (sd)
+             (project-slot-using-statement object sd statement function)))
+      (rdf:map-property-slots #'project-slot object))
+    function))
+
+
