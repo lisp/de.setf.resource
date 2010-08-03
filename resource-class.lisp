@@ -731,7 +731,7 @@
                  (when datatype
                    (unless predicate (setf (getf slot-spec :predicate) name))
                    (setf (getf slot-spec :list-type-p) (list-type-p type))
-                   (setf (getf slot-spec :statement-slot) (cons-symbol nil name))
+                   (setf (getf slot-spec :statement-slot) (cons-symbol nil name :-statement))
                    (if datatype-s
                      (assert datatype () "Invalid datatype: ~s." datatype)
                      (setf (getf slot-spec :datatype) datatype))
