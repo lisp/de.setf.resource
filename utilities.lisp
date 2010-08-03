@@ -308,8 +308,70 @@
 
 (deftype rdf:identifier () '(satisfies rdf:identifier-p))
 
-(defun uri-has-separator-p (uri-namestring)
-  (member (char uri-namestring (1- (length uri-namestring))) '(#\/ #\#)))
+(defun uri-intrinsic-separator (uri-namestring)
+  (let ((length (length uri-namestring)))
+    (and (> length 0)
+         (find (char uri-namestring (1- length)) '(#\/ #\#)))))
+
+(defgeneric uri-extrinsic-separator (uri-namestring)
+  (:method ((uri-namestring string))
+    (unless (uri-intrinsic-separator uri-namestring)
+      (multiple-value-bind (separator present)
+                           (gethash uri-namestring *uri-separators*)
+        (cond (present separator)
+              (t
+               (warn "Presuming default separator (~c) for uri: ~s"
+                     *default-uri-separator* uri-namestring)
+               *default-uri-separator*)))))
+  (:method ((package package))
+    (uri-extrinsic-separator (package-name package))))
+
+(defun uri-extrinsic-separator-string (uri)
+  (let ((sep (uri-extrinsic-separator uri)))
+    (when sep (string sep))))
+
+(defgeneric (setf uri-extrinsic-separator) (char uri-namestring)
+  (:method ((delete null) (uri-namestring string))
+    (remhash delete *uri-separators*))
+  (:method ((char character) (uri-namestring string))
+    (let ((old-value (gethash uri-namestring *uri-separators*)))
+      (when (and old-value (not (eql old-value char)))
+        (warn "Redefining url separator: ~s; ~c" uri-namestring char))
+      (setf (gethash uri-namestring *uri-separators*) char)))
+  (:method (object (package package))
+    (setf (uri-extrinsic-separator (package-name package)) object)))
+
+
+(defgeneric compute-extrinsic-separator (uri identifiers)
+  (:documentation "if the uri has a separator, if identifiers is a package or a package name, cache
+ the difference between the two as the separator.")
+
+  (:method ((uri string) (identifiers string))
+    (if (uri-intrinsic-separator uri)
+      (let ((i-length (length identifiers))
+            (u-length (length uri)))
+        (cond ((and (= u-length (1+ i-length))
+                    (string= uri identifiers :end1 i-length))
+               (char uri i-length))
+              (t
+               (warn "uri and package name do not match: ~s; ~s." uri identifiers)
+               nil)))
+      (unless (uri-intrinsic-separator identifiers)
+        (warn "Presuming separator: ~s; ~c" identifiers *default-uri-separator*)
+        *default-uri-separator*)))
+
+  (:method  ((uri string) (package package))
+    (compute-extrinsic-separator uri (package-name package)))
+
+  (:method  ((uri t) (identifiers null))
+    (unless (uri-intrinsic-separator uri)
+      (warn "Presuming separator: ~s; ~c" identifiers *default-uri-separator*)
+      *default-uri-separator*))
+
+  (:method  ((uri t) (identifiers t))
+    (warn "Cannot compute extrinsic separator: ~s; ~s." uri identifiers)
+    nil))
+
 
 (defun fragment-has-separator-p (fragment-string)
   (and (> (length fragment-string) 0)
@@ -317,8 +379,8 @@
 
 (defun make-vocabulary-uri-namestring (base-uri fragment)
   (concatenate 'string base-uri
-               (unless (uri-has-separator-p base-uri) "/")
-               (if (and (uri-has-separator-p base-uri) (fragment-has-separator-p fragment))
+               (uri-extrinsic-separator-string base-uri)
+               (if (and (uri-intrinsic-separator base-uri) (fragment-has-separator-p fragment))
                  (subseq fragment 1)
                  fragment)))
 
@@ -358,7 +420,7 @@
                (setf fragment (subseq uri (1+ pos)))
                (setf uri (subseq uri 0 (1+ pos))))))
       (values (or (find-package uri)
-                  (when (uri-has-separator-p uri)
+                  (when (uri-intrinsic-separator uri)
                     (find-package (subseq uri 0 (1- (length uri)))))
                   (make-package uri :use ()))
               fragment)))
