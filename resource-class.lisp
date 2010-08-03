@@ -764,7 +764,8 @@
            (setf-slot-definition-statement-slot (ensure-slot (slot-definition-statement-slot sd)) sd)))))))
 
 
-(defmethod c2mop:direct-slot-definition-class ((class resource-class) &key property-slot statement-slot)
+(defmethod c2mop:direct-slot-definition-class ((class resource-class)
+                                               &key property-slot statement-slot readers writers type name)
   "If there is a cross-reference to property definition, it's a statement slot. Otherwise if there is a
  predicate or a datatype, then examine the type specification. If that is a resource-object spcialization,
  then 
@@ -773,6 +774,28 @@
   (cond (property-slot
          (find-class 'rdf-statement-slot-definition))
         (statement-slot
+         ;; predefine the accessor function in order to set the class
+         ;; otherwise sbcl inhibits the change
+         (dolist (reader readers)
+           #+ccl
+           (ensure-generic-function reader
+                                    :method-combination (c2mop:find-method-combination #'ensure-resource-accessors
+                                                                                       'rdf:persistent-slot-reader
+                                                                                       (list :type type :name name)))
+           #-ccl
+           (ensure-generic-function reader
+                                    :method-combination `(persistent-slot-reader :type ,type :name ,name)
+                                    :generic-function-class 'rdf-slot-reader))
+         (dolist (writer writers)
+           ;; (print writer)
+           #+ccl
+           (ensure-generic-function writer
+                                    :method-combination (c2mop:find-method-combination #'ensure-resource-accessors
+                                                                                       'rdf:persistent-slot-writer
+                                                                                       (list :type type :name name)))
+           #-ccl
+           (ensure-generic-function writer :method-combination `(persistent-slot-writer :type ,type :name ,name)
+                                    :generic-function-class 'rdf-slot-writer))
          (find-class 'rdf:archetypal-property-definition))
         (t
          (call-next-method))))
@@ -913,6 +936,7 @@
          (push sd property-slots)
          ;; augment the combination for resource slots with access to the statement slot
          ;; (inspect sd) (print sd)
+         #+(or)                         ; breaks sbcl - must do this earlier
          (dolist (reader (c2mop:slot-definition-readers sd))
            #+ccl
            (ensure-generic-function reader
@@ -923,6 +947,7 @@
            (ensure-generic-function reader
                                     :method-combination `(persistent-slot-reader :slot-definition ,sd)
                                     :generic-function-class 'rdf-slot-reader))
+         #+(or)
          (dolist (writer (c2mop:slot-definition-writers sd))
            ;; (print writer)
            #+ccl
