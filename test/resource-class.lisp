@@ -86,10 +86,12 @@
   (let* ((class (find-class 'person))
          (*load-verbose* (eq test::*test-unit-mode* :verbose)))
     (slot-makunbound class 'vocabulary)
-    (slot-makunbound class 'source)
-    (list (rdf:find-class class '{rdfs}Class)
-         (typep (test:ignored-error (rdf:find-class (class-repository class) '{foaf}Person))
-                'rdf:class-not-found-error)
+    (slot-makunbound class 'repository)
+    (and (rdf:find-class class '{rdfs}Class)
+         #+(or)                         ; this should not fail - the person fixture class datatype is {foaf}Person
+                                        ; which means that the standard-class method finds it
+         (typep (test:ignored-error (rdf:find-class (class-repository class) '{foaf}Person)) 'rdf:class-not-found-error)
+         (rdf:find-class (class-repository class) '{foaf}Person)
          (typep (rdf:find-class class '{foaf}Person)
                 'resource-class)
          (class-vocabulary class)
@@ -114,17 +116,17 @@
 
 (test:test resource.resource-class.find-archetypal-property-definition.1
   (let ((class (find-class 'person)))
-    (and (typep (find-archetypal-property-definition-by-name 'person 'name) 'rdf-archetypal-property-definition)
-         (typep (find-archetypal-property-definition-by-name class 'name) 'rdf-archetypal-property-definition)
-         (typep (find-archetypal-property-definition-by-name class 'age) 'rdf-archetypal-property-definition)
-         (typep (find-archetypal-property-definition-by-name class 'parents) 'rdf-archetypal-property-definition)
+    (and (typep (find-archetypal-property-definition-by-name 'person 'name) 'rdf:archetypal-property-definition)
+         (typep (find-archetypal-property-definition-by-name class 'name) 'rdf:archetypal-property-definition)
+         (typep (find-archetypal-property-definition-by-name class 'age) 'rdf:archetypal-property-definition)
+         (typep (find-archetypal-property-definition-by-name class 'parents) 'rdf:archetypal-property-definition)
          t)))
 
 
 (test:test resource.resource-class.find-archetypal-property-definition.2
   (let ((class (find-class 'person)))
     (flet ((test-sd (sd)
-             (and (typep sd 'rdf-archetypal-property-definition)
+             (and (typep sd 'rdf:archetypal-property-definition)
                   (typep (slot-definition-statement-slot sd) 'rdf-statement-slot-definition)
                   (eq sd (slot-definition-property-slot (slot-definition-statement-slot sd))))))
       (and (test-sd (find-archetypal-property-definition-by-name class 'name))
@@ -136,7 +138,7 @@
   "verify prototypal slots and augmentation with a property."
   (let ((p (make-instance 'person :name "name" :age 1 :parents nil)))
     (and (rdf:insert-statement p (rdf:triple (uri p) 'height 100))
-         (typep (find-prototypal-property-definition p 'height) 'rdf-prototypal-property-definition))))
+         (typep (find-prototypal-property-definition p 'height) 'rdf:prototypal-property-definition))))
 
 
 (test:test resource.resource-class.property-value.1
@@ -145,7 +147,8 @@
     (and (equal (person-name p) "name")
          (equal (person-age p) 1)
          (equal (person-parents p) nil)
-         (typep (nth-value 1 (ignore-errors (person-height p))) 'rdf:property-missing-error)
+         ;; the standard behavior is to return nil for a missing property
+         (null (person-height p))
          (equal (setf (person-height p) 100) 100)
          (equal (person-height p) 100)
          (equal (property-value p 'height) 100)

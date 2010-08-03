@@ -522,8 +522,8 @@
   ())
 
 (defclass rdf-statement-slot-definition (accessor-slot-definition)
-  ((resource-slot
-    :initarg :resource-slot
+  ((property-slot
+    :initarg :property-slot
     :reader slot-definition-property-slot :writer setf-slot-definition-property-slot))
   (:documentation "The rdf-statement-slot-definition describes the shadow slots to archetypal property
  definitions, which maintain the respective rdf statement instances. For each property a statement slot
@@ -719,7 +719,7 @@
  each slot which models a predicate relation, add a shadow slot to bind the raw rdf value.")
 
   (:method ((class abstract-resource-class) direct-slots)
-    (let* ((resource-slots ()))
+    (let* ((property-slots ()))
       (flet ((complete-property-slot-spec (slot-spec)
                (destructuring-bind (&key name (type t) predicate
                                          (datatype (when predicate (if (eq type t) '{rdfs}Literal type))
@@ -735,17 +735,17 @@
                    (if datatype-s
                      (assert datatype () "Invalid datatype: ~s." datatype)
                      (setf (getf slot-spec :datatype) datatype))
-                   (push slot-spec resource-slots)))
+                   (push slot-spec property-slots)))
                slot-spec)
              (compute-statement-slot-spec (slot-spec)
                (destructuring-bind (&key name statement-slot &allow-other-keys) slot-spec
                  (let* ((reader (cons-symbol nil name :-statement))
                         (writer (cons-symbol nil :setf- name :-statement)))
-                   `(:name ,statement-slot :resource-slot ,name
+                   `(:name ,statement-slot :property-slot ,name
                            ;; :type rdf:assertion
                            :readers ,(list reader) :writers ,(list writer))))))
         (append (mapcar #'complete-property-slot-spec direct-slots)
-                (mapcar #'compute-statement-slot-spec (nreverse resource-slots)))))))
+                (mapcar #'compute-statement-slot-spec (nreverse property-slots)))))))
 
 
 (defmethod bind-slot-cross-references ((class abstract-resource-class))
@@ -764,13 +764,13 @@
            (setf-slot-definition-statement-slot (ensure-slot (slot-definition-statement-slot sd)) sd)))))))
 
 
-(defmethod c2mop:direct-slot-definition-class ((class resource-class) &key resource-slot statement-slot)
+(defmethod c2mop:direct-slot-definition-class ((class resource-class) &key property-slot statement-slot)
   "If there is a cross-reference to property definition, it's a statement slot. Otherwise if there is a
  predicate or a datatype, then examine the type specification. If that is a resource-object spcialization,
  then 
  package is a registered namespace, or a predicate or datatype is supplied, then the
  slot is persistent. Otherwise it is treated as transient."
-  (cond (resource-slot
+  (cond (property-slot
          (find-class 'rdf-statement-slot-definition))
         (statement-slot
          (find-class 'rdf:archetypal-property-definition))
@@ -786,7 +786,8 @@
                                      'rdf-relation-definition))
             (c2mop:class-precedence-list class))
     (find-class 'rdf-effective-property-definition)
-    (find-class 'c2mop:standard-effective-slot-definition)))
+    ;;(find-class 'c2mop:standard-effective-slot-definition)
+    (call-next-method)))
 
 
 (defmethod c2mop:compute-effective-slot-definition ((class resource-class) (name t) (direct-slot-definitions t))
@@ -905,11 +906,11 @@
  define the methods for the class' direct slots to unbind all slots, to map property slots and to map property-slot-values.
  These are in addition to those of superclasses and to the base method which applies to any properties."
 
-  (let ((resource-slots ()))
+  (let ((property-slots ()))
     (dolist (sd (c2mop:class-direct-slots class))
       (typecase sd
         (rdf:archetypal-property-definition
-         (push sd resource-slots)
+         (push sd property-slots)
          ;; augment the combination for resource slots with access to the statement slot
          ;; (inspect sd) (print sd)
          (dolist (reader (c2mop:slot-definition-readers sd))
@@ -934,7 +935,7 @@
            (ensure-generic-function writer :method-combination `(persistent-slot-writer :slot-definition ,sd)
                                     :generic-function-class 'rdf-slot-writer)))))
 
-    (when resource-slots
+    (when property-slots
       (let* ((method-class (c2mop:generic-function-method-class #'unbind-property-slots))
              (function (compile nil `(lambda (subject)
                                        ,@(mapcar #'(lambda (sd)
@@ -942,7 +943,7 @@
                                                         (slot-makunbound subject ',(c2mop:slot-definition-name sd))
                                                         (slot-makunbound subject ',(c2mop:slot-definition-name
                                                                                     (slot-definition-statement-slot sd)))))
-                                                 resource-slots))))
+                                                 property-slots))))
              (method (make-instance method-class
                        :function function
                        :qualifiers '(progn)
@@ -954,7 +955,7 @@
              (function (compile nil `(lambda (function subject)
                                        (declare (ignore subject))
                                        ,@(mapcar #'(lambda (sd) `(funcall function ,sd))
-                                                 resource-slots))))
+                                                 property-slots))))
              (method (make-instance method-class
                        :function function
                        :qualifiers '(progn)
@@ -967,7 +968,7 @@
                                        ,@(mapcar #'(lambda (sd)
                                                      `(when (slot-boundp subject ',(c2mop:slot-definition-name sd))
                                                         (rdf:map-collection function (,(slot-definition-reader sd) subject))))
-                                                 resource-slots))))
+                                                 property-slots))))
              (method (make-instance method-class
                        :function function
                        :qualifiers '(progn)

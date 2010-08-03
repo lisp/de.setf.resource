@@ -48,21 +48,3 @@
          (list (make-triple :subject 'subject :predicate 'predicate :object 'object)
                (make-quad :subject 'subject :predicate 'predicate :object 'object :context nil))))
 
-(test:test resource.statement.wilbur.1
-  (let ((m (repository-mediator 'wilbur-mediator))
-        (new (wilbur:triple (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")
-                            (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate")
-                            (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"))))
-    (wilbur:add-triple new)
-    (let ((found (first (rdf:query m :subject '{rdf}subject :predicate '{rdf}predicate :object '{rdf}object))))
-      (and found
-           (eq (rdf:subject new) (rdf:subject found))
-           (eq (rdf:predicate new) (rdf:predicate found))
-           (eq (rdf:object new) (rdf:object found))))))
-
-
-(test:test resource.statement.namestring
-  (rdf:namestring (wilbur:triple (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")
-                            (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate")
-                            (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"))))
-

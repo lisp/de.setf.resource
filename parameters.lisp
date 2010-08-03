@@ -29,8 +29,38 @@
 
 (defparameter *repository-mediator.default* '(wilbur-mediator))
 
+
 (defvar +unbound-marker+ (list :unbound))
 
-(defvar *vocabularies* (make-hash-table :test 'equal))
 
+(defvar *uri-separators* (make-hash-table :test 'equal)
+  "A global registry for separators for vocabulari URI which have no intrinsic separator.
+ The initialization protocol for vocabulary assert one if no intrinsic separator is present.")
+
+
+(defvar *default-uri-separator* #\/
+  "The separator character to use when vocabulary URI has neither an intrinsic nor a declared
+ extrinsic spearator. The initial value is '/'.")
+
+
+(defvar *vocabularies* (make-hash-table :test 'equal)
+  "A global registry for vocabularies by vocabulary URI.")
+
+
+;;;
+;;; given multiple threads, each should rebind these:
+
+(defparameter *vector-input-protocol* nil)
+
+(defparameter *vector-output-protocol* nil)
+
+(defun call-with-global-bindings (function)
+  (let ((*vector-input-protocol* nil)
+        (*vector-output-protocol* nil))
+    (initialize-global-bindings)
+    (funcall function)))
+
+(defun initialize-global-bindings ()
+  ;; the vector protocols are instantiated on-demand
+  )
 

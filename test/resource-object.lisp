@@ -27,16 +27,19 @@
   (let ((person-class (find-class 'person))
         (adult-class (find-class 'adult)))
     (and (equal (rdf:class-property-slots person-class) (rdf:class-property-slots adult-class))
-         (every #'(lambda (sd) (typep sd 'rdf-effective-property-definition))
-                (c2mop:class-slots person-class))
-         (every #'(lambda (sd) (typep sd 'rdf-archetypal-property-definition))
-                (rdf:class-property-slots person-class))
-         (null (set-exclusive-or '(name age parents)
-                                 (mapcar #'slot-definition-name
-                                         (rdf:class-property-slots person-class))))
-         (null (set-exclusive-or '({foaf}firstName {foaf}age {rel}childof)
-                                 (mapcar #'slot-definition-predicate
-                                         (rdf:class-property-slots person-class)))))))
+          (every #'(lambda (sd) 
+                     (let* ((ssd (slot-definition-statement-slot sd))
+                            (ssd-psd (slot-definition-property-slot ssd)))
+                       (and ssd ssd-psd (eq (c2mop:slot-definition-name sd) (c2mop:slot-definition-name ssd-psd)))))
+                 (rdf:class-property-slots person-class))
+          (every #'(lambda (sd) (typep sd 'rdf:archetypal-property-definition))
+                 (rdf:class-property-slots person-class))
+          (null (set-exclusive-or '(name age parents)
+                                  (mapcar #'slot-definition-name
+                                          (rdf:class-property-slots person-class))))
+          (null (set-exclusive-or '({foaf}firstName {foaf}age {rel}childof)
+                                  (mapcar #'slot-definition-predicate
+                                          (rdf:class-property-slots person-class)))))))
 
 
 (test:test resource.resource-object.readers

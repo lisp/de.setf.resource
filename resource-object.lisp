@@ -600,13 +600,17 @@
                                 #'dynamic-collect)))
             (if predicate
               (if object
-                (rdf:map-collection #'(lambda (value)
-                                        (when (rdf:equal value object)
-                                          (funcall continuation (rdf:triple subject predicate value))))
-                                    (bound-property-value resource-object predicate))
-                (rdf:map-collection #'(lambda (value)
-                                        (funcall continuation (rdf:triple subject predicate value)))
+                (let ((triple (rdf:triple subject predicate nil)))
+                  (rdf:map-collection #'(lambda (value)
+                                          (when (rdf:equal value object)
+                                            (setf (triple-object triple) value)
+                                            (funcall continuation triple)))
                                     (bound-property-value resource-object predicate)))
+                (let ((triple (rdf:triple subject predicate nil)))
+                  (rdf:map-collection #'(lambda (value)
+                                          (setf (triple-object triple) value)
+                                          (funcall continuation triple))
+                                      (bound-property-value resource-object predicate))))
               (if object
                 (rdf:map-property-slots #'(lambda (sd)
                                             (when (property-boundp resource-object sd)

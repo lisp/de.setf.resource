@@ -95,7 +95,9 @@
 
 
 (defmacro rdf:defvocabulary (name &key (uri (error "uri is required."))
-                                   definitions (identifiers nil i-s) (identifier-map nil im-s)
+                                   definitions (identifiers nil i-s)
+                                   (identifier-map nil im-s)
+                                   (package nil p-s)
                                    documentation)
   `(make-instance 'vocabulary
      :name ,(string name)
@@ -103,6 +105,7 @@
      :definitions ',definitions
      ,@(when i-s `(:identifiers ',identifiers))
      ,@(when im-s `(:identifier-map ',identifier-map))
+     ,@(when p-s `(:package ',package))
      ,@(when documentation `(:documentation ,documentation))
      ))
 
@@ -117,26 +120,29 @@
 
 
 (defmethod shared-initialize ((instance vocabulary) (slots t)
-                              &key identifier-map identifiers uri (resource-uri uri)
-                              (name nil n-s))
-  "When (re)initializing combine use the possible argument for uri, a list of identifiers, and/or an
- identifier-map a-list arguments to construct and set the vocabulary's map to a (symbol . uri-namestring)
- alist. NB. the vocabulary URI and the identifers package need not have the same name. "
+                              &key identifier-map identifiers package uri (resource-uri uri)
+                              (name nil n-s)
+                              (separator (compute-extrinsic-separator resource-uri package)))
+  "When (re)initializing combine use the possible argument for uri, a list of identifiers or a package,
+ and/or an identifier-map a-list arguments to construct and set the vocabulary's map to a
+ (symbol . uri-namestring) alist.
+ NB. the vocabulary URI and the identifers package need not have the same name. "
 
   (when uri
     (setf-vocabulary-uri uri instance))
   (when resource-uri
     (setf-vocabulary-resource-uri resource-uri instance))
+  (setf (uri-extrinsic-separator (or package resource-uri)) separator)
   (call-next-method)
 
   (let* ((vocabulary-uri (vocabulary-uri instance))
-         (separator (unless (uri-has-separator-p vocabulary-uri) "/"))
          (vocabulary-package (find-package vocabulary-uri)))
     ;; ensure the name is set or update it if given
     (cond (n-s
            (setf (slot-value instance 'name) name))
           ((not (slot-boundp instance 'name))
            (setf (slot-value instance 'name) vocabulary-uri)))
+    (when separator (setf separator (string separator)))
 
     ;; when initializing or reinitializing augment collect identifiers from both any package
     ;; designated by the vocabulary uri itself and any package designated by the identifiers argument.
@@ -153,14 +159,13 @@
       (when vocabulary-package 
         (loop for symbol being the external-symbols of vocabulary-package
               do (add-entry symbol)))
-      (etypecase identifiers
-        (list (dolist (term identifiers)
-                (etypecase term
-                  (symbol (add-entry term))
-                  (string (add-entry (vocabulary-package-symbol term))))))
-        ((or string symbol)
-         (loop for symbol being the external-symbols of identifiers
-               do (add-entry symbol)))))
+      (dolist (term identifiers)
+        (etypecase term
+          (symbol (add-entry term))
+          (string (add-entry (vocabulary-package-symbol term)))))
+      (when package
+        (loop for symbol being the external-symbols of package
+              do (add-entry symbol))))
 
     ;; always set the map to the updated value
     (setf (slot-value instance 'identifier-map) identifier-map)))
@@ -175,7 +180,7 @@
   (:method ((package package) (vocabulary vocabulary))
     (setf-vocabulary-uri (package-name package) vocabulary)))
 
-
+      
 #+digitool
 (progn
   (defmethod documentation ((object vocabulary) &optional type)
@@ -286,8 +291,6 @@
   (apply #'rdf:require-vocabulary (symbol-uri-namestring uri) args))
 
 
-
-
 ;;;
 ;;; load standard vocabularies
 
@@ -295,6 +298,15 @@
 (defvar *rdfs-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2000/01/rdf-schema#"))
 (defvar *owl-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2002/07/owl#"))
 (defvar *xsd-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2001/XMLSchema-datatypes#"))
+
+
+;;; note default separators
+
+(setf (uri-extrinsic-separator "KEYWORD") #\/)
+(setf (uri-extrinsic-separator "COMMON-LISP") #\/)
+(setf (uri-extrinsic-separator "COMMON-LISP-USER") #\/)
+(setf (uri-extrinsic-separator "DE.SETF.RESOURCE") #\/)
+
 
 ;;; (mapcar #'rdf:require-vocabulary *default-vocabulary-names*)
 

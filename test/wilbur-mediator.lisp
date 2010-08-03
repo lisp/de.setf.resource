@@ -171,6 +171,42 @@
                    '(1 "1" 1.0s0 1.0d0))
            '(!xsd:integer  !xsd:string  !xsd:float  !xsd:double))))
 
+(test:test resource.wilbur-mediator.statement.1
+  "When placing a native triple, either the context must be provided, or the search must use a wild context."
+  (let* ((m (repository-mediator 'wilbur-mediator))
+        (new (wilbur:triple (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")
+                            (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate")
+                            (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#object")
+                            (repository-value m (mediator-default-context m)))))
+    (wilbur:add-triple new)
+    (let ((found (first (rdf:query m :subject '{rdf}subject :predicate '{rdf}predicate :object '{rdf}object))))
+      (and found
+           (eq (rdf:subject new) (rdf:subject found))
+           (eq (rdf:predicate new) (rdf:predicate found))
+           (eq (rdf:object new) (rdf:object found))))))
+
+(test:test resource.wilbur-mediator.statement.2
+  "When placing a native triple, either the context must be provided, or the search must use a wild context."
+  (let* ((m (repository-mediator 'wilbur-mediator))
+         (new (wilbur:triple (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")
+                             (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate")
+                             (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"))))
+    (wilbur:add-triple new)
+    (let ((found (first (rdf:query m :subject '{rdf}subject :predicate '{rdf}predicate :object '{rdf}object
+                                   :context nil))))
+      (and found
+           (eq (rdf:subject new) (rdf:subject found))
+           (eq (rdf:predicate new) (rdf:predicate found))
+           (eq (rdf:object new) (rdf:object found))))))
+
+
+(test:test resource.wilbur-mediator.statement.namestring
+  (rdf:namestring (wilbur:triple (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")
+                                 (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate")
+                                 (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"))))
+
+
+
 (test:test resource.wilbur-mediator.triple
   (let ((s (wilbur:triple 1 "2" !xsd:string)))
     (and (eq (wilbur:triple-subject s) (rdf:subject s))

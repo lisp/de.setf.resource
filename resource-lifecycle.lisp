@@ -646,18 +646,23 @@
                              (property t) (operation t) &optional value)
   (rdf:property-missing-error :object object :predicate property :operation operation :value value))
 
+
 (defmethod rdf:property-missing ((class resource-class) (object resource-object)
                                  (property t) (operation (eql 'rdf:setf-property-value)) &optional value)
+  "The base method for setting a missing property is to create a prototypal property."
   (declare (ignore value))
   (invoke-restart 'make-definition))
+
 
 (defmethod rdf:property-missing ((class resource-class) (object resource-object)
                                  (property t) (operation (eql 'rdf:insert-statement)) &optional value)
   (declare (ignore value))
   (invoke-restart 'make-definition))
 
+
 (defmethod rdf:property-missing ((class resource-class) (object resource-object)
                                  (property t) (operation (eql 'rdf:prototypal-property-value)) &optional value)
+  "The base method for a prototypal property read return nil for a missing property."
   (declare (ignore value))
   (invoke-restart 'use-value nil))
 
@@ -665,6 +670,7 @@
 (defmethod property-read-only ((class resource-class) (object resource-object)
                                (slot rdf:prototypal-property-definition) operation new-value)
   (property-read-only class object (c2mop:slot-definition-name slot) operation new-value))
+
 
 (defmethod property-read-only ((class resource-class) (object resource-object)
                                predicate operation new-value)

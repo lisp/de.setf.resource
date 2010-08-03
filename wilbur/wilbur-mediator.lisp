@@ -151,7 +151,7 @@
         (fragment (symbol-name n1))
         (uri (wilbur:node-uri n2)))
     (and (= (+ (length base) (length fragment)
-               (if (uri-has-separator-p base) 0 1))
+               (if (uri-intrinsic-separator base) 0 1))
             (length uri))
          (string-equal base uri :end2 (length base))
          (string-equal fragment uri :start2 (- (length uri) (length fragment))))))

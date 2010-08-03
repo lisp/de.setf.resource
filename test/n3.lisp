@@ -43,8 +43,7 @@
               " \"123\"^^<http://www.w3.org/2001/XMLSchema#integer>"
               " \"\"\"123\"\"\"^^<http://www.w3.org/2001/XMLSchema#integer>"
               " \"\\n\\t\\'\\\"\\u0009\" ")))
-  '("string" "" "string" 123 123 "
-	'\"	"))
+  `("string" "" "string" 123 123 ,(concatenate 'string #(#\newline #\tab #\' #\" #\tab))))
 
 
 (test:test resource.n3.read.2
@@ -58,5 +57,5 @@
                                         (format stream "~{~/n3:format/~%~}" statements)))
         (loop (let ((spo (n3:read stream nil nil)))
                 (if spo (push (apply #'triple spo) result) (return)))))
-
+      (pprint result)
       (equalp statements (nreverse result)))))

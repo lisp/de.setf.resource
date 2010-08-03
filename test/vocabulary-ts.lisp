@@ -23,8 +23,8 @@
 
 (test:test resource.vocabulary-ts.load-vocabulary.1
   (let ((mediator (repository-mediator 'repository-mediator
-                                   :repository nil
-                                   :identifier-function 'camel-dash-canonicalizer))
+                                       :repository nil
+                                       :identifier-function 'camel-dash-canonicalizer))
         (vocabulary (make-instance 'vocabulary :uri "x")))
     (load-vocabulary mediator vocabulary)
     (eq (find-vocabulary mediator "x") vocabulary)))
@@ -33,6 +33,7 @@
 (test:test resource.vocabulary-ts.load-vocabulary.2
   (let ((mediator (repository-mediator 'repository-mediator :repository nil))
         (vocabulary (make-instance 'vocabulary :uri "x"
+                                   :separator nil
                                    :identifier-map '((:uri-1 . "x/uri_1") (:uri-2 . "x/uri_2")))))
     (and (load-vocabulary mediator vocabulary)
          ;(maphash #'(lambda (k v) (print (list k v))) (mediator-model2repository-value-map mediator))
@@ -41,22 +42,28 @@
 
 (test:test resource.vocabulary-ts.uri-symbol.2
   (let ((mediator (repository-mediator 'repository-mediator
-                                   :repository nil
-                                   :identifier-function 'camel-dash-canonicalizer))
+                                       :repository nil
+                                       :identifier-function 'camel-dash-canonicalizer))
         (vocabulary (make-instance 'vocabulary :uri "x"
+                                   :separator nil
                                    :identifier-map '((:uri-1 . "uri/1")  (:uri-2 . "uri/2")))))
     ;; (maphash #'(lambda (k v) (print (list k v))) (mediator-model2repository-value-map mediator))
     (load-vocabulary mediator vocabulary)
-    (and (eq (rdf:model-value mediator (rdf:repository-value mediator :uri-1)) :uri-1)
+    (list (eq (rdf:model-value mediator (rdf:repository-value mediator :uri-1)) :uri-1)
          (eq (rdf:model-value mediator (rdf:repository-value mediator :uri-2)) :uri-2)
          (eq (rdf:model-value mediator (rdf:repository-value mediator :uri-3)) :uri-3)
          (equal (rdf:repository-value mediator :uri-1) (intern "1" (find-package "uri/")))
          (equal (rdf:repository-value mediator :uri-2) (intern "2" (find-package "uri/")))
-         (equal (rdf:repository-value mediator :uri-3) :|uri3|)
+         ;; w/o a pre-registerd value, the default is an encoded symbol
+         (equalp (rdf:repository-value mediator :uri-3)
+                (load-time-value
+                 (with-output-to-vector-stream (stream)
+                   (thrift:stream-write-struct stream (thrift:list (cons symbol "KEYWORD/uri3"))
+                                               'repository-value))))
          (delete-package "uri/"))))
 
 
-(test:test resource.vocabulary-ts.load-vocabulary.1
+(test:test resource.vocabulary-ts.load-vocabulary.3
   "This loads the foaf vocabulary from the file system, plus two others upon which it depends."
   (let* ((v (load-vocabulary (vocabulary-pathname "http://xmlns.com/foaf/0.1/")
                              "http://xmlns.com/foaf/0.1/")))
@@ -67,7 +74,7 @@
              'rdfs:defclass))))
     
 
-(test:test resource.vocabulary-ts.load-vocabulary.2
+(test:test resource.vocabulary-ts.load-vocabulary.4
   "Load the foaf vocabulary through a triple-store, check that the names and definitions
  are complete."
   (let* ((*load-verbose* (eq test::*test-unit-mode* :verbose))
@@ -79,7 +86,7 @@
     (and (equal "foaf" (vocabulary-name v))
          (equal "http://xmlns.com/foaf/0.1/" (vocabulary-uri v))
          (equal (length class-names) (length (vocabulary-definitions v)))
-         (null (set-difference class-names (mapcar #'second (vocabulary-definitions v))
+         (null (set-exclusive-or class-names (mapcar #'second (vocabulary-definitions v))
                                :test #'string-equal)))))
 
 

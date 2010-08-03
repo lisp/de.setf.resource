@@ -27,6 +27,10 @@
 
 (defpackage "http://example.com" (:use ))
 
+
+(setf (uri-extrinsic-separator "DE.SETF.RESOURCE.IMPLEMENTATION") #\/)
+(setf (uri-extrinsic-separator "http://example.com") #\/)
+
 ;;; clozure lacks a generic function change-class
 (rdfs:defaccessor person-name (person) :property '{foaf}firstName :name name :type string)
 (rdfs:defaccessor person-age (person) :property '{foaf}age :name age :type number)
