@@ -933,7 +933,7 @@
            #-ccl
            (ensure-generic-function writer :method-combination `(persistent-slot-writer :slot-definition ,sd)
                                     :generic-function-class 'rdf-slot-writer)))))
-
+    #+digitool
     (when property-slots
       (let* ((method-class (c2mop:generic-function-method-class #'unbind-property-slots))
              (function (compile nil `(lambda (subject)
@@ -974,7 +974,37 @@
                        :specializers (list (find-class 't) class)
                        :lambda-list '(function object)
                        #+ccl :name #+ccl 'rdf:map-property-values)))
-        (add-method #'rdf:map-property-values method)))))
+        (add-method #'rdf:map-property-values method)))
+    #-digitool                          ; should be portable
+    (when property-slots
+      (c2mop:ensure-method #'unbind-property-slots
+                           `(lambda (subject)
+                              ,@(mapcar #'(lambda (sd)
+                                            `(progn
+                                               (slot-makunbound subject ',(c2mop:slot-definition-name sd))
+                                               (slot-makunbound subject ',(c2mop:slot-definition-name
+                                                                           (slot-definition-statement-slot sd)))))
+                                        property-slots))
+                           :qualifiers '(progn)
+                           :lambda-list '(object)
+                           :specializers (list class))
+      (c2mop:ensure-method #'rdf:map-property-slots
+                           `(lambda (function subject)
+                                       (declare (ignore subject))
+                                       ,@(mapcar #'(lambda (sd) `(funcall function ,sd))
+                                                 property-slots))
+                           :qualifiers '(progn)
+                           :lambda-list '(function object)
+                           :specializers (list (find-class 't) class))
+      (c2mop:ensure-method #'rdf:map-property-values
+                           `(lambda (function subject)
+                                       ,@(mapcar #'(lambda (sd)
+                                                     `(when (slot-boundp subject ',(c2mop:slot-definition-name sd))
+                                                        (rdf:map-collection function (,(slot-definition-reader sd) subject))))
+                                                 property-slots))
+                           :qualifiers '(progn)
+                           :lambda-list '(function object)
+                           :specializers (list (find-class 't) class)))))
 
 
 
