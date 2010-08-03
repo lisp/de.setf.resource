@@ -89,8 +89,8 @@
       (if package
         (let ((base-uri (package-name package)))
           (format stream "<~a~@[~a~]~a>"
-                  base-uri (unless (uri-has-separator-p base-uri) "/") fragment)))
-      (format stream "~a~a" *blank-node-prefix* fragment)))
+                  base-uri (uri-extrinsic-separator base-uri) fragment))
+        (format stream "~a~a" *blank-node-prefix* fragment))))
 
   (:method ((object uuid:uuid) stream)
     (write-char #\< stream)
@@ -142,20 +142,20 @@
             (case char
               (#\>
                (if (eql start #\<)
-                 (return buffer)
+                 (return (subseq buffer 0 (length buffer)))
                  (vector-push-extend char buffer)))
               (#\"
                (ecase start
-                 (#\" (return buffer))
-                 (:|"""| 
+                 (#\" (return (subseq buffer 0 (length buffer))))
+                 (:|"""|
                   (cond ((and (eql (setf char (read-char stream)) #\")
                               (eql (peek-char nil stream) #\"))
                          (read-char stream)
-                         (return buffer))
+                         (return (subseq buffer 0 (length buffer))))
                         (t
                          (vector-push-extend #\" buffer)
                          (vector-push-extend char buffer))))
-                 (#\>
+                 (#\<
                   (vector-push-extend #\" buffer))))
               ((#\tab #\linefeed #\return #\space)
                (unless (eql start #\<)
@@ -324,16 +324,16 @@
 
 
 (defgeneric n3::open-with-codec (location encoding &rest args)
-
+  
   (:method ((location pathname) (mime-type mime:application/n3) &rest args)
     "If the type is already notation3, then resurn the stream unadorned."
     (apply #'open location args))
-
+  
   (:method ((location t) (mime-type mime:text/plain) &rest args)
     "The 'standard' notation3 mime type is, in fact, text/plain, so presume it's ok."
     (declare (dynamic-extent args))
     (apply #'n3::open-with-codec location mime:application/n3 args))
-
+  
   #+digitool
   (:method ((location pathname) (mime-type mime:application/rdf+xml)
             &key (direction (error "direction is required."))
@@ -344,7 +344,7 @@
                  :command `(,*rapper-binary-pathname* "-q" "-o ntriples" ,location)))
       (:output (make-instance 'bsd:pipe-output-stream
                  :command `(,*rapper-binary-pathname* "-q" "-i ntriples" "-o rdfxml" ,location)))))
-
+  
   #+clozure
   (:method ((location pathname) (mime-type mime:application/rdf+xml)
             &key (direction (error "direction is required."))
@@ -359,7 +359,7 @@
        (ccl:run-program *rapper-binary-pathname*
                         `("-q" "-i" "ntriples" "-o" "rdfxml",location)
                         :input :stream))))
-
+  
   #+allegro
   (:method ((location pathname) (mime-type mime:application/rdf+xml)
             &key (direction (error "direction is required."))
@@ -373,9 +373,9 @@
       (:output
        (excl:run-shell-command (format nil "~a -q -i ntriples -o rdf/xml ~a"
                                        *rapper-binary-pathname* location)
-                        :input :stream))))
-
-    #+sbcl
+                               :input :stream))))
+  
+  #+sbcl
   (:method ((location pathname) (mime-type mime:application/rdf+xml)
             &key (direction (error "direction is required."))
             &allow-other-keys)
@@ -383,12 +383,12 @@
     (ecase direction
       (:input
        (sb-ext:run-program *rapper-binary-pathname*
-                        `("-q" "-o" "ntriples" ,location)
-                        :output :stream))
+                           `("-q" "-o" "ntriples" ,location)
+                           :output :stream))
       (:output
        (sb-ext:run-program *rapper-binary-pathname*
-                        `("-q" "-i" "ntriples" "-o" "rdfxml",location)
-                        :input :stream)))))
+                           `("-q" "-i" "ntriples" "-o" "rdfxml",location)
+                           :input :stream)))))
 
 
 (defmethod rdf:project-graph ((source pathname) (destination t))
