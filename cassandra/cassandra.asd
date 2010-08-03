@@ -23,9 +23,10 @@
                :de.setf.cassandra)
   :description "The cassandra module for de.setf.resource"
   :components ((:file "cassandra-mediator")
-               (:file "rdfrb-mediator.lisp" :depends-on ("cassandra-mediator"))
-               (:file "spoc-mediator.lisp" :depends-on ("cassandra-mediator")))
+               (:file "rdfrb-mediator" :depends-on ("cassandra-mediator"))
+               (:file "spoc-mediator" :depends-on ("cassandra-mediator")))
   :long-description
-  "This  `de.setf.resource` module implements a specialized resource mediator for cassandra.")
+  "This `de.setf.resource` module implements a specialized resource mediator for cassandra.
+ It defines versions for rdf-rb and spoc indices.")
 
 
