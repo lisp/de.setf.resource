@@ -27,7 +27,7 @@
   :components ((:file "fixtures")
                (:file "utilities")
                (:file "statement")
-               (:file "interface")
+               (:file "api")
                (:file "n3")
                (:file "vocabulary")
                ;; (:file "resource-metaclass")
