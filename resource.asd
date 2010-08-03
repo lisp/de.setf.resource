@@ -31,7 +31,8 @@
                ;; ! the reader conficts with that of agraph - need to reinstate that
                :net.sourceforge.wilbur
                :com.b9.puri.puri-ppcre
-               :de.setf.utility.mime)
+               :de.setf.utility.mime
+               :org.apache.thrift)
   :serial t
   :description "A CLOS-aware RDF interface feature equivalent to Spira.rb"
   :components ((:file "packages")
@@ -40,9 +41,9 @@
                (:file "utilities")
                (:file "vocabulary")
                (:file "n3")
-               (:file "interface")
+               (:file "api")
                (:file "statement")
-               (:file "resource-mediator")
+               (:file "repository-mediator")
                (:file "resource-class")
                (:file "resource-object")
                (:file "resource-transaction")
