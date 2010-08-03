@@ -7,7 +7,8 @@ In order to use asdf with sbcl,
 The system can be built and saved from the command line. This example illustrates a build which
 incorporates the cassandra interface.
 
-    $ sbcl --userinit readmes/build-init.lisp \
+    # see the file in READMES
+    $ sbcl --userinit /development/source/library/build-init.lisp \ 
       --eval "(asdf:operate 'asdf:load-op :de.setf.resource.cassandra)" \
       --eval '(sb-ext:save-lisp-and-die "sbcl-rdf.core")'
 
