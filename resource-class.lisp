@@ -914,24 +914,23 @@
          ;; augment the combination for resource slots with access to the statement slot
          ;; (inspect sd) (print sd)
          (dolist (reader (c2mop:slot-definition-readers sd))
-           ;; (print reader
-           #-allegro
+           #+ccl
            (ensure-generic-function reader
                                     :method-combination (c2mop:find-method-combination #'ensure-resource-accessors
                                                                                        'rdf:persistent-slot-reader
                                                                                        (list :slot-definition sd)))
-           #+allegro
+           #-ccl
            (ensure-generic-function reader
                                     :method-combination `(persistent-slot-reader :slot-definition ,sd)
                                     :generic-function-class 'rdf-slot-reader))
          (dolist (writer (c2mop:slot-definition-writers sd))
            ;; (print writer)
-           #-allegro
+           #+ccl
            (ensure-generic-function writer
                                     :method-combination (c2mop:find-method-combination #'ensure-resource-accessors
                                                                                        'rdf:persistent-slot-writer
                                                                                        (list :slot-definition sd)))
-           #+allegro
+           #-ccl
            (ensure-generic-function writer :method-combination `(persistent-slot-writer :slot-definition ,sd)
                                     :generic-function-class 'rdf-slot-writer)))))
 
