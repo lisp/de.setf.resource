@@ -43,7 +43,8 @@
                               (append (butlast (pathname-directory *build-init-pathname*) 2)
                                       '("production" "Library" "net" "common-lisp" "asdf"))
                               (append (pathname-directory *build-init-pathname*)
-                                      '("net" "common-lisp" "asdf")))
+                                      ;; '("net" "common-lisp" "asdf")))
+				      '("net" "common-lisp" "asdf-logical")))
                  :name "asdf" :type "lisp"
                  :defaults *build-init-pathname*))
 
@@ -51,7 +52,9 @@
           (find-package :asdf))
   (when *load-verbose*
     (format *trace-output* "~&;Incorporating asdf anew from ~s." *asdf-pathname*))
-  (load (compile-file *asdf-pathname*))
+  (if (probe-file (compile-file-pathname *asdf-pathname*))
+    (load (compile-file-pathname *asdf-pathname*))
+    (load (compile-file *asdf-pathname*)))
   #+ecl
   (load (compile-file (make-pathname :name "asdf-ecl" :defaults *asdf-pathname*))))
 
@@ -59,7 +62,7 @@
 ;; debugging clisp (trace make-pathname)
 ;;; bulding the analysis system itelf requires locating lots of systems in the dev tree
 ;;; include when intended to support de.setf library builds
-#+(or :clozure :allegro sbcl)                              
+#+(or :clozure :allegro :sbcl)
 (unless (fboundp (find-symbol (string :sysdef-hierarchical-search-function) :asdf))
   (load (make-pathname :directory (append (pathname-directory *build-init-pathname*)
                                           '("de" "setf" "utility" "asdf"))
@@ -171,8 +174,6 @@
 
 (defun load-system (system)
   (handler-case (asdf:load-system system)
-
-
     (error (c)
            (warn "Build (~a) failed with error: ~a." system c)
            (cl-user::print-backtrace)
