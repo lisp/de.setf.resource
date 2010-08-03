@@ -140,7 +140,7 @@
   (let ((m (repository-mediator 'wilbur-mediator))
         (statements (list (rdf:triple '{rdf}subject '{rdf}predicate '{rdf}object)
                           (rdf:triple '{CL}LIST '{rdf}type '{CL}CLASS)
-                          (rdf:triple '{CL-USER}01 '{CL}SLOT-1 "a string")
+                          (rdf:triple '{CL-USER}01 '{CL-USER}SLOT-1 "a string")
                           (rdf:triple '{CL-USER}01 '{rdf}type '{RDF}RESOURCE-OBJECT))))
     (rdf:repository-clear m)
     (rdf:project-graph statements m)
@@ -226,7 +226,7 @@
 (test:test resource.interface.query.1
   (let* ((object (resource :uri '{CL-USER}01))
          (m (object-repository object))
-         (statements (list (rdf:triple '{CL-USER}01 '{CL}SLOT-1 "a string")
+         (statements (list (rdf:triple '{CL-USER}01 '{CL-USER}SLOT-1 "a string")
                            (rdf:triple '{CL-USER}01 '{rdf}type '{RDF}RESOURCE-OBJECT))))
     (rdf:repository-clear m)
     (rdf:project-graph statements m)
