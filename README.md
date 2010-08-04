@@ -204,7 +204,8 @@ in this combined form, under the GAL as well
 - [usocket](mailto:usocket-devel@common-lisp.net) : MIT, through 2007. later work unspecified
   - 2003 Erik Enge
   - 2006-2007 Erik Huelsmann 
-- [net.sourceforge.wilbur](wilbur-rdf.sourceforge.net/)
+- [de.setf.wilbur](http://github.com/lisp/de.setf.wilbur) was [net.sourceforge.wilbur](wilbur-rdf.sourceforge.net/)
+  The fork contains several corrections and extensions to permit use with SBCL and MCL.
   - 2010 [Ora Lassila](ora.lassila@nokia.com)
 
 It depends indirectly on the [de.setf.utility](http://github.com/lisp/de.setf.utility),
