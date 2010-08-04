@@ -157,7 +157,10 @@ It must instead be deferred to the end of the stream, at which point "forward-re
 ## Status
 
 The implementation has reached ["I want to see you"](http://www.loc.gov/exhibits/treasures/trr002.html) status.
-The wilbur and cassandra mediators are in-progress.
+The wilbur and cassandra mediators both implement the core add/map/delete statement interface.
+The wilbur mediator implements file and http loading.
+The development rutimes are mcl (5.2) and sbcl (1.0.36), but network operations are based on usocket and mop operations are based on closer-mop, so
+the porting threshold should be low.
 The allegro interface is on-hold as it does not fit in the free edition.
 
 The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) desribes the implemented API.
@@ -198,6 +201,9 @@ in this combined form, under the GAL as well
 - [com.b9.puri]() : LLGPL, by which com.b9.puri.puri-ppcre is also covered by the LLGPL
   - 1999-2001 [Franz, Inc](mailto:opensource@franz.com).
   - 2003 [Kevin Rosenberg](mailto:kevin@rosenberg.net)
+- [usocket](mailto:usocket-devel@common-lisp.net) : MIT, through 2007. later work unspecified
+  - 2003 Erik Enge
+  - 2006-2007 Erik Huelsmann 
 - [net.sourceforge.wilbur](wilbur-rdf.sourceforge.net/)
   - 2010 [Ora Lassila](ora.lassila@nokia.com)
 
