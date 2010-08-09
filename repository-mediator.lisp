@@ -88,6 +88,10 @@
     :reader mediator-repository
     :documentation "The repository store instance. Each concrete class entails its own specification form
      and must provide a default value if no initialization argument is given.")
+   (id
+    :initform (uuid:make-v1-uuid) :initarg :id
+    :reader mediator-id
+    :documentation "Used to identify the mediator in transactions.")
    (transaction-cache
     :initform (make-hash-table)
     :reader mediator-transaction-cache
@@ -579,11 +583,15 @@
                            (rdf:query mediator :subject (rdf:subject statement) :predicate '{rdf}type :object '{owl}Class
                                       :context nil))
                    (push (rdf:repository-class-definition mediator (rdf:subject statement)) definitions)))
-         (append (rdf:query mediator :predicate '{rdfs}isDefinedBy :object (repository-uri mediator vocabulary-uri)
-                            :context nil)
-                 (unless (equal vocabulary-resource-uri vocabulary-uri)
-                   (rdf:query mediator :predicate '{rdfs}isDefinedBy :object (repository-uri mediator vocabulary-resource-uri)
-                              :context nil))))
+         (remove-duplicates
+          (append (rdf:query mediator :predicate '{rdfs}isDefinedBy :object (repository-uri mediator vocabulary-uri)
+                             :context nil)
+                  (unless (equal vocabulary-resource-uri vocabulary-uri)
+                    (rdf:query mediator :predicate '{rdfs}isDefinedBy :object (repository-uri mediator vocabulary-resource-uri)
+                               :context nil))
+                  ;; heavy-handed, but the way to find out what was in the document
+                  (rdf:query mediator :context (repository-uri mediator vocabulary-resource-uri)))
+          :key #'rdf:subject))
       
     ;; next, given any first-order definitions, continue to walk the class-precedence and property type graph
     ;; until it closes, as many classes (eg {foaf}Agent and {foaf}Group) include no isDefinedBy assertion.
@@ -599,8 +607,7 @@
           ;; iff the slot's type is an unknown class, add it
           (when (and (eq (symbol-package datatype) package)
                      (not (find datatype definition-classes))
-                     (rdf:query mediator :subject datatype :predicate '{rdf}type :object '{rdfs}Class
-                                :context nil))
+                     (rdf:query mediator :subject datatype :predicate '{rdf}type :object '{rdfs}Class :context nil))
             (push datatype missing-classes))))
       (dolist (superclass (third definition))
         ;; iff a superclass is an unknown class, add it
@@ -997,4 +1004,159 @@
             "Some model->repository->model value failed:~% ~s~% ~s"
             values
             (mapcar #'(lambda (x) (rdf:repository-value rm x)) values))))
-          
+
+;;;
+;;; versioning
+
+(:documentation repository-next-object-version repository-get-object-version repository-commit-object-version
+  "Each active object is associated with a lock in the repository. It is created when a new-persistent object
+ is saved. The lock is global and contains the object's current version id.
+
+ In order to progress to a new version, the attempt to advance the version succeeds if there is no intervening
+ change and no change in progress. This is determined by an attempt to grab the subject's lock with the
+ current local version. This succeeds if the lock was 'empty' and the version unchanged. If the versions do not
+ match, some other update has committed, the lock cleared back to the stored version and the local commit fails.
+ If it is already 'full', some other update is in progress, and the local cmmit fails.
+
+ If the lock was grabbed, the commit proceeds, the subject's statements are written with a new graph id as
+ context, that graph's metadata is written, and, as the last step, the object's version lock is cleared to
+ the new version id.")
+
+
+(defgeneric repository-lock-object-version (mediator subject-id version-id)
+  (:documentation "Attempt to grab the object's version lock. This succeeds if the lock was 'empty'
+ and the version is unchanged from the local object's.")
+
+  (:method ((mediator repository-mediator) (subject-id t) (current-version-id t))
+    (multiple-value-bind (stored-version-id locked-p)
+                         (nbfeb-tfas mediator subject-id current-version-id)
+      ;; if it is already locked, then another process is updating. this update fails.
+      (unless locked-p
+        ;; if it wasn't locked, check if the stored version is still the current.
+        (cond ((rdf:equal current-version-id stored-version-id)
+               ;; if it is, the clobal state is unchanged, so this change can proceed
+               t)
+              (t
+               ;; otherwise, there was an intervening change. roll this one back and fail
+               (nbfeb-sac mediator subject-id stored-version-id)))))))
+
+
+(defgeneric repository-get-object-version (mediator subject-id)
+  (:method ((mediator repository-mediator) (subject-id t))
+    (nbfeb-load mediator subject-id)))
+
+
+(defgeneric repository-commit-object-version (mediator subject-id new-version-id)
+  (:documentation "Commit the new version by storing in the subject's lock and releasing the lock.")
+
+  (:method ((mediator repository-mediator) (subject-id t) (new-version-id t))
+    "Store the new if an release the lock."
+    (nbfeb-sac mediator subject-id new-version-id)))
+
+
+(defgeneric repository-write-transaction-metadata (mediator transaction)
+  (:method ((mediator repository-mediator) (transaction transaction-open))
+    (let ((graph (mediator-default-context mediator)))
+      (add-statement* mediator (transaction-id transaction) '{rdf}type '{owl}Interval graph)
+      (add-statement* mediator (transaction-id transaction) '{rdfs}isDefinedBy (mediator-id mediator) graph)
+      (add-statement* mediator (transaction-id transaction) '{time}hasBeginning (transaction-start transaction) graph)
+      (add-statement* mediator (transaction-id transaction) '{time}hasEnd (transaction-end transaction) graph))))
+
+
+(defvar +feb-retry-limit+ 10)
+(defvar +feb-retry-delay+ 0.1)
+(defvar +feb-false+ 0)
+(defvar +feb-true+ 1)
+(defvar +feb-context+ '{RDF}feb)
+(defvar +feb-load+ '{RDF}feb-load)
+(defvar +feb-sac+ '{RDF}feb-sac)
+(defvar +feb-sas+ '{RDF}feb-sas)
+(defvar +feb-tfas+ '{RDF}feb-tfas)
+(defvar +feb-bit+ '{RDF}feb-bit)
+(defvar +feb-value+ '{RDF}feb-value)
+
+
+
+(defgeneric nbfeb-load (mediator location-id)
+  (:documentation "Given a location, return its current flag and value.")
+
+  (:method ((mediator repository-mediator) location-id)
+    "Return the decoded state from the FEB location."
+    ;; do not mark the location with an operation as this makes no
+    (dotimes (count +feb-retry-limit+)
+      (let* ((statements (rdf:query mediator :subject location-id :context +feb-context+))
+             (bit (find +feb-bit+ statements :key #'rdf:predicate))
+             (value (find +feb-value+ statements :key #'rdf:predicate)))
+        (when (and bit value (null (cddr statements)))
+          (return-from nbfeb-load
+            (values (model-value mediator (rdf:object value)) (model-value mediator (rdf:object bit)))))))))
+
+
+(defgeneric nbfeb-sac (mediator location-id value)
+  (:documentation "Given a location, clear its flag and store the value.
+ Return the old flag and value.")
+
+  (:method ((mediator repository-mediator) location-id value)
+    (flet ((do-sac (old-bit old-value)
+             (unless (eql +feb-false+ (model-value mediator (rdf:object old-bit)))
+               (delete-statement mediator old-bit)
+               (add-statement* mediator location-id +feb-bit+ +feb-false+ +feb-context+))
+             (delete-statement mediator old-value)
+             (add-statement* mediator location-id +feb-value+ value +feb-context+)))
+      (declare (dynamic-extent #'do-sac))
+      (call-with-isolated-feb #'do-sac mediator location-id +feb-sac+))))
+
+
+(defgeneric nbfeb-sas (mediator location-id value)
+  (:documentation "Given a location, set its flag and store the value.
+ Return the old flag and value.")
+
+  (:method ((mediator repository-mediator) location-id value)
+    (flet ((do-sas (old-bit old-value)
+             (unless (eql +feb-true+ (model-value mediator (rdf:object old-bit)))
+               (delete-statement mediator old-bit)
+               (add-statement* mediator location-id +feb-bit+ +feb-true+ +feb-context+))
+             (delete-statement mediator old-value)
+             (add-statement* mediator location-id +feb-value+ value +feb-context+)))
+      (declare (dynamic-extent #'do-sas))
+      (call-with-isolated-feb #'do-sas mediator location-id +feb-sas+))))
+
+
+(defgeneric nbfeb-tfas (mediator location-id value-id)
+  (:documentation "Given a location, test its current flag. if clear, set the flag and store the value.
+ Return the old flag and value.")
+
+  (:method ((mediator repository-mediator) location-id value)
+    (flet ((do-tfas (old-bit old-value)
+             (when (eql +feb-false+ (model-value mediator (rdf:object old-bit)))
+               (delete-statement mediator old-bit)
+               (add-statement* mediator location-id +feb-bit+ +feb-false+ +feb-context+)
+               (delete-statement mediator old-value)
+               (add-statement* mediator location-id +feb-value+ value +feb-context+))))
+      (declare (dynamic-extent #'do-tfas))
+      (call-with-isolated-feb #'do-tfas mediator location-id +feb-tfas+))))
+
+
+(defun call-with-isolated-feb (function mediator location-id feb-op)
+  (dotimes (count +feb-retry-limit+)
+    (add-statement* mediator location-id feb-op (mediator-id mediator) +feb-context+)
+    (let* ((statements (rdf:query mediator :subject location-id :context +feb-context+))
+           (old-bit (find +feb-bit+ statements :key #'rdf:predicate))
+           (old-value (find +feb-value+ statements :key #'rdf:predicate)))
+      (when (and old-bit old-value (null (cdddr statements)))
+        (unwind-protect (funcall function old-value old-bit)
+          (delete-statement* mediator location-id feb-op (mediator-id mediator) +feb-context+))
+        (return-from call-with-isolated-feb
+          (values (model-value mediator (rdf:object old-value)) (model-value mediator (rdf:object old-bit))))))
+    ;; otherwise retry
+    (delete-statement* mediator location-id feb-op (mediator-id mediator) +feb-context+)
+    (sleep +feb-retry-delay+))
+  (rdf:feb-timeout-error :mediator mediator :operation +feb-tfas+))
+
+(defgeneric nbfeb-initialize (mediator location-id value)
+  (:documentation "Given a location, initialize its flag to falseand store the value.
+ Return the old flag and value.")
+
+  (:method ((mediator repository-mediator) location-id value)
+    (add-statement* mediator location-id +feb-bit+ +feb-false+ +feb-context+)
+    (add-statement* mediator location-id +feb-value+ value +feb-context+)))
