@@ -291,6 +291,37 @@
   (apply #'rdf:require-vocabulary (symbol-uri-namestring uri) args))
 
 
+(defgeneric save-vocabulary (vocabulary destination)
+  (:method ((vocabulary vocabulary) (stream stream))
+    (let* ((uri (vocabulary-uri vocabulary))
+           (name (vocabulary-name vocabulary))
+           (package (vocabulary-package vocabulary))
+           (definitions (vocabulary-definitions vocabulary))
+           (symbols ()))
+      (dolist (definition definitions)
+        (when (eq (symbol-package (second definition)) package)
+          (push (second definition) symbols))
+        (dolist (slot (fourth definition))
+          (when (eq (symbol-package (first slot)) package)
+            (push (first slot) symbols))))
+      (format stream ";;; -*- Mode: lisp; Syntax: ansi-common-lisp; Base: 10; Package: common-lisp-user; -*-~%;;; ~/date:format-iso-time/~%;;; from ~s~%"
+              (get-universal-time)
+              uri)
+      (format stream "~%(in-package :common-lisp-user)~%")
+      (format stream "~%~%(defpackage ~s~%  (:use)~%  (:nicknames~@[ ~s~])~%  (:export~{ \"~a\"~}))~%"
+              uri name symbols)
+      (format stream "~%(rdfs:defvocabulary ~s :uri ~s :package ~s~% :definitions~% ~:w)"
+              name uri (package-name package) definitions)))
+
+  (:method ((vocabulary vocabulary) (destination t))
+    (save-vocabulary vocabulary (vocabulary-pathname (vocabulary-uri vocabulary))))
+  
+  (:method ((vocabulary vocabulary) (pathname pathname))
+    (ensure-directories-exist pathname)
+    (with-open-file (stream pathname :direction :output :if-exists :supersede :if-does-not-exist :create)
+      (save-vocabulary vocabulary stream))))
+
+
 ;;;
 ;;; load standard vocabularies
 
@@ -298,7 +329,7 @@
 (defvar *rdfs-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2000/01/rdf-schema#"))
 (defvar *owl-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2002/07/owl#"))
 (defvar *xsd-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2001/XMLSchema-datatypes#"))
-
+(defvar *time-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2006/time#"))
 
 ;;; note default separators
 
@@ -310,7 +341,7 @@
 
 ;;; (mapcar #'rdf:require-vocabulary *default-vocabulary-names*)
 
-;; (camel-dash-canonicalizer (make-symbol (camel-dash-canonicalizer "asdfQwer")))
+;;; (camel-dash-canonicalizer (make-symbol (camel-dash-canonicalizer "asdfQwer")))
               
 ;;; examples and sources
 ;;;  http://vocab.org/
@@ -332,3 +363,13 @@
 
 
 ;;; vocabulary sources : schemaweb
+
+;;; importing a vocabulary:
+;;; first load it into wilbur
+;;; (defparameter *v* (rdf:load-vocabulary (wilbur-mediator) "http://www.w3.org/2006/time#"))
+;;; (map nil #'(lambda (d) (print (second d)))  (vocabulary-definitions *v*))
+;;;
+;;; (rdf:query (wilbur-mediator) :subject '{http://www.w3.org/2006/time#}Instant :context nil)
+;;; (vocabulary-pathname  "http://www.w3.org/2006/time#")
+;;; (save-vocabulary *v* *trace-output*)
+;;; (save-vocabulary *v* t)
