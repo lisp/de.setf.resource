@@ -95,6 +95,7 @@ property-value, (setf property-value), property-boundp,
    :enumeration
    :equal
    :evict
+   :feb-timeout-error
    :find-instance
    :find-class
    :find-vocabulary
