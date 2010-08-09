@@ -44,7 +44,10 @@
      :initform nil :initarg :graph :initarg :context
      :accessor object-graph :accessor object-context
      :documentation "Specifies the individual graph, within the object's repository, which comprises the object's
-      description. The default value is NIL.")
+      description. The default value is nil, which means that associations will be retrieved from all graphs
+      and the object is unversioned. If bound to a graph URI (as per an rdfs:isDefinedBy property), then each
+      time the object is written, a new document version is generated and a new relation is written to that
+      one in the context of the transaction.")
    (history
     :initform ()
     :reader object-history :writer setf-object-history
