@@ -81,7 +81,18 @@
 
 (defclass rdf:non-transactional (rdf-state) ())
 (defclass transactional (rdf-state) ())
-(defclass transaction-open (transactional) ())
+(defclass transaction-open (transactional)
+  ((id
+   :initform (uuid:make-v1-uuid)
+   :reader transaction-id
+   :documentation
+   "A unique uuid identifies each transaction in the repositiory.")
+   (start
+    :initform (get-universal-time)
+    :reader transaction-start)
+   (end
+    :initform nil
+    :accessor transaction-end)))
 (defclass transaction-abort (transactional) ())
 (defclass transaction-commit (transactional) ())
 
@@ -181,6 +192,8 @@
 
 (define-condition rdf-error (simple-error) ())
 
+(define-condition repository-error (rdf-error) ())
+
 (define-condition rdf:invalid-state-error (rdf-error)
   ((object :initarg :object :reader condition-object)
    (start-state :initarg :start-state :reader condition-start-state)
@@ -194,7 +207,7 @@
 (defun rdf:invalid-state-error (&rest args)
   (apply #'error 'rdf:invalid-state-error args))
 
-(define-condition rdf:property-missing-error (simple-error)
+(define-condition rdf:property-missing-error (rdf-error)
   ((object :initarg :object :reader condition-object)
    (value :initarg :value :reader condition-value)
    (predicate :initarg :predicate :reader condition-predicate)
@@ -249,7 +262,7 @@
                                 :direct-superclasses direct-superclasses))))
 
 
-(define-condition rdf:property-read-only-error (simple-error)
+(define-condition rdf:property-read-only-error (rdf-error)
   ((object :initarg :object :reader condition-object)
    (predicate :initarg :predicate :reader condition-predicate)
    (operation :initarg :operation :reader condition-operation)
@@ -263,7 +276,7 @@
   (apply #'error 'rdf:property-read-only-error args))
 
 
-(define-condition rdf:unbound-source-error (simple-error)
+(define-condition rdf:unbound-source-error (rdf-error)
   ((class :initarg :class :reader condition-class)
    (operation :initarg :operation :initform nil :reader condition-operation))
   (:report (lambda (condition stream)
@@ -275,7 +288,7 @@
   (apply #'error 'rdf:unbound-source-error args))
 
 
-(define-condition rdf:instance-not-found-error (simple-error)
+(define-condition rdf:instance-not-found-error (rdf-error)
   ((class :initarg :class :reader condition-class)
    (uri :initarg :uri :reader condition-uri))
   (:report (lambda (condition stream)
@@ -285,6 +298,19 @@
 
 (defun rdf:instance-not-found-error (&rest args)
   (apply #'error 'rdf:instance-not-found-error args))
+
+(define-condition rdf:feb-timeout-error (repository-error)
+  ((repository :initarg :repository :reader condition-repository)
+   (operation :initarg :operation :reader condition-operation))
+  (:documentation "The error is signaled if repeated attempts to perform an feb operation
+ encounter conflicts.")
+  (:report (lambda (condition stream)
+             (format stream "FEB operation timed out: ~s, ~s."
+                     (condition-repository condition)
+                     (condition-operation condition)))))
+
+(defun rdf:feb-timeout-error (&rest args)
+  (apply #'error 'rdf:feb-timeout-error args))
 
 
 ;;;
@@ -347,18 +373,19 @@
  the difference between the two as the separator.")
 
   (:method ((uri string) (identifiers string))
-    (if (uri-intrinsic-separator uri)
-      (let ((i-length (length identifiers))
-            (u-length (length uri)))
-        (cond ((and (= u-length (1+ i-length))
-                    (string= uri identifiers :end1 i-length))
-               (char uri i-length))
-              (t
-               (warn "uri and package name do not match: ~s; ~s." uri identifiers)
-               nil)))
-      (unless (uri-intrinsic-separator identifiers)
-        (warn "Presuming separator: ~s; ~c" identifiers *default-uri-separator*)
-        *default-uri-separator*)))
+    (unless (equal uri identifiers)
+      (if (uri-intrinsic-separator uri)
+        (let ((i-length (length identifiers))
+              (u-length (length uri)))
+          (cond ((and (= u-length (1+ i-length))
+                      (string= uri identifiers :end1 i-length))
+                 (char uri i-length))
+                (t
+                 (warn "uri and package name do not match: ~s; ~s." uri identifiers)
+                 nil)))
+        (unless (uri-intrinsic-separator identifiers)
+          (warn "Presuming separator: ~s; ~c" identifiers *default-uri-separator*)
+          *default-uri-separator*))))
 
   (:method  ((uri string) (package package))
     (compute-extrinsic-separator uri (package-name package)))
