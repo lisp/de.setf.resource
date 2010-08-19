@@ -292,7 +292,7 @@ is it possible to implement an feb with just one column?
 ---
 [1] : http://www.franz.com/agraph/support/documentation/v4/lisp-reference.html 
 
-|#
+
 
 
 (thrift:def-struct "location"
@@ -513,3 +513,5 @@ is it possible to implement an feb with just one column?
            (columns (list (make-operation-column :name (make-binary 0) :value (make-operation :op-code +nfeb-load+ :value 0) :timestamp 1)
                           (make-operation-column :name id :value (make-operation :op-code +nfeb-load+ :value 0) :timestamp 2))))
       (multiple-value-list (compute-location-and-operations id location columns)))))
+
+|#
