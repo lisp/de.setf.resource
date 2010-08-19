@@ -7,7 +7,7 @@
 
 (defpackage "http://www.w3.org/2006/time#"
   (:use)
-  (:nicknames "time")
+  (:nicknames "time" "http://www.w3.org/2006/timezone#")
   (:export "hasDurationDescription" "hasEnd" "hasBeginning" "before" "TemporalEntity" "inXSDDateTime" "inDateTime" "Instant" "inside" "Interval" "intervalFinishes" "intervalDuring" "intervalStarts" "intervalOverlaps" "intervalMeets" "intervalBefore" "intervalEquals" "ProperInterval" "seconds" "minutes" "hours" "days" "weeks" "months" "years" "DurationDescription" "Year" "xsdDateTime" "hasDateTimeDescription" "DateTimeInterval" "TemporalUnit" "timeZone" "second" "minute" "hour" "dayOfYear" "dayOfWeek" "day" "week" "month" "year" "unitType" "DateTimeDescription" "DayOfWeek" "January"))
 
 (rdfs:defvocabulary "time" :uri "http://www.w3.org/2006/time#" :package "http://www.w3.org/2006/time#"
