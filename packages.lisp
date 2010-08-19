@@ -301,7 +301,7 @@ property-value, (setf property-value), property-boundp,
 ;;; (inspect xqdm::*namespace-dictionary*)
 ;;;
 ;;; in the absence of the xml parser, the rdf-associated packages are loaded in connection
-;;; with vocabularies in resource-vocabulary-ts.lisp. in preparation for which predefine
+;;; with vocabularies in vocabulary.lisp. in preparation for which predefine
 ;;; those packages which appear in cross references
 
 (loop for (p . exports) in
