@@ -191,7 +191,7 @@ Please consult the detailed instructions for the respective [runtime](./readmes/
 
 This version is released under version 3 of the GNU Affero license (GAL).[[5]]
 The required components are included as per the respective licenses and covered,
-in this combined form, under the GAL as well
+in this combined form, under the GAL as well. If you need a different license, get in touch.
 
 - [com.github.ironclad](http://method-combination.net/lisp/ironclad/)
   - 2009 [Nathan Froyd](froydnj@gmail.com)
