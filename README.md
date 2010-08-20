@@ -199,7 +199,7 @@ in this combined form, under the GAL as well. If you need a different license, g
   - 2008 [Boian Tzonev](boiantz@gmail.com)
 - closer-mop :  MIT-style
   - 2005 - 2010 [Pascal Costanza](http://p-cos.net)
-- [cl-ppcre]http://www.weitz.de : equivalent to MIT
+- [cl-ppcre](http://www.weitz.de) : equivalent to MIT
   - 2002-2008, [Dr. Edmund Weitz](http://www.weitz.de)
 - [com.b9.puri]() : LLGPL, by which com.b9.puri.puri-ppcre is also covered by the LLGPL
   - 1999-2001 [Franz, Inc](mailto:opensource@franz.com).
