@@ -1,6 +1,5 @@
 ;;; -*- Mode: lisp; Syntax: ansi-common-lisp; Base: 10; Package: de.setf.resource.implementation; -*-
 
-
 (in-package :de.setf.resource.implementation)
 
 (:documentation
@@ -120,4 +119,21 @@
 (defmethod repository-uri ((mediator cassandra-mediator) (uri-namestring string))
   (with-output-to-vector-stream (stream)
     (thrift:stream-write-struct stream (thrift:list (cons uri uri-namestring)) 'repository-value)))
+
+
+;;;
+;;; transaction support
+
+(defmethod nbfeb-load ((mediator cassandra-mediator) location-id)
+  )
+
+(defmethod nbfeb-sac ((mediator cassandra-mediator) location-id value-id)
+  )
+
+(defmethod nbfeb-sas ((mediator cassandra-mediator) location-id value-id)
+  )
+
+(defmethod nbfeb-tfas ((mediator cassandra-mediator) location-id value-id)
+  )
+
 

@@ -315,14 +315,21 @@
 (defmethod rdf:model-value ((mediator wilbur-mediator) (value wilbur:literal))
   (wilbur:literal-value value))
 
+(defvar *uri-symbols* t)
+
 (defmethod rdf:model-value ((mediator wilbur-mediator) (value wilbur:node))
   (flet ((canonicalize (fragment)
            (canonicalize-identifier mediator fragment)))
     (declare (dynamic-extent #'canonicalize))
     (let ((namestring (wilbur:node-uri value)))
-      (if (string-equal "_:" namestring :end2 2)
-        (make-symbol (subseq namestring 2))
-        (uri-namestring-identifier namestring #'canonicalize)))))
+      (cond ((null namestring)
+             (make-symbol ""))
+            ((string-equal "_:" namestring :end2 2)
+             (make-symbol (subseq namestring 2)))
+            (*uri-symbols*
+             (uri-namestring-identifier namestring #'canonicalize))
+            (t
+             (puri:uri namestring))))))
 
 
 (defmethod rdf:predicate ((statement wilbur:triple))
@@ -489,3 +496,52 @@
 (defmethod rdf:namestring ((statement wilbur:triple))
     (with-output-to-string (stream)
       (format stream "~@/n3:format/" statement)))
+
+
+;;;
+;;; transaction support
+;;;
+;;; delegate to the database to distinguish implementation for locked v/s unlocked databases.
+
+(defmethod nbfeb-load ((mediator wilbur-mediator) location-id)
+  "Delegate to the db"
+  (nbfeb-load (mediator-repository mediator) (repository-value mediator location-id)))
+
+
+(defmethod nbfeb-sac ((mediator wilbur-mediator) location-id value)
+  "Delegate to the db"
+  (nbfeb-sac (mediator-repository mediator)
+             (repository-value mediator location-id) (repository-value mediator value)))
+
+
+(defmethod nbfeb-sas ((mediator wilbur-mediator) location-id value)
+  "Delegate to the db"
+  (nbfeb-sas (mediator-repository mediator)
+             (repository-value mediator location-id) (repository-value mediator value)))
+
+
+(defmethod nbfeb-tfas ((mediator wilbur-mediator) location-id value)
+  "Delegate to the db"
+  (nbfeb-tfas (mediator-repository mediator)
+              (repository-value mediator location-id) (repository-value mediator value)))
+
+
+(thrift:def-struct "nbfebLocation"
+  "The variable cell combines a value with a full/empty bit."
+  (("feb" nil :type thrift:bool :id 1)
+   ("value" nil :type thrift:binary :id 2)))
+
+
+(defun decode-nbfeb-state (data)
+  (let ((feb nil) (value nil) (extras nil))
+    (with-input-from-vector-stream (stream :vector data)
+      (thrift.implementation::decode-struct stream 'nbfeb-location
+                                            ((feb nil :id 1 :type thrift:bool)
+                                             (value nil :id 2 :type thrift:binary))
+                                            extras))
+    (values (uuid:byte-array-to-uuid value) feb)))
+
+
+(defun encode-nbfeb-state (value flag)
+  (with-output-to-vector-stream (stream)
+    (thrift:stream-write-struct stream (thrift:list (cons value value) (cons feb flag)) 'nbfeb-location)))

@@ -157,10 +157,16 @@ It must instead be deferred to the end of the stream, at which point "forward-re
 ## Status
 
 The implementation has reached ["I want to see you"](http://www.loc.gov/exhibits/treasures/trr002.html) status.
-The wilbur and cassandra mediators are in-progress.
+The wilbur and cassandra mediators both implement the core add/map/delete statement interface.
+The wilbur mediator implements file and http loading.
+The development rutimes are mcl (5.2) and sbcl (1.0.36), but network operations are based on usocket and mop operations are based on closer-mop, so
+the porting threshold should be low.
 The allegro interface is on-hold as it does not fit in the free edition.
 
 The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) desribes the implemented API.
+
+2010-08-09: The latest push includes the first thoughts on how to use a triple store to back an STM for CLOS.
+As early as it is, one may wish to stay with the previous version for a bit.
 
 
 ### Evolution
@@ -185,24 +191,26 @@ Please consult the detailed instructions for the respective [runtime](./readmes/
 
 This version is released under version 3 of the GNU Affero license (GAL).[[5]]
 The required components are included as per the respective licenses and covered,
-in this combined form, under the GAL as well
+in this combined form, under the GAL as well. If you need a different license, get in touch.
 
-- [com.github.ironclad](http://method-combination.net/lisp/ironclad/)
+- [com.github.ironclad](http://method-combination.net/lisp/ironclad/) MIT-like
   - 2009 [Nathan Froyd](froydnj@gmail.com)
-- [net.dardoria.uuid](http://www.dardoria.net/software/uuid.html)
+- [net.dardoria.uuid](http://www.dardoria.net/software/uuid.html) LLGPL
   - 2008 [Boian Tzonev](boiantz@gmail.com)
 - closer-mop :  MIT-style
   - 2005 - 2010 [Pascal Costanza](http://p-cos.net)
-- [cl-ppcre]http://www.weitz.de : equivalent to MIT
+- [cl-ppcre](http://www.weitz.de) : equivalent to MIT
   - 2002-2008, [Dr. Edmund Weitz](http://www.weitz.de)
 - [com.b9.puri]() : LLGPL, by which com.b9.puri.puri-ppcre is also covered by the LLGPL
   - 1999-2001 [Franz, Inc](mailto:opensource@franz.com).
   - 2003 [Kevin Rosenberg](mailto:kevin@rosenberg.net)
-- [net.sourceforge.wilbur](wilbur-rdf.sourceforge.net/)
+- [usocket](mailto:usocket-devel@common-lisp.net) : MIT, through 2007. later work unspecified
+  - 2003 Erik Enge
+  - 2006-2007 Erik Huelsmann 
+- [trivial-utf-8](http://common-lisp.net/project/trivial-utf-8/)
+- [de.setf.wilbur](http://github.com/lisp/de.setf.wilbur) was [net.sourceforge.wilbur](http://wilbur-rdf.sourceforge.net/) LLGPL
+  The fork contains several corrections and extensions to permit use with SBCL and MCL.
   - 2010 [Ora Lassila](ora.lassila@nokia.com)
-
-It depends indirectly on the [de.setf.utility](http://github.com/lisp/de.setf.utility),
-[trivial-utf-8](http://common-lisp.net/project/trivial-utf-8/), and [usocket](http://common-lisp.net/project/usocket/) libraries.
 
  ---
 - Bobrow, Daniel G., DiMichiel, Linda G., Gabriel, Richard P., Keene, Sonya E., Kiczales, Gregor, and Moon, David A.,

@@ -21,7 +21,7 @@
 
 (defparameter *urn.cl-package* (find-package :urn.cl))
 
-(defparameter *uri-pathname-root* "LIBRARY:de;setf;xml;namespaces;")
+(defparameter *uri-pathname-root* "LIBRARY:de;setf;resource;namespaces;")
 
 (defvar *prototype-slot-name* :prototype)
 

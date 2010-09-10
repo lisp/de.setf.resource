@@ -57,5 +57,4 @@
                                         (format stream "~{~/n3:format/~%~}" statements)))
         (loop (let ((spo (n3:read stream nil nil)))
                 (if spo (push (apply #'triple spo) result) (return)))))
-      (pprint result)
       (equalp statements (nreverse result)))))

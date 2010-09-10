@@ -13,7 +13,11 @@
 ;;;
 ;;;  A copy of the GNU Affero General Public License should be included with `de.setf.resource`, as `agpl.txt`.
 ;;; If not, see the GNU [site](http://www.gnu.org/licenses/).
-
+;;;
+;;; de.setf.resource uses several packages:
+;;; - de.setf.resource (rdf) is the api package
+;;; - de.setf.bert comprises the operators for BERT encoding
+;;; - de.setf.resource.implementation is the general implementation package
 
 (in-package :cl-user)
 
@@ -95,6 +99,7 @@ property-value, (setf property-value), property-boundp,
    :enumeration
    :equal
    :evict
+   :feb-timeout-error
    :find-instance
    :find-class
    :find-vocabulary
@@ -281,7 +286,7 @@ property-value, (setf property-value), property-boundp,
         :de.setf.resource)
   
   #+ccl
-  (:import-from :ccl :stream-tyo :stream-tyi :stream-reader :stream-writer
+  (:import-from :ccl :stream-tyo :stream-tyi
                 :stream-write-byte :stream-read-byte :stream-position
                 :stream-read-sequence :stream-write-sequence
                 :stream-force-output)
@@ -290,17 +295,20 @@ property-value, (setf property-value), property-boundp,
                 :stream-write-byte :stream-read-byte
                 :stream-read-sequence :stream-write-sequence
                 :stream-force-output :stream-finish-output))
-   
+
+
 (defpackage :urn.cl
   (:use )
   (:nicknames "US-ANSI-INCITS-226-1994-R2004"))
 
-(defpackage "_" (:use ))
+
+(defpackage "_" (:use )
+  (:documentation "A package for macro-generated symbols, to keep them isolated, but available."))
 
 ;;; (inspect xqdm::*namespace-dictionary*)
 ;;;
 ;;; in the absence of the xml parser, the rdf-associated packages are loaded in connection
-;;; with vocabularies in resource-vocabulary-ts.lisp. in preparation for which predefine
+;;; with vocabularies in vocabulary.lisp. in preparation for which predefine
 ;;; those packages which appear in cross references
 
 (loop for (p . exports) in

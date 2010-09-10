@@ -94,7 +94,20 @@
   (:documentation "The last step of the commit operation removes all cached state and marks it hollow.")
 
   (:method (object (state rdf:persistent))
-    (make-hollow object)))
+    (make-hollow object))
+
+  (:method (object (state rdf:modified-persistent))
+    "A modified object clears its version lock to the new version."
+    (let ((graph (object-graph object)))
+      (when graph
+        (repository-commit-object-version (object-repository object) (uri object) graph)))
+    (call-next-method))
+
+  (:method (object (state rdf:new-persistent))
+    "A new object creates its version lock with the new version."
+    (let ((graph (object-graph object)))
+      (when graph
+         (repository-commit-object-version (object-repository object) (uri object) graph)))))
   
 
 (defgeneric delete-in-state (object state)
@@ -132,6 +145,27 @@
     (unless (rdf:retain-values? (object-repository object))
       (rdf:unbind-property-slots object))
     (setf-object-state rdf:hollow object)))
+
+
+(defgeneric lock-version-in-state (object state)
+  (:documentation "The first step of the commit operation is to grab the object's version lock.
+ If the object is to be deleted, or is unmodified, do nothing. The concrete step to 'revise' the object's
+ version in the repository is to write a new value to the object's lock cell at the commit conclusion.
+ Return true if the lock succeeded.")
+
+  (:method (object (state rdf:deleted-persistent))
+    ;; nothing to do
+    t)
+
+  (:method (object (state rdf:modified-persistent))
+    "A modified object clears its version lock to the new version."
+    (let ((graph (object-graph object)))
+      (when graph
+        (repository-lock-object-version (object-repository object) (uri object) graph))))
+
+  (:method (object (state rdf:new-persistent))
+    "A new object does not yet have a version lock."
+    t))
 
 
 (defgeneric make-persistent-in-state (object state)
@@ -239,6 +273,7 @@
     "Leave the instance in a state where it cannot become inconsistent with the persistent source."
     (unbind-property-slots object)
     (setf-object-state rdf:hollow object)))
+
 
 
 (defgeneric write-properties-in-state (object state)

@@ -159,3 +159,62 @@
         :p   (collect-statements (triple-index-get (db-index-p db) p))
         :o   (collect-statements (triple-index-get (db-index-o db) o))
         :all (collect-statements (db-triples db))))))
+
+
+;;;
+;;; transaction support
+;;;
+;;; the wilbur:db version is single-thread. multi-thread would require a locked-db-mixin
+;;; and conflict resolution.
+
+
+(defmethod de.setf.resource.implementation::nbfeb-load ((db wilbur:db) location-id)
+  "Return the decoded state from the lock statement."
+  (flet ((return-nbfeb-load (subject predicate object context id)
+           (declare (ignore subject predicate context id))
+           (multiple-value-bind (value flag)
+                                (de.setf.resource.implementation::decode-nbfeb-state object)
+             (return-from de.setf.resource.implementation::nbfeb-load (values value flag)))))
+    (declare (dynamic-extent #'return-nbfeb-load))
+    (de.setf.resource.implementation::map-statements* #'return-nbfeb-load db location-id !NBFEB nil !NBFEB)))
+
+
+(defmethod de.setf.resource.implementation::nbfeb-sac ((db wilbur:db) location-id value)
+  (flet ((return-nbfeb-sac (subject predicate object context id)
+           (declare (ignore id))
+           (multiple-value-bind (old-value old-flag)
+                                (de.setf.resource.implementation::decode-nbfeb-state object)
+             (de.setf.resource.implementation::delete-statement* db subject predicate object context)
+             (let ((s-value (de.setf.resource.implementation::encode-nbfeb-state value nil)))
+               (de.setf.resource.implementation::add-statement* db subject predicate s-value context))
+             (return-from de.setf.resource.implementation::nbfeb-sac (values old-value old-flag)))))
+    (declare (dynamic-extent #'return-nbfeb-sac))
+    (de.setf.resource.implementation::map-statements* #'return-nbfeb-sac db location-id !NBFEB nil !NBFEB)))
+
+
+(defmethod de.setf.resource.implementation::nbfeb-sas ((db wilbur:db) location-id value)
+  (flet ((return-nbfeb-sas (subject predicate object context id)
+           (declare (ignore id))
+           (multiple-value-bind (old-value old-flag)
+                                (de.setf.resource.implementation::decode-nbfeb-state object)
+             (de.setf.resource.implementation::delete-statement* db subject predicate object context)
+             (let ((s-value (de.setf.resource.implementation::encode-nbfeb-state value t)))
+               (de.setf.resource.implementation::add-statement* db subject predicate s-value context))
+             (return-from de.setf.resource.implementation::nbfeb-sas (values old-value old-flag)))))
+    (declare (dynamic-extent #'return-nbfeb-sas))
+    (de.setf.resource.implementation::map-statements* #'return-nbfeb-sas db location-id !NBFEB nil !NBFEB))
+
+  )
+
+
+(defmethod de.setf.resource.implementation::nbfeb-tfas ((db wilbur:db) location-id value)
+  (flet ((return-nbfeb-tfas (subject predicate object context id)
+           (declare (ignore id))
+           (multiple-value-bind (old-value old-flag)
+                                (de.setf.resource.implementation::decode-nbfeb-state object)
+             (de.setf.resource.implementation::delete-statement* db subject predicate object context)
+             (let ((s-value (de.setf.resource.implementation::encode-nbfeb-state value t)))
+               (de.setf.resource.implementation::add-statement* db subject predicate s-value context))
+             (return-from de.setf.resource.implementation::nbfeb-tfas (values old-value old-flag)))))
+    (declare (dynamic-extent #'return-nbfeb-tfas))
+    (de.setf.resource.implementation::map-statements* #'return-nbfeb-tfas db location-id !NBFEB nil !NBFEB)))

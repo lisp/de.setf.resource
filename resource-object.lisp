@@ -44,7 +44,10 @@
      :initform nil :initarg :graph :initarg :context
      :accessor object-graph :accessor object-context
      :documentation "Specifies the individual graph, within the object's repository, which comprises the object's
-      description. The default value is NIL.")
+      description. The default value is nil, which means that associations will be retrieved from all graphs
+      and the object is unversioned. If bound to a graph URI (as per an rdfs:isDefinedBy property), then each
+      time the object is written, a new document version is generated and a new relation is written to that
+      one in the context of the transaction.")
    (history
     :initform ()
     :reader object-history :writer setf-object-history
@@ -262,8 +265,10 @@
                      (remhash key properties)))
                properties))))
 
+
 ;; nb. these are augmented with class-specific methods which handle the direct slots for
 ;; the respective class
+
 (defmethod rdf:map-property-slots progn (function (object resource-object))
   "The base method for a resource object applies the operator to each property slot definition."
   (let ((properties (get-object-properties object)))
@@ -271,6 +276,7 @@
       (loop for pd being the hash-values of properties
             unless (typep pd 'rdf-internal-property-definition)
             do (funcall function pd)))))
+
 
 (defmethod rdf:map-property-values progn (function (object resource-object))
   "The base method for a resource object applies the operator to the values of each property slot definition."
@@ -280,6 +286,7 @@
             unless (typep pd 'rdf-internal-property-definition)
             when (slot-boundp pd 'value)
             do (rdf:map-collection function (slot-definition-value pd))))))
+
 
 (defmethod rdf:map-property-predicates progn (function (object resource-object))
   "The base method for a resource object applies the operator to the predicate of each property slot definition."
@@ -308,6 +315,7 @@
           (setf (gethash 'rdf:this properties)
                 (rdf-internal-property-definition :name 'rdf:this :value object))
           (setf-object-properties properties object)))))
+
 
 (defgeneric rdf:prototypal-property-value (resource-object name &optional type)
   (:documentation "Given a RESOURCE-OBJECT instance and a predicate NAME, return the prototypal property value.
@@ -576,7 +584,7 @@
   (when (and (or (null subject) (rdf:equal resource-object subject))
              (or (null context) (equal context (object-context resource-object))))
     (unless subject (setf subject (rdf:uri resource-object)))
-
+    
     (dsu:collect-list (collect)
       (flet ((dynamic-collect (statement)
                (when (or (null offset) (minusp (decf offset)))
@@ -588,38 +596,31 @@
                  (if (or (null limit) (not (minusp (decf limit))))
                    (funcall continuation statement)))))
         (declare (dynamic-extent #'dynamic-collect #'static-collect #'constrained-continue))
-        (flet ((collector (stmt) 
-                 (when (or (null offset) (minusp (decf offset)))
-                   (when (or (null limit) (not (minusp (decf limit))))
-                     (if continuation
-                       (funcall continuation stmt)
-                       (push stmt result))))))
-          (declare (dynamic-extent #'collector))
-          (let ((continuation (if continuation
-                                (if (or offset limit) #'constrained-continue continuation)
-                                #'dynamic-collect)))
-            (if predicate
-              (if object
-                (let ((triple (rdf:triple subject predicate nil)))
-                  (rdf:map-collection #'(lambda (value)
-                                          (when (rdf:equal value object)
-                                            (setf (triple-object triple) value)
-                                            (funcall continuation triple)))
-                                    (bound-property-value resource-object predicate)))
-                (let ((triple (rdf:triple subject predicate nil)))
-                  (rdf:map-collection #'(lambda (value)
+        (let ((continuation (if continuation
+                              (if (or offset limit) #'constrained-continue continuation)
+                              #'dynamic-collect)))
+          (if predicate
+            (if object
+              (let ((triple (rdf:triple subject predicate nil)))
+                (rdf:map-collection #'(lambda (value)
+                                        (when (rdf:equal value object)
                                           (setf (triple-object triple) value)
-                                          (funcall continuation triple))
-                                      (bound-property-value resource-object predicate))))
-              (if object
-                (rdf:map-property-slots #'(lambda (sd)
-                                            (when (property-boundp resource-object sd)
-                                              (project-slot-using-statement resource-object sd (rdf:triple subject nil nil)
-                                                                            #'(lambda (stmt)
-                                                                                (when (rdf:equal object (triple-object stmt))
-                                                                                  (funcall continuation stmt))))))
-                                        resource-object)
-                (rdf:project-graph resource-object #'(lambda (stmt) (funcall continuation (copy-triple stmt))))))))))))
+                                          (funcall continuation triple)))
+                                    (bound-property-value resource-object predicate)))
+              (let ((triple (rdf:triple subject predicate nil)))
+                (rdf:map-collection #'(lambda (value)
+                                        (setf (triple-object triple) value)
+                                        (funcall continuation triple))
+                                    (bound-property-value resource-object predicate))))
+            (if object
+              (rdf:map-property-slots #'(lambda (sd)
+                                          (when (property-boundp resource-object sd)
+                                            (project-slot-using-statement resource-object sd (rdf:triple subject nil nil)
+                                                                          #'(lambda (stmt)
+                                                                              (when (rdf:equal object (triple-object stmt))
+                                                                                (funcall continuation stmt))))))
+                                      resource-object)
+              (rdf:project-graph resource-object #'(lambda (stmt) (funcall continuation (copy-triple stmt)))))))))))
 
 
 (defmethod rdf:project-graph ((object resource-object) (function function))
