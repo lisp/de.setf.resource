@@ -193,9 +193,9 @@ This version is released under version 3 of the GNU Affero license (GAL).[[5]]
 The required components are included as per the respective licenses and covered,
 in this combined form, under the GAL as well. If you need a different license, get in touch.
 
-- [com.github.ironclad](http://method-combination.net/lisp/ironclad/)
+- [com.github.ironclad](http://method-combination.net/lisp/ironclad/) MIT-like
   - 2009 [Nathan Froyd](froydnj@gmail.com)
-- [net.dardoria.uuid](http://www.dardoria.net/software/uuid.html)
+- [net.dardoria.uuid](http://www.dardoria.net/software/uuid.html) LLGPL
   - 2008 [Boian Tzonev](boiantz@gmail.com)
 - closer-mop :  MIT-style
   - 2005 - 2010 [Pascal Costanza](http://p-cos.net)
@@ -207,12 +207,10 @@ in this combined form, under the GAL as well. If you need a different license, g
 - [usocket](mailto:usocket-devel@common-lisp.net) : MIT, through 2007. later work unspecified
   - 2003 Erik Enge
   - 2006-2007 Erik Huelsmann 
-- [de.setf.wilbur](http://github.com/lisp/de.setf.wilbur) was [net.sourceforge.wilbur](wilbur-rdf.sourceforge.net/)
+- [trivial-utf-8](http://common-lisp.net/project/trivial-utf-8/)
+- [de.setf.wilbur](http://github.com/lisp/de.setf.wilbur) was [net.sourceforge.wilbur](http://wilbur-rdf.sourceforge.net/) LLGPL
   The fork contains several corrections and extensions to permit use with SBCL and MCL.
   - 2010 [Ora Lassila](ora.lassila@nokia.com)
-
-It depends indirectly on the [de.setf.utility](http://github.com/lisp/de.setf.utility),
-[trivial-utf-8](http://common-lisp.net/project/trivial-utf-8/), and [usocket](http://common-lisp.net/project/usocket/) libraries.
 
  ---
 - Bobrow, Daniel G., DiMichiel, Linda G., Gabriel, Richard P., Keene, Sonya E., Kiczales, Gregor, and Moon, David A.,

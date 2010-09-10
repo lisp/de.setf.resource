@@ -315,6 +315,8 @@
 (defmethod rdf:model-value ((mediator wilbur-mediator) (value wilbur:literal))
   (wilbur:literal-value value))
 
+(defvar *uri-symbols* t)
+
 (defmethod rdf:model-value ((mediator wilbur-mediator) (value wilbur:node))
   (flet ((canonicalize (fragment)
            (canonicalize-identifier mediator fragment)))
@@ -324,8 +326,10 @@
              (make-symbol ""))
             ((string-equal "_:" namestring :end2 2)
              (make-symbol (subseq namestring 2)))
+            (*uri-symbols*
+             (uri-namestring-identifier namestring #'canonicalize))
             (t
-             (uri-namestring-identifier namestring #'canonicalize))))))
+             (puri:uri namestring))))))
 
 
 (defmethod rdf:predicate ((statement wilbur:triple))

@@ -123,7 +123,7 @@
                               &key identifier-map identifiers package uri (resource-uri uri)
                               (name nil n-s)
                               (separator (compute-extrinsic-separator resource-uri package)))
-  "When (re)initializing combine use the possible argument for uri, a list of identifiers or a package,
+  "When (re)initializing combine the possible argument for uri, a list of identifiers or a package,
  and/or an identifier-map a-list arguments to construct and set the vocabulary's map to a
  (symbol . uri-namestring) alist.
  NB. the vocabulary URI and the identifers package need not have the same name. "
@@ -132,8 +132,13 @@
     (setf-vocabulary-uri uri instance))
   (when resource-uri
     (setf-vocabulary-resource-uri resource-uri instance))
-  (setf (uri-extrinsic-separator (or package resource-uri)) separator)
   (call-next-method)
+  (unless uri
+    (setf uri (vocabulary-uri instance)))
+  (unless resource-uri
+    (setf resource-uri (vocabulary-resource-uri instance)))
+  (setf (uri-extrinsic-separator (or package resource-uri)) separator)
+  
 
   (let* ((vocabulary-uri (vocabulary-uri instance))
          (vocabulary-package (find-package vocabulary-uri)))
