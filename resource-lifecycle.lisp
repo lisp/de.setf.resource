@@ -134,7 +134,7 @@
   (:method (object state)
     (invalid-state-error :object object :start-state state :end-state rdf:transient))
 
-  (:method (object (state rdf:hollow))
+  (:method ((object t) (state rdf:hollow))
     "If alread hollow, do nothing."
     state)
 
@@ -153,7 +153,7 @@
  version in the repository is to write a new value to the object's lock cell at the commit conclusion.
  Return true if the lock succeeded.")
 
-  (:method (object (state rdf:deleted-persistent))
+  (:method ((object t) (state rdf:deleted-persistent))
     ;; nothing to do
     t)
 
@@ -163,7 +163,7 @@
       (when graph
         (repository-lock-object-version (object-repository object) (uri object) graph))))
 
-  (:method (object (state rdf:new-persistent))
+  (:method ((object t) (state rdf:new-persistent))
     "A new object does not yet have a version lock."
     t))
 
@@ -174,7 +174,7 @@
   (:method (object state)
     (invalid-state-error :object object :start-state state :end-state rdf:transient))
 
-  (:method (object (state rdf:persistent))
+  (:method ((object t) (state rdf:persistent))
     "If already persistent, do nothing."
     state)
 
@@ -211,7 +211,7 @@
         (setf-object-history (acons name value (object-history object)) object))
       (setf-object-state rdf:modified-persistent object)))
 
-  (:method (object (state rdf:transient) name)
+  (:method ((object t) (state rdf:transient) (name t))
     "Transient objects record no state"
     rdf:transient))
 

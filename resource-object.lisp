@@ -595,7 +595,7 @@
                (when (or (null offset) (minusp (decf offset)))
                  (if (or (null limit) (not (minusp (decf limit))))
                    (funcall continuation statement)))))
-        (declare (dynamic-extent #'dynamic-collect #'static-collect #'constrained-continue))
+        (declare (dynamic-extent #'dynamic-collect #'constrained-continue))
         (let ((continuation (if continuation
                               (if (or offset limit) #'constrained-continue continuation)
                               #'dynamic-collect)))
