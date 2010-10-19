@@ -21,7 +21,9 @@
 
 (defparameter *urn.cl-package* (find-package :urn.cl))
 
-(defparameter *uri-pathname-root* "LIBRARY:de;setf;resource;namespaces;")
+(defparameter *uri-pathname-root*
+  (make-pathname :host "LIBRARY"
+                 :directory '(:absolute "de" "setf" "resource" "namespaces")))
 
 (defvar *prototype-slot-name* :prototype)
 

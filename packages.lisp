@@ -286,10 +286,13 @@ property-value, (setf property-value), property-boundp,
         :de.setf.resource)
   
   #+ccl
-  (:import-from :ccl :stream-tyo :stream-tyi
+  (:import-from :ccl
                 :stream-write-byte :stream-read-byte :stream-position
-                :stream-read-sequence :stream-write-sequence
                 :stream-force-output)
+  #+mcl
+  (:import-from :ccl
+                :stream-tyo :stream-tyi
+                :stream-read-sequence :stream-write-sequence)
   #+sbcl
   (:import-from :sb-gray 
                 :stream-write-byte :stream-read-byte

@@ -1,9 +1,13 @@
 ;;;
 ;;; 2010-02-08  janderson
 ;;;
-;;; a dev build template
+;;; a production build template
+;;; - it expects to be in the root directory of a source hierarchy with a tree structure
+;;;   which mirrors the system name hierarchy.
+;;; - if no asdf is present, it attempts to load it from net/common-lisp/asdf
+;;; - it attempts to load de/setf/utility/pathname.lisp and de/setf/utility/asdf/hierarchical-names.lisp
+;;;   in order to support systems which express dependencies as hierarchical names.
 ;;; it expects to find the pathname utilities and an asdf in the tree.
-;;; the latter with a bootstrapping .asd which incorporates the hierarchical name extension
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -35,39 +39,52 @@
 (when *load-verbose*
   (format *trace-output* "~%;Build root: ~s." *build-init-pathname*))
 
-;;; load the production asdf version for building images
+;;;
+;;; load the relative asdf version for building images
 ;;; in a dev tree, this mens to go upwards to look for the production tree
+
+(defun compile-and-load-file (source-pathname)
+  (let ((binary-pathname (compile-file-pathname source-pathname)))
+    (if (probe-file binary-pathname)
+      (if (probe-file source-pathname)
+        (if (> (file-write-date binary-pathname) (file-write-date source-pathname))
+          (load binary-pathname)
+          (load (compile-file source-pathname)))
+        (load binary-pathname))
+      (load (compile-file source-pathname)))))
+
 (defparameter *asdf-pathname*
-  (make-pathname :directory (if (find "dev" (pathname-directory *build-init-pathname*)
-                                      :test #'string-equal)
-                              (append (butlast (pathname-directory *build-init-pathname*) 2)
-                                      '("production" "Library" "net" "common-lisp" "asdf"))
-                              (append (pathname-directory *build-init-pathname*)
-                                      ;; '("net" "common-lisp" "asdf")))
-				      '("net" "common-lisp" "asdf-logical")))
+  (make-pathname :directory (append (pathname-directory *build-init-pathname*)
+                                    '("net" "common-lisp" "asdf"))
                  :name "asdf" :type "lisp"
                  :defaults *build-init-pathname*))
 
-(unless (let (#+allegro (excl::*AUTOLOAD-PACKAGE-NAME-ALIST* nil))
-          (find-package :asdf))
-  (when *load-verbose*
-    (format *trace-output* "~&;Incorporating asdf anew from ~s." *asdf-pathname*))
-  (if (probe-file (compile-file-pathname *asdf-pathname*))
-    (load (compile-file-pathname *asdf-pathname*))
-    (load (compile-file *asdf-pathname*)))
-  #+ecl
-  (load (compile-file (make-pathname :name "asdf-ecl" :defaults *asdf-pathname*))))
+(cond ((probe-file *asdf-pathname*)
+         (when *load-verbose*
+           (format *trace-output* "~&;Incorporating asdf anew from ~s." *asdf-pathname*))
+         (compile-and-load-file *asdf-pathname*)
+         #+ecl
+         (compile-and-load-file (make-pathname :name "asdf-ecl" :defaults *asdf-pathname*)))
+        (t
+         (cerror "Continue anyway." "ASDF is missing: ~s." *asdf-pathname*)))
 
 
-;; debugging clisp (trace make-pathname)
-;;; bulding the analysis system itelf requires locating lots of systems in the dev tree
-;;; include when intended to support de.setf library builds
-#+(or :clozure :allegro :sbcl)
+;;;
+;;; incorporate support for hierarchical names
+#+(or :clozure :allegro sbcl) ;; for now
 (unless (fboundp (find-symbol (string :sysdef-hierarchical-search-function) :asdf))
-  (load (make-pathname :directory (append (pathname-directory *build-init-pathname*)
-                                          '("de" "setf" "utility" "asdf"))
-                       :name "hierarchical-names" :type "lisp"
-                       :defaults *build-init-pathname*)))
+  (loop for (path name) in '((("de" "setf" "utility") "package")
+                             (("de" "setf" "utility") "pathnames")
+                             (("de" "setf" "utility" "asdf") "hierarchical-names"))
+        do (let ((pathname (make-pathname :directory (append (pathname-directory *build-init-pathname*) path)
+                                          :name name :type "lisp"
+                                          :defaults *build-init-pathname*)))
+             (if (probe-file pathname)
+               (compile-and-load-file pathname)
+               (cerror "Continue anyway." "Hierarchical name component is missing: ~s." pathname)))))
+
+(or (ignore-errors (logical-pathname-translations "LIBRARY"))
+    (de.setf.utility:define-library-host (or *compile-file-pathname* *load-pathname*) "LIBRARY"))
 
 
 ;;; search first the dev sources, then production
