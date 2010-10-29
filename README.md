@@ -163,7 +163,7 @@ The development rutimes are mcl (5.2) and sbcl (1.0.36), but network operations 
 the porting threshold should be low.
 The allegro interface is on-hold as it does not fit in the free edition.
 
-The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) desribes the implemented API.
+The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) describes the implemented API.
 
 2010-08-09: The latest push includes the first thoughts on how to use a triple store to back an STM for CLOS.
 As early as it is, one may wish to stay with the previous version for a bit.
