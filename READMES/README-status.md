@@ -40,7 +40,7 @@ system, the SPOCQ system.
 
 If one takes that system as an archetype of an application the linked-data ecosystem,
 the `resource` library plays a significant role for Lisp applications, but a subordinate
-role in the larger [scheme](./spocq.svg).
+role in the larger [scheme](./spocq.png).
 The current focus is to complete the SPARQL algebra engine for the SPOCQ system and
 use the BGP matching interface to implement a Lisp binding for the underlying RDFCache triple store.
 This will provide a high-performance, scalable storage substrate for the library.
