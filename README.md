@@ -66,7 +66,8 @@ The `de.setf.resource` resource-object protocol implements
 
 - instance granularity projection for literals and resource with per-property read granularity as an option for resources.
 - URI-based object identity.
-- slot-based caching with automatic internalization/externalization based on the relation between declare property type and datatype.
+- slot-based caching with automatic internalization/externalization based on the relation between declared property 
+  Lisp type and RDF datatype.
 
 
 Repositories
@@ -157,25 +158,9 @@ It must instead be deferred to the end of the stream, at which point "forward-re
 ## Status
 
 The implementation has reached ["I want to see you"](http://www.loc.gov/exhibits/treasures/trr002.html) status.
-The wilbur and cassandra mediators both implement the core add/map/delete statement interface.
-The wilbur mediator implements file and http loading.
-The development rutimes are mcl (5.2) and sbcl (1.0.36), but network operations are based on usocket and mop operations are based on closer-mop, so
-the porting threshold should be low.
-The allegro interface is on-hold as it does not fit in the free edition.
+The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) describes the implemented API.
+See [README-status.html](./READMES/README-status.md) for more details.
 
-The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) desribes the implemented API.
-
-2010-08-09: The latest push includes the first thoughts on how to use a triple store to back an STM for CLOS.
-As early as it is, one may wish to stay with the previous version for a bit.
-
-
-### Evolution
-
-* The present implementation supports three representations for resource identifiers: URI, in particular UUID, and symbols.
-The latter facilitate code which integrates
-link data schema, but it also entails some package housekeeping, as the identifiers are all interned gloablly.
-In order to operate one unbounded data with non UUID identifiers, it will be necessary to distinguish between identifiers for resources in a schema
-per se and those for 'instance' resources.
 
 ## Downloading
 
@@ -222,13 +207,14 @@ in this combined form, under the GAL as well. If you need a different license, g
 
  [0]: http://dreamsongs.com/Files/concepts.pdf, http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node260.html
  [1]: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.100.6738&rep=rep1&type=pdf  
- [2]: wilbur-rdf.sourceforge.net/  
- [3]: lisp.github.com/wilbur  
+ [2]: http://wilbur-rdf.sourceforge.net/  
+ [3]: http://lisp.github.com/wilbur  
  [4]: http://www.franz.com/agraph/  
  [5]: http://en.wikipedia.org/wiki/Java_Data_Objects  
  [6]: Papecke, Andreas, "PCLOS: A Critical Review", http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.8.3357&rep=rep1&type=pdf, http://www-db.stanford.edu/~paepcke/shared-documents/pclos-critical.ps  
  [7]: Andreas Paepcke. "PCLOS: Stress Testing CLOS - Experiencing the Metaobject Protocol". In Proceedings of the Conference on Object-Oriented Programming Systems, 1990.  http://www-db.stanford.edu/~paepcke/shared-documents/pclosmeta.ps  
  [8]: Andreas Paepcke. "PCLOS: A Flexible Implementation of CLOS Persistence". In S. Gjessing and K. Nygaard, editors, Proceedings of the European Conference on Object-Oriented Programming (ECOOP). Lecture Notes in Computer Science, Springer Verlag, 1988. http://www-db.stanford.edu/~paepcke/shared-documents/pclos-report.ps  
- [9]: cassandra.apache.org/
+ [9]: http://cassandra.apache.org/
  [10]: agpl.txt
+
 
