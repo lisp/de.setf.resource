@@ -159,7 +159,7 @@ It must instead be deferred to the end of the stream, at which point "forward-re
 
 The implementation has reached ["I want to see you"](http://www.loc.gov/exhibits/treasures/trr002.html) status.
 The [documentation](./documentation/package_DE.SETF.RESOURCE.xhtml) describes the implemented API.
-See [README-status.html](./READMES/README-status.md) for more details.
+See [README-status.md](./READMES/README-status.md) for more details.
 
 
 ## Downloading

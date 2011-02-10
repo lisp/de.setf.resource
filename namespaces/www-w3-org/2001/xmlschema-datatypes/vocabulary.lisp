@@ -18,26 +18,29 @@
            "NMTOKEN" "NMTOKENS" "NOTATION" "Name" "QName" "annotation"
            "anyComplexType" "anyListType" "anySimpleType" "anyTreeType"
            "anyType" "anyURI" "attribute" "attributeGroup" "base64Binary"
-           "boolean" "byte" "comment" "complexType" "date" "dateTime"
+           "boolean" "byte" "comment" "complexType" "date" "dateDayDuration" "dateTime" "dateTimeDuration"
            "decimal" "documentation" "double" "duration" "element" "float"
            "gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth" "hexBinary"
            "int" "integer" "language" "long" "negativeInteger"
            "nonNegativeInteger" "nonPositiveInteger" "normalizedString"
            "pi" "positiveInteger" "restriction" "schema" "short"
            "simpleType" "string" "time" "token" "unsignedByte"
-           "unsignedInt" "unsignedLong" "unsignedShort")
+           "unsignedInt" "unsignedLong" "unsignedShort"
+           "yearMonthDuration")
   (:export "ENTITIES" "ENTITY" "ID" "IDREF" "IDREFS" "NCName"
            "NMTOKEN" "NMTOKENS" "NOTATION" "Name" "QName" "annotation"
            "anyComplexType" "anyListType" "anySimpleType" "anyTreeType"
            "anyType" "anyURI" "attribute" "attributeGroup" "base64Binary"
-           "boolean" "byte" "comment" "complexType" "date" "dateTime"
+           "boolean" "byte" "comment" "complexType" "date" "dateDayDuration" "dateTime" "dateTimeDuration"
+           "dayTimeDuration"
            "decimal" "documentation" "double" "duration" "element" "float"
            "gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth" "hexBinary"
            "int" "integer" "language" "long" "negativeInteger"
            "nonNegativeInteger" "nonPositiveInteger" "normalizedString"
            "pi" "positiveInteger" "restriction" "schema" "short"
            "simpleType" "string" "time" "token" "unsignedByte"
-           "unsignedInt" "unsignedLong" "unsignedShort")
+           "unsignedInt" "unsignedLong" "unsignedShort"
+           "yearMonthDuration")
   (:nicknames "xsd"))
 
 (rdf:defvocabulary "xsd"
