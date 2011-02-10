@@ -48,9 +48,9 @@
  - query
  - manipulation
 
-property-value, (setf property-value), property-boundp,
+ property-value, (setf property-value), property-boundp,
  property-exists-p, property-makunbound, get-statements, insert-statement, or remove-statement
-.
+
  ---
  [1]: http://www.w3.org/standards/semanticweb/data "the Semantic Web @w3c.org"
  [2]: http://en.wikipedia.org/wiki/Linked_Data "Linked Data @ Wikipedia"

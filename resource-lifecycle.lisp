@@ -566,9 +566,9 @@
            (ssd (slot-definition-statement-slot sd))
            (ss-name (c2mop:slot-definition-name ssd))
            (repository-value (rdf:object statement))
-            (value (if (rdf:identifier-p repository-value)
-                     (rdf:ensure-instance object repository-value)    ; designators in rdf domain
-                     (rdf:model-value object repository-value))))
+           (value (if (rdf:identifier-p repository-value)
+                    (rdf:ensure-instance object repository-value)    ; designators in rdf domain
+                    (rdf:model-value object repository-value))))
       (if (slot-definition-list-type-p sd)
         (if (slot-boundp object name)
           (setf (slot-value object ss-name) (cons statement (slot-value object ss-name))
