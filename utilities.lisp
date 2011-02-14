@@ -346,7 +346,7 @@
                            (gethash uri-namestring *uri-separators*)
         (cond (present separator)
               (t
-               (warn "Presuming default separator (~c) for uri: ~s"
+               #+(or ) (warn "Presuming default separator (~c) for uri: ~s"
                      *default-uri-separator* uri-namestring)
                *default-uri-separator*)))))
   (:method ((package package))
@@ -413,8 +413,10 @@
 
 (defun symbol-uri-namestring (symbol &optional (canonicalize #'symbol-name))
   (declare (dynamic-extent canonicalize))
-  (make-vocabulary-uri-namestring (package-name (symbol-package symbol))
-                                  (funcall canonicalize symbol)))
+  (let* ((package (symbol-package symbol))
+         (vocabulary (if package (package-name package) "")))
+    (make-vocabulary-uri-namestring vocabulary
+                                    (funcall canonicalize symbol))))
 
 (defun uri-namestring-identifier (namestring &optional (canonicalize #'string))
   (declare (dynamic-extent canonicalize))
@@ -571,7 +573,8 @@
     ("n3" . mime:application/n3)
     ("ntriples" . mime:application/n3)
     ("owl" . mime:application/rdf+xml)
-    ("rdf" .  mime:application/rdf+xml)))
+    ("rdf" .  mime:application/rdf+xml)
+    ("ttl" . mime:text/turtle)))
 
 
 (defgeneric location-mime-type (type)

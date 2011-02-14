@@ -19,6 +19,7 @@
            "anyComplexType" "anyListType" "anySimpleType" "anyTreeType"
            "anyType" "anyURI" "attribute" "attributeGroup" "base64Binary"
            "boolean" "byte" "comment" "complexType" "date" "dateDayDuration" "dateTime" "dateTimeDuration"
+           "dayTimeDuration"
            "decimal" "documentation" "double" "duration" "element" "float"
            "gDay" "gMonth" "gMonthDay" "gYear" "gYearMonth" "hexBinary"
            "int" "integer" "language" "long" "negativeInteger"
