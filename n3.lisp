@@ -396,14 +396,27 @@
             &allow-other-keys)
     "Given an RDF source, pipe the input/output through a raptor process"
     (ecase direction
-      (:input
-       (sb-ext:run-program *rapper-binary-pathname*
-                           `("-q" "-o" "ntriples" ,location)
-                           :output :stream))
-      (:output
-       (sb-ext:run-program *rapper-binary-pathname*
-                           `("-q" "-i" "ntriples" "-o" "rdfxml",location)
-                           :input :stream)))))
+      (:input (sb-ext:run-program *rapper-binary-pathname*
+                                  `("-q" "-o" "ntriples" ,location)
+                                  :output :stream))
+      (:output (sb-ext:run-program *rapper-binary-pathname*
+                                   `("-q" "-i" "ntriples" "-o" "rdfxml",location)
+                                   :input :stream))))
+
+  #+sbcl
+  (:method ((location pathname) (mime-type mime:text/turtle)
+            &key (direction (error "direction is required."))
+            &allow-other-keys)
+    "Given a turtle source, pipe the input/output through a raptor process"
+    (ecase direction
+      (:input  (sb-ext:run-program *rapper-binary-pathname*
+                                  `("-q" "-o" "ntriples" "-i" "turtle" ,location)
+                                  :output :stream))
+      (:output (sb-ext:run-program *rapper-binary-pathname*
+                                   `("-q" "-i" "ntriples" "-o" "turtle",location)
+                                   :input :stream))))
+
+  )
 
 
 (defmethod rdf:project-graph ((source pathname) (destination t))
