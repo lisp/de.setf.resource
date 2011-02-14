@@ -43,7 +43,7 @@
 (defparameter n3::*construct-statement* 'list)
 
 #+sbcl
-(defparameter *rapper-binary-pathname* "/opt/local/bin/rapper")
+(defparameter *rapper-binary-pathname* "/usr/local/bin/rapper")
 #+digitool
 (defparameter *rapper-binary-pathname* "/usr/local/bin/rapper")
 
@@ -396,12 +396,12 @@
             &allow-other-keys)
     "Given an RDF source, pipe the input/output through a raptor process"
     (ecase direction
-      (:input (sb-ext:run-program *rapper-binary-pathname*
-                                  `("-q" "-o" "ntriples" ,location)
-                                  :output :stream))
-      (:output (sb-ext:run-program *rapper-binary-pathname*
-                                   `("-q" "-i" "ntriples" "-o" "rdfxml",location)
-                                   :input :stream))))
+      (:input (sb-ext:process-output (sb-ext:run-program *rapper-binary-pathname*
+                                                         `("-q" "-o" "ntriples" ,(namestring (translate-logical-pathname location)))
+                                                         :output :stream)))
+      (:output (sb-ext:process-input (sb-ext:run-program *rapper-binary-pathname*
+                                                          `("-q" "-i" "ntriples" "-o" "rdfxml" ,(namestring (translate-logical-pathname location)))
+                                                          :input :stream)))))
 
   #+sbcl
   (:method ((location pathname) (mime-type mime:text/turtle)
@@ -409,12 +409,12 @@
             &allow-other-keys)
     "Given a turtle source, pipe the input/output through a raptor process"
     (ecase direction
-      (:input  (sb-ext:run-program *rapper-binary-pathname*
-                                  `("-q" "-o" "ntriples" "-i" "turtle" ,location)
-                                  :output :stream))
-      (:output (sb-ext:run-program *rapper-binary-pathname*
-                                   `("-q" "-i" "ntriples" "-o" "turtle",location)
-                                   :input :stream))))
+      (:input (sb-ext:process-output (sb-ext:run-program *rapper-binary-pathname*
+                                                         `("-q" "-o" "ntriples" "-i" "turtle" ,(namestring (translate-logical-pathname location)))
+                                                         :output :stream)))
+      (:output (sb-ext:process-input (sb-ext:run-program *rapper-binary-pathname*
+                                                          `("-q" "-i" "ntriples" "-o" "turtle" ,(namestring (translate-logical-pathname location)))
+                                                          :input :stream)))))
 
   )
 
