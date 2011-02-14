@@ -42,7 +42,10 @@
 
 (defparameter n3::*construct-statement* 'list)
 
+#+sbcl
 (defparameter *rapper-binary-pathname* "/opt/local/bin/rapper")
+#+digitool
+(defparameter *rapper-binary-pathname* "/usr/local/bin/rapper")
 
 (defparameter *blank-node-prefix* "_:")
 
@@ -125,7 +128,7 @@
          (char #\null))
      (loop (case (setf char (read-char stream))
              ((#\space #\linefeed #\tab #\return)
-              (return buffer))
+              (return (subseq buffer 0 (length buffer))))
              (t
               (vector-push-extend char buffer))))))
 
@@ -253,7 +256,7 @@
             (#\.
              (funcall n3::*construct-statement* subject predicate object))
             (t
-             (error "Invalid N3 encoding: ~s; missing datatype" stream))))))))
+             (error "Invalid N3 encoding: ~s; missing punctuation" stream))))))))
 
 
 (let ((literal nil))
@@ -341,11 +344,22 @@
             &allow-other-keys)
     "Given an RDF source, pipe the input/output through a raptor process"
     (ecase direction
-      (:input  (make-instance 'bsd:pipe-output-stream
+      (:input  (make-instance 'bsd:pipe-input-stream
                  :command `(,*rapper-binary-pathname* "-q" "-o ntriples" ,location)))
       (:output (make-instance 'bsd:pipe-output-stream
                  :command `(,*rapper-binary-pathname* "-q" "-i ntriples" "-o rdfxml" ,location)))))
-  
+
+  #+digitool
+  (:method ((location pathname) (mime-type mime:text/turtle)
+            &key (direction (error "direction is required."))
+            &allow-other-keys)
+    "Given a turtle source, pipe the input/output through a raptor process"
+    (ecase direction
+      (:input  (make-instance 'bsd:pipe-input-stream
+                 :command `(,*rapper-binary-pathname* "-q" "-o ntriples" "-i turtle" ,location)))
+      (:output (make-instance 'bsd:pipe-output-stream
+                 :command `(,*rapper-binary-pathname* "-q" "-i ntriples" "-o turtle" ,location)))))
+
   #+clozure
   (:method ((location pathname) (mime-type mime:application/rdf+xml)
             &key (direction (error "direction is required."))
