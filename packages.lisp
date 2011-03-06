@@ -63,6 +63,7 @@
    :*class.prototypal-property-definition*
    :*class.repository-mediator*
    :*class.resource*
+   :add-statement*
    :agraph-mediator
    :archetypal-property-definition
    :archetypal-property-definition-p
@@ -86,6 +87,7 @@
    :delete-object
    :delete-predicate
    :delete-statement
+   :delete-statement*
    :delete-statement-using-slot
    :delete-subject
    :deleted
@@ -138,6 +140,7 @@
    :map-property-values
    :map-predicates 
    :map-statements
+   :map-statements*
    :map-subjects
    :mediator-state
    :mediator-repository
