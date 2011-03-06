@@ -568,7 +568,7 @@
 ;;;
 ;;; pathname map -> mime type 
 
-(defvar *pathname-type-mime-type*
+(defparameter *pathname-type-mime-type*
   '(("nt" . mime:application/n3)
     ("n3" . mime:application/n3)
     ("ntriples" . mime:application/n3)
