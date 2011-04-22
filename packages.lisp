@@ -233,6 +233,7 @@
    :setf-property-value
    :slot-definition-predicate
    :slot-definition-datatype
+   :spoc-case
    :stored
    :statement
    :statement-p

@@ -4,7 +4,7 @@
 (in-package :de.setf.resource.implementation)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (unless (intersection '(:digitool :clozure :allegro :sbcl) *features*)
+  (unless (intersection '(:digitool :clozure :allegro :sbcl :lispworks) *features*)
     (cerror "Compile it anyway." "This file lacks conditionalization for ~a."
             (lisp-implementation-type))))
 
@@ -42,7 +42,7 @@
 
 (defparameter n3::*construct-statement* 'list)
 
-#+sbcl
+#+(or sbcl lispworks)
 (defparameter *rapper-binary-pathname* "/usr/local/bin/rapper")
 #+digitool
 (defparameter *rapper-binary-pathname* "/usr/local/bin/rapper")
@@ -390,6 +390,28 @@
                                        *rapper-binary-pathname* location)
                                :input :stream))))
   
+  #+lispworks
+  (:method ((location pathname) (mime-type mime:application/rdf+xml)
+            &key (direction (error "direction is required."))
+            &allow-other-keys)
+    "Given an RDF source, pipe the input/output through a raptor process"
+    (ecase direction
+      (:input (system:run-shell-command (format nil "~a -q -o ntriples ~a" *rapper-binary-pathname* location)
+                                        :output :stream))
+      (:output (system:run-shell-command (format nil "~a -q -i ntriples -o rdf/xml ~a" *rapper-binary-pathname* location)
+                                         :input :stream))))
+
+  #+lispworks
+  (:method ((location pathname) (mime-type mime:text/turtle)
+            &key (direction (error "direction is required."))
+            &allow-other-keys)
+    "Given a turtle source, pipe the input/output through a raptor process"
+    (ecase direction
+      (:input (system:run-shell-command (format nil "~a -q -o ntriples -i turtle ~a" *rapper-binary-pathname* location)
+                                        :output :stream))
+      (:output (system:run-shell-command (format nil "~a -q -i ntriples -o turtle ~a" *rapper-binary-pathname* location)
+                                         :input :stream))))
+
   #+sbcl
   (:method ((location pathname) (mime-type mime:application/rdf+xml)
             &key (direction (error "direction is required."))
