@@ -259,23 +259,35 @@
              (error "Invalid N3 encoding: ~s; missing punctuation" stream))))))))
 
 
-(let ((literal nil))
-  (defun temp-literal ()
-    (or literal (setf literal (wilbur:literal "")))))
+(defgeneric decode-literal-value (string type) )
 
-(defun wilbur-datatype (type)
-  (declare (special *model-to-repository-datatype-map*))
-  (or (gethash type *model-to-repository-datatype-map*)
-      (setf (gethash type *model-to-repository-datatype-map*)
-            (wilbur:node (symbol-uri-namestring type)))))
+#+wilbur
+(progn
+  (let ((literal nil))
+    (defun temp-literal ()
+      (or literal (setf literal (wilbur:literal "")))))
+  
+  (defun wilbur-datatype (type)
+    (declare (special *model-to-repository-datatype-map*))
+    (or (gethash type *model-to-repository-datatype-map*)
+        (setf (gethash type *model-to-repository-datatype-map*)
+              (wilbur:node (symbol-uri-namestring type)))))
+  
+  (defmethod decode-literal-value (string (type symbol))
+    (wilbur::compute-literal-value (temp-literal) (wilbur-datatype type) string))
+  
+  (defmethod decode-literal-value (string (type null))
+    (wilbur::compute-literal-value (temp-literal) nil string))
+  )
 
-(defmethod decode-literal-value (string (type symbol))
-  (wilbur::compute-literal-value (temp-literal) (wilbur-datatype type) string))
 
-(defmethod decode-literal-value (string (type null))
-  (wilbur::compute-literal-value (temp-literal) nil string))
-
-
+#-wilbur
+(progn
+  (defmethod decode-literal-value (string (type symbol))
+    (cons type string))
+  (defmethod decode-literal-value (string (type null))
+    string)
+  )
 
   
 
