@@ -48,6 +48,7 @@
                (:file "resource-object")
                (:file "resource-transaction")
                (:file "resource-lifecycle")
+               #-lispworks              ; would need porting
                (:module :wilbur
                 :components ((:file "wilbur-extensions")
                              (:file "wilbur-mediator"))))
