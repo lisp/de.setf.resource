@@ -1115,7 +1115,8 @@
     :reader function-property :writer setf-function-property)
    (type
     :initarg :type :initform t
-    :reader function-type)))
+    :reader function-type))
+  (:metaclass c2mop:funcallable-standard-class))
 
 (defclass rdf-slot-writer (standard-generic-function rdf-slot-operator)
   ()

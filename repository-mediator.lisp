@@ -995,6 +995,7 @@
 
 ;;; test default value representation
 
+#-lispworks
 (let ((rm (make-instance 'repository-mediator :vocabularies nil :repository nil))
       (values `("asdf" 2.0s0 2.0d0 1 ,(expt 2 8) ,(expt 2 16) ,(expt 2 32) ,(expt 2 64)
                 #u"http://test" ,(uuid:make-v1-uuid))))
@@ -1004,6 +1005,8 @@
             "Some model->repository->model value failed:~% ~s~% ~s"
             values
             (mapcar #'(lambda (x) (rdf:repository-value rm x)) values))))
+#+lispworks
+(warn "not testing thrift encoding")
 
 ;;;
 ;;; versioning

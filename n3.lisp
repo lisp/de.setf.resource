@@ -4,7 +4,7 @@
 (in-package :de.setf.resource.implementation)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (unless (intersection '(:digitool :clozure :allegro :sbcl) *features*)
+  (unless (intersection '(:digitool :clozure :allegro :sbcl :lispworks) *features*)
     (cerror "Compile it anyway." "This file lacks conditionalization for ~a."
             (lisp-implementation-type))))
 
@@ -42,7 +42,7 @@
 
 (defparameter n3::*construct-statement* 'list)
 
-#+sbcl
+#+(or sbcl lispworks)
 (defparameter *rapper-binary-pathname* "/usr/local/bin/rapper")
 #+digitool
 (defparameter *rapper-binary-pathname* "/usr/local/bin/rapper")
@@ -259,23 +259,35 @@
              (error "Invalid N3 encoding: ~s; missing punctuation" stream))))))))
 
 
-(let ((literal nil))
-  (defun temp-literal ()
-    (or literal (setf literal (wilbur:literal "")))))
+(defgeneric decode-literal-value (string type) )
 
-(defun wilbur-datatype (type)
-  (declare (special *model-to-repository-datatype-map*))
-  (or (gethash type *model-to-repository-datatype-map*)
-      (setf (gethash type *model-to-repository-datatype-map*)
-            (wilbur:node (symbol-uri-namestring type)))))
+#+wilbur
+(progn
+  (let ((literal nil))
+    (defun temp-literal ()
+      (or literal (setf literal (wilbur:literal "")))))
+  
+  (defun wilbur-datatype (type)
+    (declare (special *model-to-repository-datatype-map*))
+    (or (gethash type *model-to-repository-datatype-map*)
+        (setf (gethash type *model-to-repository-datatype-map*)
+              (wilbur:node (symbol-uri-namestring type)))))
+  
+  (defmethod decode-literal-value (string (type symbol))
+    (wilbur::compute-literal-value (temp-literal) (wilbur-datatype type) string))
+  
+  (defmethod decode-literal-value (string (type null))
+    (wilbur::compute-literal-value (temp-literal) nil string))
+  )
 
-(defmethod decode-literal-value (string (type symbol))
-  (wilbur::compute-literal-value (temp-literal) (wilbur-datatype type) string))
 
-(defmethod decode-literal-value (string (type null))
-  (wilbur::compute-literal-value (temp-literal) nil string))
-
-
+#-wilbur
+(progn
+  (defmethod decode-literal-value (string (type symbol))
+    (cons type string))
+  (defmethod decode-literal-value (string (type null))
+    string)
+  )
 
   
 
@@ -390,6 +402,28 @@
                                        *rapper-binary-pathname* location)
                                :input :stream))))
   
+  #+lispworks
+  (:method ((location pathname) (mime-type mime:application/rdf+xml)
+            &key (direction (error "direction is required."))
+            &allow-other-keys)
+    "Given an RDF source, pipe the input/output through a raptor process"
+    (ecase direction
+      (:input (system:run-shell-command (format nil "~a -q -o ntriples ~a" *rapper-binary-pathname* location)
+                                        :output :stream))
+      (:output (system:run-shell-command (format nil "~a -q -i ntriples -o rdf/xml ~a" *rapper-binary-pathname* location)
+                                         :input :stream))))
+
+  #+lispworks
+  (:method ((location pathname) (mime-type mime:text/turtle)
+            &key (direction (error "direction is required."))
+            &allow-other-keys)
+    "Given a turtle source, pipe the input/output through a raptor process"
+    (ecase direction
+      (:input (system:run-shell-command (format nil "~a -q -o ntriples -i turtle ~a" *rapper-binary-pathname* location)
+                                        :output :stream))
+      (:output (system:run-shell-command (format nil "~a -q -i ntriples -o turtle ~a" *rapper-binary-pathname* location)
+                                         :input :stream))))
+
   #+sbcl
   (:method ((location pathname) (mime-type mime:application/rdf+xml)
             &key (direction (error "direction is required."))
