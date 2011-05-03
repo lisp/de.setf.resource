@@ -418,7 +418,7 @@
     (make-vocabulary-uri-namestring vocabulary
                                     (funcall canonicalize symbol))))
 
-(defun uri-namestring-identifier (namestring &optional (canonicalize #'string))
+(defun uri-namestring-identifier (namestring &optional (canonicalize #'string) (create t))
   (declare (dynamic-extent canonicalize))
   (cond ((and (> (length namestring) 9) (string-equal namestring "urn:uuid:" :end1 9))
          (uuid:make-uuid-from-string (subseq namestring 9)))
@@ -427,8 +427,11 @@
         (t
          (multiple-value-bind (package fragment)
                               (uri-vocabulary-components namestring)
-           (intern (funcall canonicalize fragment) package)))))
-
+           (let ((c-fragment (if fragment (funcall canonicalize fragment) "")))
+             (if create
+               (intern c-fragment package)
+               (find-symbol c-fragment package)))))))
+        
 (defgeneric uri-vocabulary-components (uri)
   (:documentation "Given a URI, return its two source components, a package and the original symbol name.
  URI : string : the absolute uri reference string
@@ -682,8 +685,9 @@
 
 (reinitialize-instance (find-class 'protocol-class) :precedence-list (list (find-class 'class)))
 
-(defmethod c2mop:validate-superclass ((c1 class) (c2 protocol-class)) t)
-(defmethod c2mop:validate-superclass ((c2 protocol-class) (c1 class)) t)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmethod c2mop:validate-superclass ((c1 class) (c2 protocol-class)) t)
+  (defmethod c2mop:validate-superclass ((c2 protocol-class) (c1 class)) t))
 
 (defgeneric interpose-superclass (additional-class class)
   (:method ((additional-class symbol) (class t))
