@@ -32,23 +32,23 @@
   (
    (de.setf.resource.schema:defclass |http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|Alt|
      (|Container|)
-     nil)
+     ())
    
    (de.setf.resource.schema:defclass |http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|Bag|
      (|Container|)
-     nil)
+     ())
    
    (de.setf.resource.schema:defclass |Class|
      (|Resource|)
      ((|subClassOf| :type |Class|)))
    
-   (de.setf.resource.schema:defclass |Container| (|Resource|) nil)
+   (de.setf.resource.schema:defclass |Container| (|Resource|) ())
    
    (de.setf.resource.schema:defclass |ContainerMembershipProperty|
      (|http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|Property|)
-     nil)
+     ())
    
-   (de.setf.resource.schema:defclass |Datatype| (|Class|) nil)
+   (de.setf.resource.schema:defclass |Datatype| (|Class|) ())
    
    (de.setf.resource.schema:defclass |http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|List|
      (|Resource|)
@@ -58,7 +58,7 @@
        :type
        |http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|List|)))
    
-   (de.setf.resource.schema:defclass |Literal| (|Resource|) nil)
+   (de.setf.resource.schema:defclass |Literal| (|Resource|) ())
    
    (de.setf.resource.schema:defclass |http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|Property|
      (|Resource|)
@@ -68,7 +68,7 @@
       (|range| :type |Class|)))
    
    (de.setf.resource.schema:defclass |Resource|
-     nil
+     ()
      ((|http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|type|
        :type |Class|)
       (|comment| :type |Literal|)
@@ -81,7 +81,7 @@
    
    (de.setf.resource.schema:defclass |http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|Seq|
      (|Container|)
-     nil)
+     ())
    
    (de.setf.resource.schema:defclass |http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|Statement|
      (|Resource|)

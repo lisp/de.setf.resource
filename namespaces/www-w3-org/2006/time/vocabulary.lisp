@@ -15,17 +15,17 @@
  ((DE.SETF.RESOURCE:DEFCLASS |http://www.w3.org/2006/time#|::|January|
                              (|http://www.w3.org/2006/time#|::|DateTimeDescription|
                               #:|| #:||)
-                             NIL
+                             ()
                              (:DATATYPE
                               |http://www.w3.org/2006/time#|::|January|))
   (DE.SETF.RESOURCE:DEFCLASS |http://www.w3.org/2006/timezone#|::|TimeZone|
-                             NIL
-                             NIL
+                             ()
+                             ()
                              (:DATATYPE
                               |http://www.w3.org/2006/timezone#|::|TimeZone|))
   (DE.SETF.RESOURCE:DEFCLASS |http://www.w3.org/2006/time#|::|DayOfWeek|
-                             NIL
-                             NIL
+                             ()
+                             ()
                              (:DATATYPE
                               |http://www.w3.org/2006/time#|::|DayOfWeek|))
   (DE.SETF.RESOURCE:DEFCLASS |http://www.w3.org/2006/time#|::|DateTimeDescription|
@@ -80,8 +80,8 @@
                              (:DATATYPE
                               |http://www.w3.org/2006/time#|::|DateTimeDescription|))
   (DE.SETF.RESOURCE:DEFCLASS |http://www.w3.org/2006/time#|::|TemporalUnit|
-                             NIL
-                             NIL
+                             ()
+                             ()
                              (:DATATYPE
                               |http://www.w3.org/2006/time#|::|TemporalUnit|))
   (DE.SETF.RESOURCE:DEFCLASS |http://www.w3.org/2006/time#|::|DateTimeInterval|
@@ -101,7 +101,7 @@
   (DE.SETF.RESOURCE:DEFCLASS |http://www.w3.org/2006/time#|::|Year|
                              (|http://www.w3.org/2006/time#|::|DurationDescription|
                               #:|| #:|| #:|| #:|| #:|| #:|| #:||)
-                             NIL
+                             ()
                              (:DATATYPE
                               |http://www.w3.org/2006/time#|::|Year|))
   (DE.SETF.RESOURCE:DEFCLASS |http://www.w3.org/2006/time#|::|DurationDescription|
@@ -198,7 +198,7 @@
                              (:DATATYPE
                               |http://www.w3.org/2006/time#|::|Instant|))
   (DE.SETF.RESOURCE:DEFCLASS |http://www.w3.org/2006/time#|::|TemporalEntity|
-                             NIL
+                             ()
                              ((|http://www.w3.org/2006/time#|::|before| :TYPE
                                |http://www.w3.org/2006/time#|::|TemporalEntity|
                                :DATATYPE
