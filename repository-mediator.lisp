@@ -1060,7 +1060,7 @@
 (defgeneric repository-write-transaction-metadata (mediator transaction)
   (:method ((mediator repository-mediator) (transaction transaction-open))
     (let ((graph (mediator-default-context mediator)))
-      (add-statement* mediator (transaction-id transaction) '{rdf}type '{owl}Interval graph)
+      (add-statement* mediator (transaction-id transaction) '{rdf}type '{time}Interval graph)
       (add-statement* mediator (transaction-id transaction) '{rdfs}isDefinedBy (mediator-id mediator) graph)
       (add-statement* mediator (transaction-id transaction) '{time}hasBeginning (transaction-start transaction) graph)
       (add-statement* mediator (transaction-id transaction) '{time}hasEnd (transaction-end transaction) graph))))
@@ -1070,13 +1070,13 @@
 (defvar +feb-retry-delay+ 0.1)
 (defvar +feb-false+ 0)
 (defvar +feb-true+ 1)
-(defvar +feb-context+ '{RDF}feb)
-(defvar +feb-load+ '{RDF}feb-load)
-(defvar +feb-sac+ '{RDF}feb-sac)
-(defvar +feb-sas+ '{RDF}feb-sas)
-(defvar +feb-tfas+ '{RDF}feb-tfas)
-(defvar +feb-bit+ '{RDF}feb-bit)
-(defvar +feb-value+ '{RDF}feb-value)
+(defvar +feb-context+ '|RDF|::|feb|)      ; as symbols to intern them w/o constaint
+(defvar +feb-load+ '|RDF|::|feb-load|)
+(defvar +feb-sac+ '|RDF|::|feb-sac|)
+(defvar +feb-sas+ '|RDF|::|feb-sas|)
+(defvar +feb-tfas+ '|RDF|::|feb-tfas|)
+(defvar +feb-bit+ '|RDF|::|feb-bit|)
+(defvar +feb-value+ '|RDF|::|feb-value|)
 
 
 
