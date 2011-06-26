@@ -704,7 +704,7 @@
 
   (:method ((mediator repository-mediator) uri)
     (flet ((object-value (stmt) (model-value mediator (rdf:object stmt))))
-      (declare (dynamic-extent #'model-value))
+      (declare (dynamic-extent #'object-value))
       (let ((supertypes (mapcar #'object-value (rdf:query mediator :subject uri :predicate '{rdfs}subClassOf
                                                           :context nil)))
             (comments (mapcar #'object-value (rdf:query mediator :subject uri :predicate '{rdfs}comment
@@ -730,7 +730,7 @@
       (let ((types (mapcar #'model-value
                            (mapcar #'rdf:object (rdf:query mediator :subject uri :predicate '{rdfs}range
                                                            :context nil))))
-            (comments (mapcar #'rdf:object (rdf:query mediator :subject uri :predicate '{rdf}comment
+            (comments (mapcar #'rdf:object (rdf:query mediator :subject uri :predicate '{rdfs}comment
                                                       :context nil)))
             (name (model-value uri)))
         
