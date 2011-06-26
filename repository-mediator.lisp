@@ -700,14 +700,14 @@
 (defgeneric rdf:repository-class-definition (repository identifier)
   (:documentation "Given a REPOSITORY and a class IDENTIFIER, construct a class definition based on the
  repository's assertions about the  class. Extract the supertypes based on {rdfs}subClassOf, slots based on
- {rdfs}domain, and documentation based on {rdf}comment. Assert the class name as the datatype.")
+ {rdfs}domain, and documentation based on {rdfs}comment. Assert the class name as the datatype.")
 
   (:method ((mediator repository-mediator) uri)
     (flet ((object-value (stmt) (model-value mediator (rdf:object stmt))))
       (declare (dynamic-extent #'model-value))
       (let ((supertypes (mapcar #'object-value (rdf:query mediator :subject uri :predicate '{rdfs}subClassOf
                                                           :context nil)))
-            (comments (mapcar #'object-value (rdf:query mediator :subject uri :predicate '{rdf}comment
+            (comments (mapcar #'object-value (rdf:query mediator :subject uri :predicate '{rdfs}comment
                                                         :context nil)))
             (properties (mapcar #'(lambda (statement) (rdf:repository-property-definition mediator (rdf:subject statement)))
                                 (rdf:query mediator :object uri :predicate '{rdfs}domain
