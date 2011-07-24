@@ -110,7 +110,7 @@
                                      (multiple-value-prog1 (,op)
                                        (commit-transaction ,repository-var)))
                 (typecase (mediator-state ,repository-var)
-                  (transactional (abort-transaction mediator))))))))))
+                  (transactional (abort-transaction ,mediator))))))))))
 
 
 
