@@ -18,6 +18,7 @@
   A copy of the GNU Affero General Public License should be included with 'de.setf.resource' as `agpl.txt`.
   If not, see the GNU [site](http://www.gnu.org/licenses/)."))
 
+(defvar *lock-vocabulary-packages* t)
 
 (defun |{-reader|
        (stream char
@@ -63,8 +64,14 @@
     nil
     (let* ((namespace (or (find-package namespace)
                           (error "Package not found: ~s." namespace)))
-           (uname (or (find-symbol local-part namespace)
-                      (intern (subseq local-part 0) namespace))))
+           (uname (cond ((find-symbol local-part namespace))
+                        (*lock-vocabulary-packages*
+                         (cerror "Create a new symbol."
+                                 "The symbol is not present in the vocabulary: ~s: ~s."
+                                 local-part namespace)
+                         (intern (subseq local-part 0) namespace))
+                        (t
+                         (intern (subseq local-part 0) namespace)))))
       uname)))
 
 (defun install-|{-reader| ()

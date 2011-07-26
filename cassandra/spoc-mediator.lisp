@@ -172,7 +172,7 @@
                                         (dsc:column-value column))))))
          (map-spoc-columns (op index key column-names)
            (flet ((cmv (column) (model-value mediator (dsc:column-value column))))
-             (declare (dynamic-extent #'mv))
+             (declare (dynamic-extent #'cmv))
              (loop for column-id.c in (dsc:get-columns index key)
                    for s-columns = (dsc:get-columns (repository-spoc-index mediator)
                                                     (dsc:column-name column-id.c)

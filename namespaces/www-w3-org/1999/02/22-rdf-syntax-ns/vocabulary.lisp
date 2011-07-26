@@ -18,11 +18,11 @@
   :definitions
   ((de.setf.resource.schema:defclass |Alt|
      (|http://www.w3.org/2000/01/rdf-schema#|:|Container|)
-     nil)
+     ())
    
    (de.setf.resource.schema:defclass |Bag|
      (|http://www.w3.org/2000/01/rdf-schema#|:|Container|)
-     nil)
+     ())
    
    (de.setf.resource.schema:defclass |List|
      (|http://www.w3.org/2000/01/rdf-schema#|:|Resource|)
@@ -32,11 +32,11 @@
    
    (de.setf.resource.schema:defclass |Property|
      (|http://www.w3.org/2000/01/rdf-schema#|:|Resource|)
-     nil)
+     ())
    
    (de.setf.resource.schema:defclass |Seq|
      (|http://www.w3.org/2000/01/rdf-schema#|:|Container|)
-     nil)
+     ())
    
    (de.setf.resource.schema:defclass |Statement|
      (|http://www.w3.org/2000/01/rdf-schema#|:|Resource|)
