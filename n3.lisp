@@ -241,10 +241,7 @@
       
 
 (defun n3:read (stream &optional (eof-error-p t) (eof-value nil))
-  (flet ((read-next-nwschar ()
-           (peek-char t stream)
-           (read-char stream))
-         (read-node (eofp)
+  (flet ((read-node (eofp)
            (read stream eofp stream)))
     (let* ((*readtable* n3:*readtable*)
            (subject (read-node eof-error-p)))
@@ -252,11 +249,34 @@
         eof-value
         (let ((predicate (read-node t))
               (object (read-node t)))
-          (case (read-next-nwschar)
+          (case (peek-char t stream)
             (#\.
+             (read-char stream)
              (funcall n3::*construct-statement* subject predicate object))
             (t
              (error "Invalid N3 encoding: ~s; missing punctuation" stream))))))))
+
+(defun n3::read-quad (stream &optional (eof-error-p t) (eof-value nil))
+  (flet ((read-node (eofp)
+           (read stream eofp stream)))
+    (let* ((*readtable* n3:*readtable*)
+           (subject (read-node eof-error-p)))
+      (if (eq subject stream)
+        eof-value
+        (let ((predicate (read-node t))
+              (object (read-node t)))
+          (case (peek-char t stream)
+            (#\.
+             (read-char stream)
+             (funcall n3::*construct-statement* subject predicate object nil))
+            (t
+             (let ((context (read-node t)))
+               (case (peek-char t stream)
+                 (#\.
+                  (read-char stream)
+                  (funcall n3::*construct-statement* subject predicate object context))
+                 (t
+                  (error "Invalid NQ encoding: ~s; missing punctuation" stream)))))))))))
 
 
 (defgeneric decode-literal-value (string type) )
