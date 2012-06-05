@@ -450,7 +450,12 @@
             ((setf pos (position #\/ uri :from-end t))
              (unless (= pos (1- length))
                (setf fragment (subseq uri (1+ pos)))
-               (setf uri (subseq uri 0 (1+ pos))))))
+               (setf uri (subseq uri 0 (1+ pos)))))
+            ((and (string-equal "urn:" uri :end2 (min (length uri) 4))
+                  (setf pos (position #\: uri :start 4)))
+             (setf fragment (subseq uri (1+ pos))
+                   uri (subseq uri 0 pos))))
+             
       (values (or (find-package uri)
                   (when (uri-intrinsic-separator uri)
                     (find-package (subseq uri 0 (1- (length uri)))))
