@@ -345,6 +345,9 @@
       (multiple-value-bind (separator present)
                            (gethash uri-namestring *uri-separators*)
         (cond (present separator)
+              ((and (> (length uri-namestring) 4)
+                    (string-equal "urn:" uri-namestring :end2 4))
+               #\:)
               (t
                #+(or ) (warn "Presuming default separator (~c) for uri: ~s"
                      *default-uri-separator* uri-namestring)

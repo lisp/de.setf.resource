@@ -1,13 +1,15 @@
 ;;; -*- Mode: lisp; Syntax: ansi-common-lisp; Base: 10; Package: common-lisp-user; -*-
 ;;; 20100513T131613Z00
 ;;; from #<doc-node http://www.w3.org/1999/02/22-rdf-syntax-ns #x26B2EE16>
+;;; 20130210
+;;; add HTML as per http://www.w3.org/TR/rdf11-concepts/#section-Datatypes
 
 (in-package :common-lisp-user)
 
 (defpackage "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
   (:use )
   (:nicknames "rdf")
-  (:export "Alt" "Bag" "first" "langString" "List" "nil" "object" "predicate" "Property" "rest"
+  (:export "Alt" "Bag" "first" "HTML" "langString" "List" "nil" "object" "predicate" "Property" "rest"
            "Seq" "Statement" "subject" "type" "value" "XMLLiteral"))
 
 (in-package "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
