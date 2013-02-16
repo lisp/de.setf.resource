@@ -95,7 +95,7 @@
 
 
     <Keyspace Name="SPOC">
-      <ColumnFamily Name="SPOC"
+      <ColumnFamily Name="SPOCIndex"
                     ColumnType="Standard"
                     CompareWith="BytesType"
                     Comment="Statement constituent data."/>
