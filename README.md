@@ -49,7 +49,7 @@ There are several precedents for CLOS-MOP based persistence
 
 - CL-SQL
 - Elephant
-- Pevelance
+- Prevalence
 - PCLOS
 - Rucksack
 - SWCLOS
