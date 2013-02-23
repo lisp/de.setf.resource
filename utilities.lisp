@@ -622,7 +622,7 @@
  - ensure that the metaclass is set.
  - ensure that resource-object is in the precedence list.
  - ensure that each slot has an accessor.
-   perfer the declared accessor for the respective property as the default."
+   prefer the declared accessor for the respective property as the default."
 
   (unless (assoc :metaclass options)
     (push '(:metaclass rdf:resource-class) options))
@@ -643,7 +643,7 @@
 
 
 (defmacro rdf:defaccessor (function-name (parameter) &key property (name property) (type t))
-  "Define the base definitions for prototypal proerty accessors for the given predicate."
+  "Define the base definitions for prototypal property accessors for the given predicate."
   (let ((list-type-p (list-type-p type)))
     (when property
       (unless (and (consp property) (eq (first property) 'quote))
