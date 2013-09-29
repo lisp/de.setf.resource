@@ -50,7 +50,7 @@
                (:file "resource-lifecycle")
                #-lispworks              ; would need porting
                (:module :wilbur
-                :components ((:file "wilbur-extensions")
+                :components ((:file "wilbur-extensions" :depends-on ("wilbur-mediator"))
                              (:file "wilbur-mediator"))))
   :long-description
   "`de.setf.resource` implements a transparent bidirectional projection between CLOS models and linked data

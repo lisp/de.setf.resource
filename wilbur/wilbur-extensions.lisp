@@ -80,8 +80,7 @@
       :all (filter-statements (db-triples db)))))
 
 (defmethod rdf:save-repository ((db wilbur:db) (stream stream))
-  (dolist (triple (wilbur:db-triples db))
-    (format stream "~&~/n3:format/" triple))
+  (wilbur::db-dump db stream (wilbur:db-triples db) :ntriples)
   (terpri stream))
 
 
