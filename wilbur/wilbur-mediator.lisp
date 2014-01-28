@@ -83,7 +83,7 @@
 ;;;
 
 (defmethod add-statement* ((mediator wilbur-mediator) subject predicate object context)
-  "Constuct and add the statement to the repository db. Leaves duplication check to db-add-triple."
+  "Construct and add the statement to the repository db. Leaves duplication check to db-add-triple."
   (wilbur:db-add-triple (mediator-repository mediator)
                         (wilbur:triple (repository-value mediator subject)
                                        (repository-value mediator predicate)

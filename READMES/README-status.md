@@ -83,7 +83,7 @@ An additional operator collection will be necessary to expose this control patte
 ### Monotonicity
 
 An central architectural question is whether a store is monotonic.
-The `resource` library is implemented from the perspective than any changes are effected in the contxt of a transaction
+The `resource` library is implemented from the perspective than any changes are effected in the context of a transaction
 and that transactions are realized in combination with a revision/versioning mechanism.
 This could be accomplished with graphs/contexts, or with in intrinsically versioned triple-store.
 The instance meta-data records sufficient information to implement deletion, but it is not implemented, as it is the wrong thing
