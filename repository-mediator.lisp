@@ -998,7 +998,7 @@
 #-lispworks
 (let ((rm (make-instance 'repository-mediator :vocabularies nil :repository nil))
       (values `("asdf" 2.0s0 2.0d0 1 ,(expt 2 8) ,(expt 2 16) ,(expt 2 32) ,(expt 2 64)
-                #u"http://test" ,(uuid:make-v1-uuid))))
+                ,(puri:uri "http://test") ,(uuid:make-v1-uuid))))
   (flet ((model-repository-value (x)
            (rdf:model-value rm (rdf:repository-value rm x))))
     (assert (every #'rdf:equal values (mapcar #'model-repository-value values)) ()
