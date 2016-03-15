@@ -16,7 +16,7 @@
   (:import-from "http://www.w3.org/2001/XMLSchema"
                 "ENTITIES" "ENTITY" "ID" "IDREF" "IDREFS" "NCName"
            "NMTOKEN" "NMTOKENS" "NOTATION" "Name" "QName" "annotation"
-           "anyComplexType" "anyListType" "anySimpleType" "anyTreeType"
+           "anyAtomicType" "anyComplexType" "anyListType" "anySimpleType" "anyTreeType"
            "anyType" "anyURI" "attribute" "attributeGroup" "base64Binary"
            "boolean" "byte" "comment" "complexType" "date" "dateTime" "dayTimeDuration"
            "decimal" "documentation" "double" "duration" "element" "float"
