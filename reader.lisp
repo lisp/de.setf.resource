@@ -20,6 +20,7 @@
 
 (defvar *lock-vocabulary-packages* t)
 
+
 (defun |{-reader|
        (stream char
                &aux
@@ -74,16 +75,33 @@
                          (intern (subseq local-part 0) namespace)))))
       uname)))
 
-(defun install-|{-reader| ()
-  #-clisp
-  (set-macro-character #\{ '|{-reader| t)
-
+(labels ((call-packaged-macro-character (stream char function-name original-readtable)
+           (let ((actual-reader (find-symbol (symbol-name function-name) *package*)))
+             (cond (actual-reader
+                    (funcall actual-reader stream char))
+                   (t
+                    (unread-char char stream)
+                    (let ((*readtable* original-readtable))
+                      (read stream))))))
+         (set-packaged-macro-character (character function-name &optional (readtable *readtable*))
+           (let ((original-reader (get-macro-character character (copy-readtable nil)))
+                 (original-readtable (copy-readtable readtable)))
+             (flet ((maybe-reader (stream char)
+                      (call-packaged-macro-character stream char function-name original-readtable)))
+               (when original-reader
+                 (set-macro-character character original-reader original-readtable))
+               (set-macro-character character #'maybe-reader *readtable*)))))
+  
+  (defun install-|{-reader| ()
+    #-clisp
+    (set-packaged-macro-character #\{ '|{-reader|)
+    
   #+clisp
   (progn
     (defun single-value-|{-reader| (stream char &aux result)
       (setf result (|{-reader| stream char))
       result)
-    (set-macro-character #\{ 'single-value-|{-reader| t)))
+    (set-packaged-macro-character #\{ 'single-value-|{-reader|))))
 
 (install-|{-reader|)
 
