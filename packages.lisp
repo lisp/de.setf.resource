@@ -23,7 +23,7 @@
 
 (defpackage :de.setf.resource
   (:use )
-  (:nicknames :de.setf.rdf :rdf
+  (:nicknames :de.setf.rdf ;; conflicts with later use :rdf
               :de.setf.resource.schema :rdfs)          ; these last are temporary
 
   (:documentation "The de.setf.resource (rdf) package comprises the names for API components of the
