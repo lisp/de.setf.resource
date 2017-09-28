@@ -227,7 +227,7 @@
 
 (defmethod de.setf.rdf:find-class ((vocabulary vocabulary) (name symbol) &key (error-p t))
   (or (dolist (definition (vocabulary-definitions vocabulary))
-        (when (and (eq (first definition) 'rdf:defclass)
+        (when (and (eq (first definition) 'de.setf.rdf:defclass)
                    (eq (second definition) name))
           (return definition)))
       (when error-p
@@ -293,7 +293,7 @@
 
 (defmethod de.setf.rdf:require-vocabulary ((uri symbol) &rest args)
   (declare (dynamic-extent args))
-  (apply #'rdf:require-vocabulary (symbol-uri-namestring uri) args))
+  (apply #'de.setf.rdf:require-vocabulary (symbol-uri-namestring uri) args))
 
 
 (defgeneric save-vocabulary (vocabulary destination)
@@ -344,7 +344,7 @@
 (setf (uri-extrinsic-separator "DE.SETF.RESOURCE") #\/)
 
 
-;;; (mapcar #'rdf:require-vocabulary *default-vocabulary-names*)
+;;; (mapcar #'de.setf.rdf:require-vocabulary *default-vocabulary-names*)
 
 ;;; (camel-dash-canonicalizer (make-symbol (camel-dash-canonicalizer "asdfQwer")))
               
