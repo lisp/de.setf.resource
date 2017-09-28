@@ -435,16 +435,16 @@
   value)
 
 (defmethod de.setf.rdf:repository-value ((mediator wilbur-mediator) (value string))
-  (wilbur:literal value :datatype !xsd:string))
+  (wilbur:literal value :datatype |xsd|:|string|))
 
 (defmethod de.setf.rdf:repository-value ((mediator wilbur-mediator) (value float))
-  (wilbur:literal (princ-to-string value) :value value :datatype !xsd:float))
+  (wilbur:literal (princ-to-string value) :value value :datatype |xsd|:|float|))
 
 (defmethod de.setf.rdf:repository-value ((mediator wilbur-mediator) (value double-float))
-  (wilbur:literal (princ-to-string value) :value value :datatype !xsd:double))
+  (wilbur:literal (princ-to-string value) :value value :datatype |xsd|:|double|))
 
 (defmethod de.setf.rdf:repository-value ((mediator wilbur-mediator) (value integer))
-  (wilbur:literal (princ-to-string value) :value value :datatype !xsd:integer))
+  (wilbur:literal (princ-to-string value) :value value :datatype |xsd|:|integer|))
 
 (defmethod de.setf.rdf:repository-value ((mediator wilbur-mediator) (value symbol))
   (flet ((canonicalize (symbol) (canonicalize-identifier mediator symbol)))

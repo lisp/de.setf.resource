@@ -169,7 +169,7 @@
   (let ((source (make-instance 'wilbur-mediator)))
     (equal (mapcar #'(lambda (v)  (wilbur:literal-datatype (de.setf.rdf:repository-value source v)))
                    '(1 "1" 1.0s0 1.0d0))
-           '(!xsd:integer  !xsd:string  !xsd:float  !xsd:double))))
+           '(|xsd|:|integer|  |xsd|:|string|  |xsd|:|float|  |xsd|:|double|))))
 
 (test:test resource.wilbur-mediator.statement.1
   "When placing a native triple, either the context must be provided, or the search must use a wild context."
@@ -208,7 +208,7 @@
 
 
 (test:test resource.wilbur-mediator.triple
-  (let ((s (wilbur:triple 1 "2" !xsd:string)))
+  (let ((s (wilbur:triple 1 "2" |xsd|:|string|)))
     (and (eq (wilbur:triple-subject s) (de.setf.rdf:subject s))
          (eq (wilbur:triple-predicate s) (de.setf.rdf:predicate s))
          (eq (wilbur:triple-object s) (de.setf.rdf:object s))
