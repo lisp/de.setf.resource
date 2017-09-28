@@ -20,11 +20,11 @@
 
 
 
-(defmethod rdf:load-repository-as ((db wilbur:db) (source pathname) (form mime:application/rdf+xml))
+(defmethod de.setf.rdf:load-repository-as ((db wilbur:db) (source pathname) (form mime:application/rdf+xml))
   (wilbur:db-load db source))
 
 
-(defmethod rdf:load-vocabulary ((db wilbur:db) (source t) &key)
+(defmethod de.setf.rdf:load-vocabulary ((db wilbur:db) (source t) &key)
   (let ((source-desc (wilbur:db-load db source)))
     (when source-desc
       (values (wilbur:node-uri (wilbur:source-desc-url source-desc))
@@ -79,7 +79,7 @@
       :c (filter-statements-by-context c (db-triples db))
       :all (filter-statements (db-triples db)))))
 
-(defmethod rdf:save-repository ((db wilbur:db) (stream stream))
+(defmethod de.setf.rdf:save-repository ((db wilbur:db) (stream stream))
   (wilbur::db-dump db stream (wilbur:db-triples db) :ntriples)
   (terpri stream))
 
@@ -103,8 +103,8 @@
       (declare (dynamic-extent #'matching-triple-p))
       (find-if #'matching-triple-p (wilbur:db-triples db)))))
 
-#+(or)                                  ; handled by rdf:project
-(defmethod rdf:load-repository-as ((db wilbur:db) (source stream) (form mime:application/n3))
+#+(or)                                  ; handled by de.setf.rdf:project
+(defmethod de.setf.rdf:load-repository-as ((db wilbur:db) (source stream) (form mime:application/n3))
   (let ((blanks (make-hash-table :test #'equal)))
     (flet ((intern-resource (uri-namestring)
              (wilbur:node uri-namestring))
@@ -123,7 +123,7 @@
                 (wilbur:db-add-triple db triple)))))))
 
 #+(or) ;; replaced by the map-statements* method which tests contexts
-(defmethod rdf:query ((db indexed-db) &key subject predicate object continuation context limit offset)
+(defmethod de.setf.rdf:query ((db indexed-db) &key subject predicate object continuation context limit offset)
   "The indexed repository tries to focus iteration over the respective index."
   (declare (ignore context))
   (let* ((collection (list nil))
@@ -136,7 +136,7 @@
                    (funcall continuation stmt)
                    (setf (rest end) (list stmt) end (rest end)))
                  (when (and limit (>= (incf collected) limit))
-                   (return-from rdf:query (values (rest collection) matched collected)))))
+                   (return-from de.setf.rdf:query (values (rest collection) matched collected)))))
              (filter-statements-by-object (object statements)
                (dolist (statement statements)
                  (when (eq (triple-object statement) object) (collect statement)))

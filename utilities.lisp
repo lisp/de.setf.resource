@@ -96,15 +96,15 @@
 (defclass transaction-abort (transactional) ())
 (defclass transaction-commit (transactional) ())
 
-(defvar de.setf.rdf:clean-persistent (make-instance 'rdf:clean-persistent))
-(defvar de.setf.rdf:deleted-persistent (make-instance 'rdf:deleted-persistent))
-(defvar de.setf.rdf:hollow (make-instance 'rdf:hollow))
-(defvar de.setf.rdf:modified-persistent (make-instance 'rdf:modified-persistent))
-(defvar de.setf.rdf:new-persistent (make-instance 'rdf:new-persistent))
-(defvar de.setf.rdf:transient (make-instance 'rdf:transient))
+(defvar de.setf.rdf:clean-persistent (make-instance 'de.setf.rdf:clean-persistent))
+(defvar de.setf.rdf:deleted-persistent (make-instance 'de.setf.rdf:deleted-persistent))
+(defvar de.setf.rdf:hollow (make-instance 'de.setf.rdf:hollow))
+(defvar de.setf.rdf:modified-persistent (make-instance 'de.setf.rdf:modified-persistent))
+(defvar de.setf.rdf:new-persistent (make-instance 'de.setf.rdf:new-persistent))
+(defvar de.setf.rdf:transient (make-instance 'de.setf.rdf:transient))
 
 
-(defvar de.setf.rdf:non-transactional (make-instance 'rdf:non-transactional))
+(defvar de.setf.rdf:non-transactional (make-instance 'de.setf.rdf:non-transactional))
 (defvar transaction-open (make-instance 'transaction-open))
 (defvar transaction-commit (make-instance 'transaction-commit))
 (defvar transaction-abort (make-instance 'transaction-abort))
@@ -205,7 +205,7 @@
                      (type-of (condition-end-state condition))))))
 
 (defun de.setf.rdf:invalid-state-error (&rest args)
-  (apply #'error 'rdf:invalid-state-error args))
+  (apply #'error 'de.setf.rdf:invalid-state-error args))
 
 (define-condition de.setf.rdf:property-missing-error (rdf-error)
   ((object :initarg :object :reader condition-object)
@@ -219,7 +219,7 @@
                      (condition-value condition)))))
 
 (defun de.setf.rdf:property-missing-error (&rest args)
-  (apply #'error 'rdf:property-missing-error args))
+  (apply #'error 'de.setf.rdf:property-missing-error args))
 
 
 (define-condition de.setf.rdf:resource-not-found-error (rdf-error)
@@ -229,7 +229,7 @@
                      (condition-uri condition)))))
 
 (defun de.setf.rdf:resource-not-found-error (&rest args)
-  (apply #'error 'rdf:resource-not-found-error args))
+  (apply #'error 'de.setf.rdf:resource-not-found-error args))
 
 
 (define-condition de.setf.rdf:schema-not-found-error (rdf-error)
@@ -239,7 +239,7 @@
                      (condition-uri condition)))))
 
 (defun de.setf.rdf:schema-not-found-error (&rest args)
-  (apply #'error 'rdf:schema-not-found-error args))
+  (apply #'error 'de.setf.rdf:schema-not-found-error args))
 
 
 (define-condition de.setf.rdf:class-not-found-error (rdf-error)
@@ -251,7 +251,7 @@
                      (condition-name condition)))))
 
 (defun de.setf.rdf:class-not-found-error (&key metaclass name)
-  (restart-case (error 'rdf:class-not-found-error :metaclass metaclass :name name)
+  (restart-case (error 'de.setf.rdf:class-not-found-error :metaclass metaclass :name name)
     (use-value (value)
                :report "Specify a class."
                (setf (find-class name) value))
@@ -273,7 +273,7 @@
                      (condition-predicate condition)))))
 
 (defun de.setf.rdf:property-read-only-error (&rest args)
-  (apply #'error 'rdf:property-read-only-error args))
+  (apply #'error 'de.setf.rdf:property-read-only-error args))
 
 
 (define-condition de.setf.rdf:unbound-source-error (rdf-error)
@@ -285,7 +285,7 @@
                      (condition-operation condition)))))
 
 (defun de.setf.rdf:unbound-source-error (&rest args)
-  (apply #'error 'rdf:unbound-source-error args))
+  (apply #'error 'de.setf.rdf:unbound-source-error args))
 
 
 (define-condition de.setf.rdf:instance-not-found-error (rdf-error)
@@ -297,7 +297,7 @@
                      (condition-uri condition)))))
 
 (defun de.setf.rdf:instance-not-found-error (&rest args)
-  (apply #'error 'rdf:instance-not-found-error args))
+  (apply #'error 'de.setf.rdf:instance-not-found-error args))
 
 (define-condition de.setf.rdf:feb-timeout-error (repository-error)
   ((repository :initarg :repository :reader condition-repository)
@@ -310,7 +310,7 @@
                      (condition-operation condition)))))
 
 (defun de.setf.rdf:feb-timeout-error (&rest args)
-  (apply #'error 'rdf:feb-timeout-error args))
+  (apply #'error 'de.setf.rdf:feb-timeout-error args))
 
 
 ;;;
@@ -626,7 +626,7 @@
 
   (unless (assoc :metaclass options)
     (push '(:metaclass de.setf.rdf:resource-class) options))
-  (unless (find 'rdf:resource-object supers)
+  (unless (find 'de.setf.rdf:resource-object supers)
     (setf supers (append supers '(de.setf.rdf:resource-object))))
   `(defclass ,name ,supers
      ,(mapcar #'(lambda (slot)

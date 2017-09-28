@@ -263,7 +263,7 @@
 
 (defmethod rdf:find-class ((mediator repository-mediator) (identifier t) &rest args)
   (declare (dynamic-extent args))
-  (apply #'rdf:find-class mediator (de.setf.rdf:model-value mediator identifier) args))
+  (apply #'de.setf.rdf:find-class mediator (de.setf.rdf:model-value mediator identifier) args))
 
 
 (defmethod rdf:find-instance ((mediator repository-mediator) (subject t))
@@ -315,7 +315,7 @@
 
 
 (defmethod rdf:ensure-vocabulary ((mediator repository-mediator) (uri symbol) &rest args)
-  (apply #'rdf:ensure-vocabulary mediator (package-name (symbol-package uri)) args))
+  (apply #'de.setf.rdf:ensure-vocabulary mediator (package-name (symbol-package uri)) args))
 
 
 (defmethod rdf:find-vocabulary ((mediator repository-mediator) (uri string))
@@ -591,7 +591,7 @@
                                :context nil))
                   ;; heavy-handed, but the way to find out what was in the document
                   (de.setf.rdf:query mediator :context (repository-uri mediator vocabulary-resource-uri)))
-          :key #'rdf:subject))
+          :key #'de.setf.rdf:subject))
       
     ;; next, given any first-order definitions, continue to walk the class-precedence and property type graph
     ;; until it closes, as many classes (eg {foaf}Agent and {foaf}Group) include no isDefinedBy assertion.
@@ -728,9 +728,9 @@
     (flet ((model-value (uri) (model-value mediator uri)))
       (declare (dynamic-extent #'model-value))
       (let ((types (mapcar #'model-value
-                           (mapcar #'rdf:object (de.setf.rdf:query mediator :subject uri :predicate '{rdfs}range
+                           (mapcar #'de.setf.rdf:object (de.setf.rdf:query mediator :subject uri :predicate '{rdfs}range
                                                            :context nil))))
-            (comments (mapcar #'rdf:object (de.setf.rdf:query mediator :subject uri :predicate '{rdfs}comment
+            (comments (mapcar #'de.setf.rdf:object (de.setf.rdf:query mediator :subject uri :predicate '{rdfs}comment
                                                       :context nil)))
             (name (model-value uri)))
         
@@ -1001,7 +1001,7 @@
                 ,(puri:uri "http://test") ,(uuid:make-v1-uuid))))
   (flet ((model-repository-value (x)
            (de.setf.rdf:model-value rm (de.setf.rdf:repository-value rm x))))
-    (assert (every #'rdf:equal values (mapcar #'model-repository-value values)) ()
+    (assert (every #'de.setf.rdf:equal values (mapcar #'model-repository-value values)) ()
             "Some model->repository->model value failed:~% ~s~% ~s"
             values
             (mapcar #'(lambda (x) (de.setf.rdf:repository-value rm x)) values))))
@@ -1088,8 +1088,8 @@
     ;; do not mark the location with an operation as this makes no
     (dotimes (count +feb-retry-limit+)
       (let* ((statements (de.setf.rdf:query mediator :subject location-id :context +feb-context+))
-             (bit (find +feb-bit+ statements :key #'rdf:predicate))
-             (value (find +feb-value+ statements :key #'rdf:predicate)))
+             (bit (find +feb-bit+ statements :key #'de.setf.rdf:predicate))
+             (value (find +feb-value+ statements :key #'de.setf.rdf:predicate)))
         (when (and bit value (null (cddr statements)))
           (return-from nbfeb-load
             (values (model-value mediator (de.setf.rdf:object value)) (model-value mediator (de.setf.rdf:object bit)))))))))
@@ -1144,8 +1144,8 @@
   (dotimes (count +feb-retry-limit+)
     (add-statement* mediator location-id feb-op (mediator-id mediator) +feb-context+)
     (let* ((statements (de.setf.rdf:query mediator :subject location-id :context +feb-context+))
-           (old-bit (find +feb-bit+ statements :key #'rdf:predicate))
-           (old-value (find +feb-value+ statements :key #'rdf:predicate)))
+           (old-bit (find +feb-bit+ statements :key #'de.setf.rdf:predicate))
+           (old-value (find +feb-value+ statements :key #'de.setf.rdf:predicate)))
       (when (and old-bit old-value (null (cdddr statements)))
         (unwind-protect (funcall function old-value old-bit)
           (delete-statement* mediator location-id feb-op (mediator-id mediator) +feb-context+))

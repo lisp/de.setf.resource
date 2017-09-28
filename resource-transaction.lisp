@@ -99,7 +99,7 @@
     (clrhash (mediator-transaction-cache mediator))
     (setf-mediator-state non-transactional mediator)))
 
-(defmacro rdf:with-transaction ((mediator) &body body)
+(defmacro de.setf.rdf:with-transaction ((mediator) &body body)
   (let ((op (cons-symbol nil :transaction))
         (repository-var (cons-symbol nil :mediator)))
     `(flet ((,op () ,@body))

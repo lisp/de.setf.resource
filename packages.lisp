@@ -37,10 +37,10 @@
  The terms are chosen to reflect the intended operands in that an operator which applies to a certain
  abstract context or operand class includes a erspective designator as a prefix, while operators which are
  universal do not.
- For example the operator rdf:save is universal, while the rdf:save-resource and rdf:save-repository
+ For example the operator de.setf.rdf:save is universal, while the de.setf.rdf:save-resource and de.setf.rdf:save-repository
  operators intend the respective abstract class of operand. or the statement query operator
  intended to apply both to resource-object instances and repository instances is named simply
- 'rdf:has-statement?'
+ 'de.setf.rdf:has-statement?'
 
  The library can be partitioned into several aspects:
  - declarations
