@@ -312,8 +312,8 @@
   (:method ((object resource-object))
     (or (get-object-properties object)
         (let ((properties (make-hash-table )))
-          (setf (gethash 'rdf:this properties)
-                (rdf-internal-property-definition :name 'rdf:this :value object))
+          (setf (gethash 'de.setf.rdf:this properties)
+                (rdf-internal-property-definition :name 'de.setf.rdf:this :value object))
           (setf-object-properties properties object)))))
 
 
@@ -345,7 +345,7 @@
            (use-definition (definition)
                            :report (lambda (stream)
                                      (format stream "Supply a property definition and continue."))
-                           (assert (typep definition 'rdf:prototypal-property-definition) ()
+                           (assert (typep definition 'de.setf.rdf:prototypal-property-definition) ()
                                    "Invalid property definition: ~s." definition)
                            (setf (find-prototypal-property-definition object name) definition)
                            (de.setf.rdf:prototypal-property-value object name))
@@ -370,7 +370,7 @@
       (etypecase definition
         (null
          (restart-case (funcall (class-property-missing-function (class-of object))
-                                (class-of object) object name 'rdf:setf-property-value)
+                                (class-of object) object name 'de.setf.rdf:setf-property-value)
            (ignore ()
                    :report (lambda (stream)
                              (format stream "Ignore the operation, return no values."))
@@ -384,7 +384,7 @@
            (use-definition (definition)
                            :report (lambda (stream)
                                      (format stream "Supply a property definition and continue."))
-                           (assert (typep definition 'rdf:prototypal-property-definition) ()
+                           (assert (typep definition 'de.setf.rdf:prototypal-property-definition) ()
                                    "Invalid property definition: ~s." definition)
                            (setf (find-prototypal-property-definition object name) definition)
                            (setf (prototypal-property-value object name) new-value))))
@@ -397,7 +397,7 @@
                       &optional (type (c2mop:slot-definition-type definition)))
     "Given a specific property definition for an object and a NEW-VALUE, setf the property value."
     (unless (slot-definition-writable definition)
-      (property-read-only (class-of object) object definition 'rdf:setf-property-value new-value))
+      (property-read-only (class-of object) object definition 'de.setf.rdf:setf-property-value new-value))
     (when type
       (assert (typep new-value type) () "Invalid slot value: ~a (~a): ~a."
               (c2mop:slot-definition-name definition) type new-value))
@@ -535,7 +535,7 @@
 (defmethod de.setf.rdf:has-object? ((resource-object resource-object) object)
   (labels ((test-value (value)
              (when (typecase value
-                     (cons (member object value :test #'rdf:equal))
+                     (cons (member object value :test #'de.setf.rdf:equal))
                      (t (de.setf.rdf:equal object value)))
                (return-from de.setf.rdf:has-object? t)))
            (test-slot (sd)

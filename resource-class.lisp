@@ -596,7 +596,7 @@
 (defgeneric prototypal-property-definition-class (context &rest initargs)
   (:method ((class resource-class) &rest initargs)
     (declare (dynamic-extent initargs) (ignore initargs))
-    'rdf:prototypal-property-definition))
+    'de.setf.rdf:prototypal-property-definition))
 
 (def-class-constructor de.setf.rdf:archetypal-property-definition )
 
@@ -780,7 +780,7 @@
            #+ccl
            (ensure-generic-function reader
                                     :method-combination (c2mop:find-method-combination #'ensure-resource-accessors
-                                                                                       'rdf:persistent-slot-reader
+                                                                                       'de.setf.rdf:persistent-slot-reader
                                                                                        (list :type type :name name)))
            #-ccl
            (ensure-generic-function reader
@@ -791,12 +791,12 @@
            #+ccl
            (ensure-generic-function writer
                                     :method-combination (c2mop:find-method-combination #'ensure-resource-accessors
-                                                                                       'rdf:persistent-slot-writer
+                                                                                       'de.setf.rdf:persistent-slot-writer
                                                                                        (list :type type :name name)))
            #-ccl
            (ensure-generic-function writer :method-combination `(persistent-slot-writer :type ,type :name ,name)
                                     :generic-function-class 'rdf-slot-writer))
-         (find-class 'rdf:archetypal-property-definition))
+         (find-class 'de.setf.rdf:archetypal-property-definition))
         (t
          (call-next-method))))
 
@@ -941,7 +941,7 @@
            #+ccl
            (ensure-generic-function reader
                                     :method-combination (c2mop:find-method-combination #'ensure-resource-accessors
-                                                                                       'rdf:persistent-slot-reader
+                                                                                       'de.setf.rdf:persistent-slot-reader
                                                                                        (list :slot-definition sd)))
            #-ccl
            (ensure-generic-function reader
@@ -953,7 +953,7 @@
            #+ccl
            (ensure-generic-function writer
                                     :method-combination (c2mop:find-method-combination #'ensure-resource-accessors
-                                                                                       'rdf:persistent-slot-writer
+                                                                                       'de.setf.rdf:persistent-slot-writer
                                                                                        (list :slot-definition sd)))
            #-ccl
            (ensure-generic-function writer :method-combination `(persistent-slot-writer :slot-definition ,sd)
@@ -975,7 +975,7 @@
                        :lambda-list '(object)
                        #+ccl :name #+ccl 'unbind-property-slots)))
         (add-method #'unbind-property-slots method))
-      (let* ((method-class (c2mop:generic-function-method-class #'rdf:map-property-slots))
+      (let* ((method-class (c2mop:generic-function-method-class #'de.setf.rdf:map-property-slots))
              (function (compile nil `(lambda (function subject)
                                        (declare (ignore subject))
                                        ,@(mapcar #'(lambda (sd) `(funcall function ,sd))
@@ -985,9 +985,9 @@
                        :qualifiers '(progn)
                        :specializers (list (find-class 't) class)
                        :lambda-list '(function object)
-                       #+ccl :name #+ccl 'rdf:map-property-slots)))
-        (add-method #'rdf:map-property-slots method))
-      (let* ((method-class (c2mop:generic-function-method-class #'rdf:map-property-values))
+                       #+ccl :name #+ccl 'de.setf.rdf:map-property-slots)))
+        (add-method #'de.setf.rdf:map-property-slots method))
+      (let* ((method-class (c2mop:generic-function-method-class #'de.setf.rdf:map-property-values))
              (function (compile nil `(lambda (function subject)
                                        ,@(mapcar #'(lambda (sd)
                                                      `(when (slot-boundp subject ',(c2mop:slot-definition-name sd))
@@ -998,8 +998,8 @@
                        :qualifiers '(progn)
                        :specializers (list (find-class 't) class)
                        :lambda-list '(function object)
-                       #+ccl :name #+ccl 'rdf:map-property-values)))
-        (add-method #'rdf:map-property-values method)))
+                       #+ccl :name #+ccl 'de.setf.rdf:map-property-values)))
+        (add-method #'de.setf.rdf:map-property-values method)))
     #-digitool                          ; should be portable
     (when property-slots
       (c2mop:ensure-method #'unbind-property-slots
@@ -1013,7 +1013,7 @@
                            :qualifiers '(progn)
                            :lambda-list '(object)
                            :specializers (list class))
-      (c2mop:ensure-method #'rdf:map-property-slots
+      (c2mop:ensure-method #'de.setf.rdf:map-property-slots
                            `(lambda (function subject)
                                        (declare (ignore subject))
                                        ,@(mapcar #'(lambda (sd) `(funcall function ,sd))
@@ -1021,7 +1021,7 @@
                            :qualifiers '(progn)
                            :lambda-list '(function object)
                            :specializers (list (find-class 't) class))
-      (c2mop:ensure-method #'rdf:map-property-values
+      (c2mop:ensure-method #'de.setf.rdf:map-property-values
                            `(lambda (function subject)
                                        ,@(mapcar #'(lambda (sd)
                                                      `(when (slot-boundp subject ',(c2mop:slot-definition-name sd))
@@ -1372,7 +1372,7 @@
 
 (defmethod de.setf.rdf:find-class ((class resource-class) (identifier t) &rest args)
   (declare (dynamic-extent args))
-  (apply #'rdf:find-class class (de.setf.rdf:model-value (class-repository class) identifier) args))
+  (apply #'de.setf.rdf:find-class class (de.setf.rdf:model-value (class-repository class) identifier) args))
 
 
 
@@ -1389,7 +1389,7 @@
     (reduce #'append
             (c2mop:class-precedence-list class)
             :key #'(lambda (class)
-                     (remove-if-not #'(lambda (sd) (typep sd 'rdf:archetypal-property-definition))
+                     (remove-if-not #'(lambda (sd) (typep sd 'de.setf.rdf:archetypal-property-definition))
                                     (c2mop:class-direct-slots class))))))
 ;;; (class-property-slots (find-class 'adult))
 

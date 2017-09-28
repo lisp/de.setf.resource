@@ -132,7 +132,7 @@
   (:method ((metaclass symbol) type &rest args)
     "Allow class designators for the metaclasses as they are defined globally."
     (declare (dynamic-extent args))
-    (apply #'rdf:find-class (find-class metaclass) type args)))
+    (apply #'de.setf.rdf:find-class (find-class metaclass) type args)))
 
 
 (defgeneric de.setf.rdf:find-instance (context identifier)

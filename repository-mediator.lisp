@@ -104,7 +104,7 @@
      instantiation. It needs to be weak, but that is not possible portably. An alternative would be weak
      entries, in which case it could as well be a weak avl/b+tree.")
    (state
-    :initform rdf:non-transactional
+    :initform de.setf.rdf:non-transactional
     :reader mediator-state :writer setf-mediator-state
     :documentation "Indicates the mediated transaction state.")
    (vocabularies
@@ -133,19 +133,19 @@
      :documentation "The URN used to identify the graph to used as the repository's default context.")
    (indelible
     :initarg :indelible :initform nil :allocation :class
-    :reader rdf:repository-indelible? :writer setf-repository-indelible
+    :reader de.setf.rdf:repository-indelible? :writer setf-repository-indelible
     :documentation "If true, any delete-statement call signals an error. Initially nil.")
    (persistent
     :initarg :persistent :initform nil :allocation :class
-    :reader rdf:repository-persistent? :writer setf-repository-persistent
+    :reader de.setf.rdf:repository-persistent? :writer setf-repository-persistent
     :documentation "Indicate if the mediated repository is persistent. Initially nil. (see transient)")
    (readable
     :initarg :readable :initform t :allocation :class
-    :reader rdf:repository-readable? :writer setf-repository-readable
+    :reader de.setf.rdf:repository-readable? :writer setf-repository-readable
     :documentation "Indicate if the mediated repository is readable. Initially t")
    (writable
     :initarg :writable :initform t :allocation :class
-    :reader rdf:repository-writable? :writer setf-repository-writable
+    :reader de.setf.rdf:repository-writable? :writer setf-repository-writable
     :documentation "Indicate if the mediated repository supports insert and (if it is not indelible)
      delete operations. Initially t.")
    (maps-dynamic-extent
@@ -214,29 +214,29 @@
 ;;; concrete api operators
 
 
-(defmethod rdf:load-repository ((mediator repository-mediator) (location pathname))
+(defmethod de.setf.rdf:load-repository ((mediator repository-mediator) (location pathname))
   (de.setf.rdf:project-graph location mediator)
   (values (de.setf.rdf:repository-count mediator)
           location))
 
 
-(defmethod rdf:repository-close ((mediator repository-mediator))
+(defmethod de.setf.rdf:repository-close ((mediator repository-mediator))
   ;; the base method does nothing
   nil)
 
 
-(defmethod rdf:repository-transient? ((mediator repository-mediator))
+(defmethod de.setf.rdf:repository-transient? ((mediator repository-mediator))
   (not (de.setf.rdf:repository-persistent? mediator)))
 
 
-(defmethod rdf:save-repository ((mediator repository-mediator) location)
+(defmethod de.setf.rdf:save-repository ((mediator repository-mediator) location)
   (de.setf.rdf:save-repository (mediator-repository mediator) location))
 
 
 ;;;
 ;;; default implementations for concrete operators
 
-(defmethod rdf:find-class ((mediator repository-mediator) (name symbol) &key (error-p t))
+(defmethod de.setf.rdf:find-class ((mediator repository-mediator) (name symbol) &key (error-p t))
   (or (de.setf.rdf:find-class (class-of mediator) name :error-p nil)
       (let ((vocabulary (ensure-vocabulary mediator name)))
         (when vocabulary
@@ -261,18 +261,18 @@
         (de.setf.rdf:class-not-found (find-class 'resource-class) name))))
 
 
-(defmethod rdf:find-class ((mediator repository-mediator) (identifier t) &rest args)
+(defmethod de.setf.rdf:find-class ((mediator repository-mediator) (identifier t) &rest args)
   (declare (dynamic-extent args))
   (apply #'de.setf.rdf:find-class mediator (de.setf.rdf:model-value mediator identifier) args))
 
 
-(defmethod rdf:find-instance ((mediator repository-mediator) (subject t))
+(defmethod de.setf.rdf:find-instance ((mediator repository-mediator) (subject t))
   "Return the instance which is registered with the MEDIATOR for the SUBJECT value's interned equivalent."
   (gethash (de.setf.rdf:repository-value mediator subject) (mediator-instance-cache mediator)))
 
 
 
-(:documentation  rdf:ensure-vocabulary rdf:find-vocabulary rdf:load-vocabulary
+(:documentation  de.setf.rdf:ensure-vocabulary de.setf.rdf:find-vocabulary de.setf.rdf:load-vocabulary
   "Support RDF schema by translating them into CLOS. Integrate them into the respective repository
  mediator to govern term mapping and to provide class definitions. Mediate the definition process through
  the repository's repository in order to mitigate variations, inconsistencies, and general insufficiency
@@ -289,10 +289,10 @@
    existing data and procesing models. 
  
   The primary interface operations are
- - rdf:type-of : (identifier) given a resource identifier, return the type as cached or as asserted in the
+ - de.setf.rdf:type-of : (identifier) given a resource identifier, return the type as cached or as asserted in the
    repository.
- - rdf:find-class : (mediator identifier) given a class URI, locate or import the class definition.
- - rdf:load-vocabulary (mediator &key uri) : retrieve the vocabulary specification, parse it to
+ - de.setf.rdf:find-class : (mediator identifier) given a class URI, locate or import the class definition.
+ - de.setf.rdf:load-vocabulary (mediator &key uri) : retrieve the vocabulary specification, parse it to
    extract the namespace and the schema and save them in the namespace registry. succeeds only
    with self-contained schema - those which are just properties of other schema yield just the
    terms, but no classes. (eg. http://purl.org/net/vocab/2003/11/photo.rdf)
@@ -302,30 +302,30 @@
  ")
 
 
-(defmethod rdf:ensure-vocabulary ((mediator repository-mediator) (uri string) &rest args)
+(defmethod de.setf.rdf:ensure-vocabulary ((mediator repository-mediator) (uri string) &rest args)
   (or (find-vocabulary mediator uri)
       ;; otherwise continue to load it and incorporate its terms
       (ensure-vocabulary mediator (apply #'load-vocabulary mediator uri args))))
 
 
-(defmethod rdf:ensure-vocabulary ((mediator repository-mediator) (vocabulary vocabulary) &key)
+(defmethod de.setf.rdf:ensure-vocabulary ((mediator repository-mediator) (vocabulary vocabulary) &key)
   (unless (find vocabulary (mediator-vocabularies mediator))
     (de.setf.rdf:load-vocabulary mediator vocabulary))
   vocabulary)
 
 
-(defmethod rdf:ensure-vocabulary ((mediator repository-mediator) (uri symbol) &rest args)
+(defmethod de.setf.rdf:ensure-vocabulary ((mediator repository-mediator) (uri symbol) &rest args)
   (apply #'de.setf.rdf:ensure-vocabulary mediator (package-name (symbol-package uri)) args))
 
 
-(defmethod rdf:find-vocabulary ((mediator repository-mediator) (uri string))
+(defmethod de.setf.rdf:find-vocabulary ((mediator repository-mediator) (uri string))
   (dolist (vocabulary (mediator-vocabularies mediator))
     (when (uri-match-p uri (vocabulary-uri vocabulary))
       ;; if the namespace is already present - on the basis of bindings, then return.
       (return vocabulary))))
 
 
-(defmethod (setf rdf:find-vocabulary) ((value null) (mediator repository-mediator) (uri string))
+(defmethod (setf de.setf.rdf:find-vocabulary) ((value null) (mediator repository-mediator) (uri string))
   (flet ((vocabulary-match-p (vocabulary)
            (let ((v-uri (vocabulary-uri vocabulary)))
              (or (uri-match-p uri v-uri) (uri-match-p v-uri uri)))))
@@ -334,7 +334,7 @@
                                   mediator))
   nil)
 
-(defmethod (setf rdf:find-vocabulary) ((vocabulary vocabulary) (mediator repository-mediator) (uri string))
+(defmethod (setf de.setf.rdf:find-vocabulary) ((vocabulary vocabulary) (mediator repository-mediator) (uri string))
   (flet ((vocabulary-match-p (vocabulary)
            (let ((v-uri (vocabulary-uri vocabulary)))
              (or (uri-match-p uri v-uri) (uri-match-p v-uri uri)))))
@@ -345,7 +345,7 @@
   vocabulary)
 
 
-(defmethod rdf:load-vocabulary ((mediator repository-mediator) (vocabulary vocabulary)
+(defmethod de.setf.rdf:load-vocabulary ((mediator repository-mediator) (vocabulary vocabulary)
                                 &key (resource-uri (vocabulary-uri vocabulary)))
   "Incorporate a vocabulary definition into a repository.
  MEDIATOR : repository-mediator
@@ -365,7 +365,7 @@
   vocabulary)
 
 
-(defmethod rdf:load-vocabulary ((mediator repository-mediator) (uri string) &key (resource-uri nil ru-s))
+(defmethod de.setf.rdf:load-vocabulary ((mediator repository-mediator) (uri string) &key (resource-uri nil ru-s))
   "Load the schema into the repository repository based a vocabulary uri. Note the actual location and warn
  if it diverges from one explicitly provided.
  Extract the class definitions starting with immediate type assertions. Recurse through the precedence lists
@@ -398,7 +398,7 @@
 
 
 
-(:documentation  rdf:repository-value rdf:model-value
+(:documentation  de.setf.rdf:repository-value de.setf.rdf:model-value
   "The repository-value and model-value functions map between the literal and resource domains
  in the respective rdf repository and the clos data model. Each is defined in terms of two parameters, the
  repository mediator and the data object. The resource identifier path relates the values in the data model,
@@ -412,7 +412,7 @@
  'equal' identity.")
 
 
-(defmethod rdf:model-value :around ((mediator repository-mediator) (repository-value t))
+(defmethod de.setf.rdf:model-value :around ((mediator repository-mediator) (repository-value t))
   "A default wrapper method first looks in the cache, and delegates to the repository-specific method if there
  is a miss. Iff the specialized result differs, cache the correspondence."
   (or (gethash repository-value (mediator-repository2model-value-map mediator))
@@ -424,7 +424,7 @@
                model-value)))))
                                
 
-(defmethod rdf:repository-value :around ((mediator repository-mediator) (model-value t))
+(defmethod de.setf.rdf:repository-value :around ((mediator repository-mediator) (model-value t))
   "A default wrapper method first looks in the cache, and delegates to the repository-specific method if there
  is a miss. Iff the specialized result differs, cache the correspondence."
   (or (gethash model-value (mediator-model2repository-value-map mediator))
@@ -479,66 +479,66 @@
 ;;;
 ;;; abstract operators
 
-(defmethod rdf:delete-statement :before ((mediator t) (statement t))
+(defmethod de.setf.rdf:delete-statement :before ((mediator t) (statement t))
   (if (repository-indelible? mediator)
     (error "Statements are indelible.")))
 
-(defmethod rdf:delete-statement ((mediator repository-mediator) (statement rdf:triple))
+(defmethod de.setf.rdf:delete-statement ((mediator repository-mediator) (statement de.setf.rdf:triple))
   "if the repository is indelible cause an error, but if the
  repository permits revisions, remove the statement."
   (delete-statement* mediator (triple-subject statement) (triple-predicate statement) (triple-object statement)
                      (or (de.setf.rdf:context statement) (mediator-default-context mediator))))
 
 
-(defmethod rdf:insert-statement ((mediator repository-mediator) (statement rdf:triple))
+(defmethod de.setf.rdf:insert-statement ((mediator repository-mediator) (statement de.setf.rdf:triple))
   (unless (triple-id statement)
     (add-statement* mediator (triple-subject statement) (triple-predicate statement) (triple-object statement)
                     (or (de.setf.rdf:context statement) (mediator-default-context mediator)))))
 
 
-(defmethod rdf:has-statement? ((mediator repository-mediator) (statement rdf:triple))
+(defmethod de.setf.rdf:has-statement? ((mediator repository-mediator) (statement de.setf.rdf:triple))
   (flet ((probe (statement)
            (declare (ignore statement))
-           (return-from rdf:has-statement? t)))
+           (return-from de.setf.rdf:has-statement? t)))
     (declare (dynamic-extent #'probe))
     (map-statements* #'probe mediator (triple-subject statement) (triple-predicate statement) (triple-object statement)
                      (or (de.setf.rdf:context statement) (mediator-default-context mediator)))))
 
 
-(defmethod rdf:has-context? ((mediator repository-mediator) (context t))
+(defmethod de.setf.rdf:has-context? ((mediator repository-mediator) (context t))
   (flet ((probe (statement)
            (declare (ignore statement))
-           (return-from rdf:has-context? t)))
+           (return-from de.setf.rdf:has-context? t)))
     (declare (dynamic-extent #'probe))
     (map-statements* #'probe mediator nil nil nil context)))
 
 
-(defmethod rdf:has-object? ((mediator repository-mediator) (object t))
+(defmethod de.setf.rdf:has-object? ((mediator repository-mediator) (object t))
   (flet ((probe (statement)
            (declare (ignore statement))
-           (return-from rdf:has-object? t)))
+           (return-from de.setf.rdf:has-object? t)))
     (declare (dynamic-extent #'probe))
     (map-statements* #'probe mediator nil nil object nil)))
 
 
-(defmethod rdf:has-predicate? ((mediator repository-mediator) (predicate t))
+(defmethod de.setf.rdf:has-predicate? ((mediator repository-mediator) (predicate t))
   (flet ((probe (statement)
            (declare (ignore statement))
-           (return-from rdf:has-predicate? t)))
+           (return-from de.setf.rdf:has-predicate? t)))
     (declare (dynamic-extent #'probe))
     (map-statements* #'probe mediator nil predicate nil nil)))
 
 
-(defmethod rdf:has-subject? ((mediator repository-mediator) (subject t))
+(defmethod de.setf.rdf:has-subject? ((mediator repository-mediator) (subject t))
   (flet ((probe (statement)
            (declare (ignore statement))
-           (return-from rdf:has-subject? t)))
+           (return-from de.setf.rdf:has-subject? t)))
     (declare (dynamic-extent #'probe))
     (map-statements* #'probe mediator subject nil nil nil)))
 
 
 
-(:documentation rdf:project-graph rdf:load-vocabulary
+(:documentation de.setf.rdf:project-graph de.setf.rdf:load-vocabulary
   "Extract the stw vocabulary after having loaded it into a repository"
   (de.setf.rdf:load-vocabulary (mediator-repository (wilbur-mediator))
                        "http://zbw.eu/namespaces/zbw-extensions/zbw-extensions.rdf")
@@ -550,7 +550,7 @@
                               :resource-uri "http://zbw.eu/namespaces/zbw-extensions/zbw-extensions.rdf")))
 
 
-(defmethod rdf:project-graph ((triple rdf:triple) (mediator repository-mediator))
+(defmethod de.setf.rdf:project-graph ((triple de.setf.rdf:triple) (mediator repository-mediator))
   "Given a QUAD statement and a MEDIATOR, add the denoted triple to the repository repository, with optional
  temporally qualified association to a graph. The implementation depends on the repository schema."
   
@@ -559,14 +559,14 @@
                     (or (de.setf.rdf:context triple) (mediator-default-context mediator)))))
 
 
-(defmethod rdf:project-graph ((enumerator function) (mediator repository-mediator))
+(defmethod de.setf.rdf:project-graph ((enumerator function) (mediator repository-mediator))
   (flet ((insert-statement (statement)
            (de.setf.rdf:insert-statement mediator statement)))
     (declare (dynamic-extent #'insert-statement))
     (funcall enumerator #'insert-statement)))
 
 
-(defmethod rdf:project-graph ((mediator repository-mediator) (vocabulary vocabulary))
+(defmethod de.setf.rdf:project-graph ((mediator repository-mediator) (vocabulary vocabulary))
   "Extract the vocabulary's definitions from the repository.
  nb. query across contexts to collect definitions from all sources."
 
@@ -626,7 +626,7 @@
   ;; return the elaborated vocabulary
   vocabulary)
 
-(defmethod rdf:query ((mediator repository-mediator) &key subject predicate object
+(defmethod de.setf.rdf:query ((mediator repository-mediator) &key subject predicate object
                       (context (mediator-default-context mediator)) continuation offset limit)
   "The base method aligns the arguments, provides a default value for context, establishes a
  continuation constrained by offset and limit, and invokes map-statements*. It captures the
@@ -697,7 +697,7 @@
 ;;;
 ;;; internal operators : extracting schema from a repository
 
-(defgeneric rdf:repository-class-definition (repository identifier)
+(defgeneric de.setf.rdf:repository-class-definition (repository identifier)
   (:documentation "Given a REPOSITORY and a class IDENTIFIER, construct a class definition based on the
  repository's assertions about the  class. Extract the supertypes based on {rdfs}subClassOf, slots based on
  {rdfs}domain, and documentation based on {rdfs}comment. Assert the class name as the datatype.")
@@ -720,7 +720,7 @@
            ,@(when comments `(:documentation ,(format nil "~{~a~^~}" comments))))))))
 
 
-(defgeneric rdf:repository-property-definition (repository identifier)
+(defgeneric de.setf.rdf:repository-property-definition (repository identifier)
   (:documentation "Given a REPOSITORY and a predicate IDENTIFIER, construct a property definition based on the
  repository's assertions about the  predicate.")
 
@@ -816,7 +816,7 @@
     (trivial-utf-8:string-to-utf-8-bytes object)))
 
 
-(:documentation rdf:model-value rdf:repository-value
+(:documentation de.setf.rdf:model-value de.setf.rdf:repository-value
    "The default method for a repository mediator encodes values as byte vectors. The structure is
  a single-element thrift struct. Each encoding method is an in-line field encoder. The single decoder
  fuction decodes the field header number and uses the field number to determine the type expected for the field.
@@ -926,7 +926,7 @@
     (thrift:vector-stream-vector (thrift:protocol-output-transport ,vsp))))
 
 
-(defmethod rdf:model-value ((mediator repository-mediator) (object vector))
+(defmethod de.setf.rdf:model-value ((mediator repository-mediator) (object vector))
   (with-input-from-vector-stream (stream :vector object)
     (multiple-value-bind (name id type) (thrift:stream-read-field-begin stream)
       (declare (ignore name type))
@@ -947,22 +947,22 @@
         (#.(char-code #\b) (thrift:stream-read-binary stream))))))
 
 
-(defmethod rdf:repository-value ((mediator repository-mediator) (value string))
+(defmethod de.setf.rdf:repository-value ((mediator repository-mediator) (value string))
   (with-output-to-vector-stream (stream)
     (thrift:stream-write-struct stream (thrift:list (cons string value)) 'repository-value)))
 
 
-(defmethod rdf:repository-value ((mediator repository-mediator) (value float))
+(defmethod de.setf.rdf:repository-value ((mediator repository-mediator) (value float))
   (with-output-to-vector-stream (stream)
     (thrift:stream-write-struct stream (thrift:list (cons float value)) 'repository-value)))
 
 
-(defmethod rdf:repository-value ((mediator repository-mediator) (value double-float))
+(defmethod de.setf.rdf:repository-value ((mediator repository-mediator) (value double-float))
   (with-output-to-vector-stream (stream)
     (thrift:stream-write-struct stream (thrift:list (cons double value)) 'repository-value)))
 
 
-(defmethod rdf:repository-value ((mediator repository-mediator) (value integer))
+(defmethod de.setf.rdf:repository-value ((mediator repository-mediator) (value integer))
   (with-output-to-vector-stream (stream)
     (etypecase value
      (thrift:i08 (thrift:stream-write-struct stream (thrift:list (cons i08 value)) 'repository-value))
@@ -973,7 +973,7 @@
                 (thrift:stream-write-struct stream (thrift:list (cons integer value)) 'repository-value))))))
 
 
-(defmethod rdf:repository-value ((mediator repository-mediator) (value symbol))
+(defmethod de.setf.rdf:repository-value ((mediator repository-mediator) (value symbol))
   (flet ((canonicalize (symbol) (canonicalize-identifier mediator symbol)))
     (declare (dynamic-extent #'canonicalize))
     (let ((uri-namestring (symbol-uri-namestring value #'canonicalize)))
@@ -981,13 +981,13 @@
         (thrift:stream-write-struct stream (thrift:list (cons symbol uri-namestring)) 'repository-value)))))
 
 
-(defmethod rdf:repository-value ((mediator repository-mediator) (identifier uuid:uuid))
+(defmethod de.setf.rdf:repository-value ((mediator repository-mediator) (identifier uuid:uuid))
   (let ((bytes (uuid:uuid-to-byte-array identifier)))
     (with-output-to-vector-stream (stream)
       (thrift:stream-write-struct stream (thrift:list (cons binary bytes)) 'repository-value))))
 
 
-(defmethod rdf:repository-value ((mediator repository-mediator) (value puri:uri))
+(defmethod de.setf.rdf:repository-value ((mediator repository-mediator) (value puri:uri))
   (let ((uri-namestring (princ-to-string value)))
     (with-output-to-vector-stream (stream)
       (thrift:stream-write-struct stream (thrift:list (cons uri uri-namestring)) 'repository-value))))

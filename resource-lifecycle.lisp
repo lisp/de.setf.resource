@@ -467,7 +467,7 @@
              (when statement
                (let* ((uri (de.setf.rdf:subject statement)))
                  (cond ((and object (de.setf.rdf:equal (de.setf.rdf:uri object) uri)))          ; reuse the latest object
-                       ((setf object (find uri objects :test #'rdf:equal :key #'rdf:uri)))    ; or one of those already targeted
+                       ((setf object (find uri objects :test #'de.setf.rdf:equal :key #'de.setf.rdf:uri)))    ; or one of those already targeted
                        ((setf object (de.setf.rdf:find-instance class uri)))
                        ((setf type (de.setf.rdf:type-of (class-repository metaclass) uri))
                         ; if the type is known, construct a new instance of the respective class
@@ -526,7 +526,7 @@
        (de.setf.rdf:insert-statement-using-slot definition object statement))
       (null
        (restart-case (funcall (class-property-missing-function (class-of object))
-                              (class-of object) object predicate 'rdf:insert-statement statement)
+                              (class-of object) object predicate 'de.setf.rdf:insert-statement statement)
          (ignore ()
                  :report (lambda (stream)
                            (format stream "Ignore the operation, return no values."))
@@ -541,7 +541,7 @@
          (use-definition (definition)
                          :report (lambda (stream)
                                    (format stream "Supply a property definition and continue."))
-                         (assert (typep definition 'rdf:prototypal-property-definition) ()
+                         (assert (typep definition 'de.setf.rdf:prototypal-property-definition) ()
                                  "Invalid property definition: ~s." definition)
                          (de.setf.rdf:insert-statement-using-slot definition object statement)) 
          (use-statement (statement)
@@ -601,7 +601,7 @@
               ;; modify an existing value by augmenting a list, replacing an identical value,
               ;; and changing a previous atomic value into a list
               (cond ((listp old-value)          ; distinguish nil from unbound
-                     (unless (find value old-value :test #'rdf:equal)
+                     (unless (find value old-value :test #'de.setf.rdf:equal)
                        (push statement (slot-definition-statement sd))
                        (setf (slot-definition-value sd) (cons value old-value))))
                     ((de.setf.rdf:equal value old-value))
@@ -645,7 +645,7 @@
        (unbind-property-using-definition object definition))
       (null
        (restart-case (funcall (class-property-missing-function (class-of object))
-                              (class-of object) object name 'rdf:delete-statement statement)
+                              (class-of object) object name 'de.setf.rdf:delete-statement statement)
          (ignore ()
                  :report (lambda (stream)
                            (format stream "Ignore the operation, return no values."))
@@ -683,20 +683,20 @@
 
 
 (defmethod de.setf.rdf:property-missing ((class resource-class) (object resource-object)
-                                 (property t) (operation (eql 'rdf:setf-property-value)) &optional value)
+                                 (property t) (operation (eql 'de.setf.rdf:setf-property-value)) &optional value)
   "The base method for setting a missing property is to create a prototypal property."
   (declare (ignore value))
   (invoke-restart 'make-definition))
 
 
 (defmethod de.setf.rdf:property-missing ((class resource-class) (object resource-object)
-                                 (property t) (operation (eql 'rdf:insert-statement)) &optional value)
+                                 (property t) (operation (eql 'de.setf.rdf:insert-statement)) &optional value)
   (declare (ignore value))
   (invoke-restart 'make-definition))
 
 
 (defmethod de.setf.rdf:property-missing ((class resource-class) (object resource-object)
-                                 (property t) (operation (eql 'rdf:prototypal-property-value)) &optional value)
+                                 (property t) (operation (eql 'de.setf.rdf:prototypal-property-value)) &optional value)
   "The base method for a prototypal property read return nil for a missing property."
   (declare (ignore value))
   (invoke-restart 'use-value nil))
