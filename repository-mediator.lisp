@@ -215,8 +215,8 @@
 
 
 (defmethod rdf:load-repository ((mediator repository-mediator) (location pathname))
-  (rdf:project-graph location mediator)
-  (values (rdf:repository-count mediator)
+  (de.setf.rdf:project-graph location mediator)
+  (values (de.setf.rdf:repository-count mediator)
           location))
 
 
@@ -226,49 +226,49 @@
 
 
 (defmethod rdf:repository-transient? ((mediator repository-mediator))
-  (not (rdf:repository-persistent? mediator)))
+  (not (de.setf.rdf:repository-persistent? mediator)))
 
 
 (defmethod rdf:save-repository ((mediator repository-mediator) location)
-  (rdf:save-repository (mediator-repository mediator) location))
+  (de.setf.rdf:save-repository (mediator-repository mediator) location))
 
 
 ;;;
 ;;; default implementations for concrete operators
 
 (defmethod rdf:find-class ((mediator repository-mediator) (name symbol) &key (error-p t))
-  (or (rdf:find-class (class-of mediator) name :error-p nil)
+  (or (de.setf.rdf:find-class (class-of mediator) name :error-p nil)
       (let ((vocabulary (ensure-vocabulary mediator name)))
         (when vocabulary
-          (or (let ((definition (rdf:find-class vocabulary name :error-p nil)))
+          (or (let ((definition (de.setf.rdf:find-class vocabulary name :error-p nil)))
                 (when definition
                   (prog1 (eval definition)
                     (dolist (superclass (third definition))
-                      (rdf:find-class mediator superclass)))))
-              (let ((definition (rdf:repository-class-definition mediator (repository-uri mediator name)))
+                      (de.setf.rdf:find-class mediator superclass)))))
+              (let ((definition (de.setf.rdf:repository-class-definition mediator (repository-uri mediator name)))
                     (succeeded nil))
                 (when definition
                   ;; handle circular references, but don't leave erroneous definitions registered
-                  (setf (rdf:find-class vocabulary name) definition)
+                  (setf (de.setf.rdf:find-class vocabulary name) definition)
                   (unwind-protect (prog1 (eval definition)
                                     (dolist (superclass (third definition))
-                                      (rdf:find-class mediator superclass))
+                                      (de.setf.rdf:find-class mediator superclass))
                                     (setf succeeded t))
                     (unless succeeded
-                      (setf (rdf:find-class vocabulary name) nil)
+                      (setf (de.setf.rdf:find-class vocabulary name) nil)
                       (setf (find-class name) nil))))))))
       (when error-p
-        (rdf:class-not-found (find-class 'resource-class) name))))
+        (de.setf.rdf:class-not-found (find-class 'resource-class) name))))
 
 
 (defmethod rdf:find-class ((mediator repository-mediator) (identifier t) &rest args)
   (declare (dynamic-extent args))
-  (apply #'rdf:find-class mediator (rdf:model-value mediator identifier) args))
+  (apply #'rdf:find-class mediator (de.setf.rdf:model-value mediator identifier) args))
 
 
 (defmethod rdf:find-instance ((mediator repository-mediator) (subject t))
   "Return the instance which is registered with the MEDIATOR for the SUBJECT value's interned equivalent."
-  (gethash (rdf:repository-value mediator subject) (mediator-instance-cache mediator)))
+  (gethash (de.setf.rdf:repository-value mediator subject) (mediator-instance-cache mediator)))
 
 
 
@@ -310,7 +310,7 @@
 
 (defmethod rdf:ensure-vocabulary ((mediator repository-mediator) (vocabulary vocabulary) &key)
   (unless (find vocabulary (mediator-vocabularies mediator))
-    (rdf:load-vocabulary mediator vocabulary))
+    (de.setf.rdf:load-vocabulary mediator vocabulary))
   vocabulary)
 
 
@@ -355,7 +355,7 @@
  Replaces an existing instance, but an existing instance, but does not attempt to expunge its terms."
 
   ;; update the local registry
-  (setf (rdf:find-vocabulary mediator resource-uri) vocabulary)
+  (setf (de.setf.rdf:find-vocabulary mediator resource-uri) vocabulary)
     
   ;; augment the identifier cache
   (loop for (symbol . uri-namestring) in (vocabulary-identifier-map vocabulary)
@@ -379,7 +379,7 @@
     (declare (ignore term))
     (let ((vocabulary-uri (package-name vocabulary-package)))
       (multiple-value-bind (loaded-uri loaded-resource-uri)
-                           (rdf:load-vocabulary (mediator-repository mediator) vocabulary-uri)
+                           (de.setf.rdf:load-vocabulary (mediator-repository mediator) vocabulary-uri)
         (unless (equal loaded-uri vocabulary-uri)
           (warn "Repository vocabulary base uri does not match given value: ~s != ~s."
                 loaded-uri vocabulary-uri))
@@ -393,7 +393,7 @@
                              :name (or name vocabulary-uri)
                              :uri vocabulary-uri
                              :resource-uri resource-uri)))
-          (rdf:project-graph mediator vocabulary)
+          (de.setf.rdf:project-graph mediator vocabulary)
           vocabulary)))))
 
 
@@ -446,8 +446,8 @@
     (flet ((register (direction table key new)
              (multiple-value-bind (old old-t) (gethash key table)
                (if old-t
-                 (cond ((rdf:equal old new) old)
-                       ((and (rdf::literal-p old) (rdf::literal-p new))
+                 (cond ((de.setf.rdf:equal old new) old)
+                       ((and (de.setf.rdf::literal-p old) (de.setf.rdf::literal-p new))
                         ;; if both are literals, with identical strings, ignore it
                         old)
                        (t (cerror "Replace the value." "~a values conflict: ~s: new ~s != old ~s."
@@ -487,13 +487,13 @@
   "if the repository is indelible cause an error, but if the
  repository permits revisions, remove the statement."
   (delete-statement* mediator (triple-subject statement) (triple-predicate statement) (triple-object statement)
-                     (or (rdf:context statement) (mediator-default-context mediator))))
+                     (or (de.setf.rdf:context statement) (mediator-default-context mediator))))
 
 
 (defmethod rdf:insert-statement ((mediator repository-mediator) (statement rdf:triple))
   (unless (triple-id statement)
     (add-statement* mediator (triple-subject statement) (triple-predicate statement) (triple-object statement)
-                    (or (rdf:context statement) (mediator-default-context mediator)))))
+                    (or (de.setf.rdf:context statement) (mediator-default-context mediator)))))
 
 
 (defmethod rdf:has-statement? ((mediator repository-mediator) (statement rdf:triple))
@@ -502,7 +502,7 @@
            (return-from rdf:has-statement? t)))
     (declare (dynamic-extent #'probe))
     (map-statements* #'probe mediator (triple-subject statement) (triple-predicate statement) (triple-object statement)
-                     (or (rdf:context statement) (mediator-default-context mediator)))))
+                     (or (de.setf.rdf:context statement) (mediator-default-context mediator)))))
 
 
 (defmethod rdf:has-context? ((mediator repository-mediator) (context t))
@@ -540,11 +540,11 @@
 
 (:documentation rdf:project-graph rdf:load-vocabulary
   "Extract the stw vocabulary after having loaded it into a repository"
-  (rdf:load-vocabulary (mediator-repository (wilbur-mediator))
+  (de.setf.rdf:load-vocabulary (mediator-repository (wilbur-mediator))
                        "http://zbw.eu/namespaces/zbw-extensions/zbw-extensions.rdf")
-  (rdf:load-vocabulary (mediator-repository (wilbur-mediator))
+  (de.setf.rdf:load-vocabulary (mediator-repository (wilbur-mediator))
                        "http://zbw.eu/namespaces/zbw-extensions/")
-  (rdf:project-graph (wilbur-mediator)
+  (de.setf.rdf:project-graph (wilbur-mediator)
                (make-instance 'vocabulary :name "xbw" 
                               :uri "http://zbw.eu/namespaces/zbw-extensions/"
                               :resource-uri "http://zbw.eu/namespaces/zbw-extensions/zbw-extensions.rdf")))
@@ -556,12 +556,12 @@
   
   (unless (triple-id triple)
     (add-statement* mediator (triple-subject triple) (triple-predicate triple) (triple-object triple)
-                    (or (rdf:context triple) (mediator-default-context mediator)))))
+                    (or (de.setf.rdf:context triple) (mediator-default-context mediator)))))
 
 
 (defmethod rdf:project-graph ((enumerator function) (mediator repository-mediator))
   (flet ((insert-statement (statement)
-           (rdf:insert-statement mediator statement)))
+           (de.setf.rdf:insert-statement mediator statement)))
     (declare (dynamic-extent #'insert-statement))
     (funcall enumerator #'insert-statement)))
 
@@ -571,26 +571,26 @@
  nb. query across contexts to collect definitions from all sources."
 
   ;; first, extract and collect the first-order vocabulary definitions
-  (let ((vocabulary-uri (rdf:vocabulary-uri vocabulary))
-        (vocabulary-resource-uri (rdf:vocabulary-resource-uri vocabulary))
+  (let ((vocabulary-uri (de.setf.rdf:vocabulary-uri vocabulary))
+        (vocabulary-resource-uri (de.setf.rdf:vocabulary-resource-uri vocabulary))
         (definitions ())
         (definition-classes ())
         (missing-classes ())
         (package nil))
     (map nil #'(lambda (statement)
-                 (when (or (rdf:query mediator :subject (rdf:subject statement) :predicate '{rdf}type :object '{rdfs}Class
+                 (when (or (de.setf.rdf:query mediator :subject (de.setf.rdf:subject statement) :predicate '{rdf}type :object '{rdfs}Class
                                       :context nil)
-                           (rdf:query mediator :subject (rdf:subject statement) :predicate '{rdf}type :object '{owl}Class
+                           (de.setf.rdf:query mediator :subject (de.setf.rdf:subject statement) :predicate '{rdf}type :object '{owl}Class
                                       :context nil))
-                   (push (rdf:repository-class-definition mediator (rdf:subject statement)) definitions)))
+                   (push (de.setf.rdf:repository-class-definition mediator (de.setf.rdf:subject statement)) definitions)))
          (remove-duplicates
-          (append (rdf:query mediator :predicate '{rdfs}isDefinedBy :object (repository-uri mediator vocabulary-uri)
+          (append (de.setf.rdf:query mediator :predicate '{rdfs}isDefinedBy :object (repository-uri mediator vocabulary-uri)
                              :context nil)
                   (unless (equal vocabulary-resource-uri vocabulary-uri)
-                    (rdf:query mediator :predicate '{rdfs}isDefinedBy :object (repository-uri mediator vocabulary-resource-uri)
+                    (de.setf.rdf:query mediator :predicate '{rdfs}isDefinedBy :object (repository-uri mediator vocabulary-resource-uri)
                                :context nil))
                   ;; heavy-handed, but the way to find out what was in the document
-                  (rdf:query mediator :context (repository-uri mediator vocabulary-resource-uri)))
+                  (de.setf.rdf:query mediator :context (repository-uri mediator vocabulary-resource-uri)))
           :key #'rdf:subject))
       
     ;; next, given any first-order definitions, continue to walk the class-precedence and property type graph
@@ -607,7 +607,7 @@
           ;; iff the slot's type is an unknown class, add it
           (when (and (eq (symbol-package datatype) package)
                      (not (find datatype definition-classes))
-                     (rdf:query mediator :subject datatype :predicate '{rdf}type :object '{rdfs}Class :context nil))
+                     (de.setf.rdf:query mediator :subject datatype :predicate '{rdf}type :object '{rdfs}Class :context nil))
             (push datatype missing-classes))))
       (dolist (superclass (third definition))
         ;; iff a superclass is an unknown class, add it
@@ -703,18 +703,18 @@
  {rdfs}domain, and documentation based on {rdfs}comment. Assert the class name as the datatype.")
 
   (:method ((mediator repository-mediator) uri)
-    (flet ((object-value (stmt) (model-value mediator (rdf:object stmt))))
+    (flet ((object-value (stmt) (model-value mediator (de.setf.rdf:object stmt))))
       (declare (dynamic-extent #'object-value))
-      (let ((supertypes (mapcar #'object-value (rdf:query mediator :subject uri :predicate '{rdfs}subClassOf
+      (let ((supertypes (mapcar #'object-value (de.setf.rdf:query mediator :subject uri :predicate '{rdfs}subClassOf
                                                           :context nil)))
-            (comments (mapcar #'object-value (rdf:query mediator :subject uri :predicate '{rdfs}comment
+            (comments (mapcar #'object-value (de.setf.rdf:query mediator :subject uri :predicate '{rdfs}comment
                                                         :context nil)))
-            (properties (mapcar #'(lambda (statement) (rdf:repository-property-definition mediator (rdf:subject statement)))
-                                (rdf:query mediator :object uri :predicate '{rdfs}domain
+            (properties (mapcar #'(lambda (statement) (de.setf.rdf:repository-property-definition mediator (de.setf.rdf:subject statement)))
+                                (de.setf.rdf:query mediator :object uri :predicate '{rdfs}domain
                                            :context nil)))
-            (name (rdf:model-value mediator uri)))
+            (name (de.setf.rdf:model-value mediator uri)))
         
-        `(rdf:defclass ,name ,supertypes
+        `(de.setf.rdf:defclass ,name ,supertypes
            ,properties
            (:datatype ,name)
            ,@(when comments `(:documentation ,(format nil "~{~a~^~}" comments))))))))
@@ -728,9 +728,9 @@
     (flet ((model-value (uri) (model-value mediator uri)))
       (declare (dynamic-extent #'model-value))
       (let ((types (mapcar #'model-value
-                           (mapcar #'rdf:object (rdf:query mediator :subject uri :predicate '{rdfs}range
+                           (mapcar #'rdf:object (de.setf.rdf:query mediator :subject uri :predicate '{rdfs}range
                                                            :context nil))))
-            (comments (mapcar #'rdf:object (rdf:query mediator :subject uri :predicate '{rdfs}comment
+            (comments (mapcar #'rdf:object (de.setf.rdf:query mediator :subject uri :predicate '{rdfs}comment
                                                       :context nil)))
             (name (model-value uri)))
         
@@ -741,11 +741,11 @@
 
 (defgeneric respository-schema-types (repository vocabulary-uri)
   (:method ((mediator repository-mediator) (uri t))
-    (loop for statement in (rdf:query mediator :predicate '{rdfs}isDefinedBy :object (repository-uri mediator uri)
+    (loop for statement in (de.setf.rdf:query mediator :predicate '{rdfs}isDefinedBy :object (repository-uri mediator uri)
                                       :context nil)
-          for subject = (rdf:subject statement)
-          when (find-class (rdf:type-of mediator subject ) nil)
-          collect (rdf:model-value mediator subject))))
+          for subject = (de.setf.rdf:subject statement)
+          when (find-class (de.setf.rdf:type-of mediator subject ) nil)
+          collect (de.setf.rdf:model-value mediator subject))))
 
 
 (defgeneric uri-type (mediator uri-list)
@@ -1000,11 +1000,11 @@
       (values `("asdf" 2.0s0 2.0d0 1 ,(expt 2 8) ,(expt 2 16) ,(expt 2 32) ,(expt 2 64)
                 ,(puri:uri "http://test") ,(uuid:make-v1-uuid))))
   (flet ((model-repository-value (x)
-           (rdf:model-value rm (rdf:repository-value rm x))))
+           (de.setf.rdf:model-value rm (de.setf.rdf:repository-value rm x))))
     (assert (every #'rdf:equal values (mapcar #'model-repository-value values)) ()
             "Some model->repository->model value failed:~% ~s~% ~s"
             values
-            (mapcar #'(lambda (x) (rdf:repository-value rm x)) values))))
+            (mapcar #'(lambda (x) (de.setf.rdf:repository-value rm x)) values))))
 #+lispworks
 (warn "not testing thrift encoding")
 
@@ -1036,7 +1036,7 @@
       ;; if it is already locked, then another process is updating. this update fails.
       (unless locked-p
         ;; if it wasn't locked, check if the stored version is still the current.
-        (cond ((rdf:equal current-version-id stored-version-id)
+        (cond ((de.setf.rdf:equal current-version-id stored-version-id)
                ;; if it is, the clobal state is unchanged, so this change can proceed
                t)
               (t
@@ -1087,12 +1087,12 @@
     "Return the decoded state from the FEB location."
     ;; do not mark the location with an operation as this makes no
     (dotimes (count +feb-retry-limit+)
-      (let* ((statements (rdf:query mediator :subject location-id :context +feb-context+))
+      (let* ((statements (de.setf.rdf:query mediator :subject location-id :context +feb-context+))
              (bit (find +feb-bit+ statements :key #'rdf:predicate))
              (value (find +feb-value+ statements :key #'rdf:predicate)))
         (when (and bit value (null (cddr statements)))
           (return-from nbfeb-load
-            (values (model-value mediator (rdf:object value)) (model-value mediator (rdf:object bit)))))))))
+            (values (model-value mediator (de.setf.rdf:object value)) (model-value mediator (de.setf.rdf:object bit)))))))))
 
 
 (defgeneric nbfeb-sac (mediator location-id value)
@@ -1101,7 +1101,7 @@
 
   (:method ((mediator repository-mediator) location-id value)
     (flet ((do-sac (old-bit old-value)
-             (unless (eql +feb-false+ (model-value mediator (rdf:object old-bit)))
+             (unless (eql +feb-false+ (model-value mediator (de.setf.rdf:object old-bit)))
                (delete-statement mediator old-bit)
                (add-statement* mediator location-id +feb-bit+ +feb-false+ +feb-context+))
              (delete-statement mediator old-value)
@@ -1116,7 +1116,7 @@
 
   (:method ((mediator repository-mediator) location-id value)
     (flet ((do-sas (old-bit old-value)
-             (unless (eql +feb-true+ (model-value mediator (rdf:object old-bit)))
+             (unless (eql +feb-true+ (model-value mediator (de.setf.rdf:object old-bit)))
                (delete-statement mediator old-bit)
                (add-statement* mediator location-id +feb-bit+ +feb-true+ +feb-context+))
              (delete-statement mediator old-value)
@@ -1131,7 +1131,7 @@
 
   (:method ((mediator repository-mediator) location-id value)
     (flet ((do-tfas (old-bit old-value)
-             (when (eql +feb-false+ (model-value mediator (rdf:object old-bit)))
+             (when (eql +feb-false+ (model-value mediator (de.setf.rdf:object old-bit)))
                (delete-statement mediator old-bit)
                (add-statement* mediator location-id +feb-bit+ +feb-false+ +feb-context+)
                (delete-statement mediator old-value)
@@ -1143,18 +1143,18 @@
 (defun call-with-isolated-feb (function mediator location-id feb-op)
   (dotimes (count +feb-retry-limit+)
     (add-statement* mediator location-id feb-op (mediator-id mediator) +feb-context+)
-    (let* ((statements (rdf:query mediator :subject location-id :context +feb-context+))
+    (let* ((statements (de.setf.rdf:query mediator :subject location-id :context +feb-context+))
            (old-bit (find +feb-bit+ statements :key #'rdf:predicate))
            (old-value (find +feb-value+ statements :key #'rdf:predicate)))
       (when (and old-bit old-value (null (cdddr statements)))
         (unwind-protect (funcall function old-value old-bit)
           (delete-statement* mediator location-id feb-op (mediator-id mediator) +feb-context+))
         (return-from call-with-isolated-feb
-          (values (model-value mediator (rdf:object old-value)) (model-value mediator (rdf:object old-bit))))))
+          (values (model-value mediator (de.setf.rdf:object old-value)) (model-value mediator (de.setf.rdf:object old-bit))))))
     ;; otherwise retry
     (delete-statement* mediator location-id feb-op (mediator-id mediator) +feb-context+)
     (sleep +feb-retry-delay+))
-  (rdf:feb-timeout-error :mediator mediator :operation +feb-tfas+))
+  (de.setf.rdf:feb-timeout-error :mediator mediator :operation +feb-tfas+))
 
 (defgeneric nbfeb-initialize (mediator location-id value)
   (:documentation "Given a location, initialize its flag to falseand store the value.

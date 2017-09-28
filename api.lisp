@@ -20,10 +20,10 @@
   (description "The interface operator names follow from the standard RDF terms. The structure intends to be
  consistent with the spira.rb precedents, with allowance for standard Lisp idioms.
  The central terms are
- - rdf:statement  : the combination of an rdf:subject, rdf:predicate, and rdf:object
- - rdf:subject : a resource in a statement
- - rdf:predicate : property relating subject and object in a statement
- - rdf:object : a resource in a statement
+ - de.setf.rdf:statement  : the combination of an de.setf.rdf:subject, de.setf.rdf:predicate, and de.setf.rdf:object
+ - de.setf.rdf:subject : a resource in a statement
+ - de.setf.rdf:predicate : property relating subject and object in a statement
+ - de.setf.rdf:object : a resource in a statement
  See the rdf-schema[1] tr for background on the terms.
 
  Other resource models:
@@ -37,30 +37,30 @@
  "))
 
 
-(defgeneric rdf:class-not-found (metaclass type)
-  (:documentation "Invoked from rdf:find-class when no metaclass instance comprises the statement.
- The base method signals an rdf:class-not-found-error."))
+(defgeneric de.setf.rdf:class-not-found (metaclass type)
+  (:documentation "Invoked from de.setf.rdf:find-class when no metaclass instance comprises the statement.
+ The base method signals an de.setf.rdf:class-not-found-error."))
 
 
-(defgeneric rdf:commit (object)
+(defgeneric de.setf.rdf:commit (object)
   (:documentation "Given a new or modified persistent object, write content to the persistent repository, and
  make the object hollow. This performs both of the phases which complete a transaction in order to prevent
  stale state."))
 
 
-(defgeneric rdf:context (statement)
+(defgeneric de.setf.rdf:context (statement)
   (:documentation "Return the statement's context graph. If the statement is a triple, return nil.")
   (:method ((statement null)) nil))
 
 
-(defgeneric rdf:delete (object)
+(defgeneric de.setf.rdf:delete (object)
   (:documentation "Given a persistent object, delete all concrete statements which include it as subject.
  If the objects is hollow, it comprises its URI only. This is used to retrieve anew and delete all related
  assertions form the repository. If the object has been read from the repository, the related statements are
  cached in relation to the slots. These cached statements are deleted from the repository."))
 
 
-(defgeneric rdf:delete-subject (context subject)
+(defgeneric de.setf.rdf:delete-subject (context subject)
   (:documentation "Delete all statements relatd to this object from the given CONTEXT.
  CONTEXT : (or repository resource-object)
  SUBJECT : identifier
@@ -69,16 +69,16 @@
  object remove it fron it's repository's index."))
 
 
-(defgeneric rdf:delete-statement (context statement)
+(defgeneric de.setf.rdf:delete-statement (context statement)
   (:documentation "Delete the statement from the given CONTEXT.
  CONTEXT : (or repository resource-object)
- STATEMENT : rdf:statement
+ STATEMENT : de.setf.rdf:statement
 
  If the context is a repository, remove the statement's triple. If the context is an
  object unbind the predicated property."))
 
 
-(defgeneric rdf:ensure-instance (context identifier)
+(defgeneric de.setf.rdf:ensure-instance (context identifier)
   (:documentation "Attempt to find the designated instance relative to the context. (cf find-instance).
  CONTEXT : (or resource-class repository-mediator)
  IDENTIFIER : identifier
@@ -87,15 +87,15 @@
  that of the respective repository. If no instance exists create one.")
 
   (:method ((class-name symbol) identifier)
-    (rdf:ensure-instance (find-class class-name) identifier)))
+    (de.setf.rdf:ensure-instance (find-class class-name) identifier)))
 
 
-(defgeneric rdf:ensure-vocabulary (mediator uri &key)
+(defgeneric de.setf.rdf:ensure-vocabulary (mediator uri &key)
   (:documentation "Iff the vocabulary is not integrated into the source mediator, load it from the source,
  incorporate its terms and register it as a handle on the class declarations."))
 
 
-(defgeneric rdf:equal (object1 object2)
+(defgeneric de.setf.rdf:equal (object1 object2)
   (:documentation "Return true iff the two objects denote the same resource or literal.
  Resource objects map to their respective URI, URI are compared bu component, and other
  domain-model objects according to repository mediator.")
@@ -115,15 +115,15 @@
            (part-equal puri:uri-plist)))))
 
 
-(defgeneric rdf:evict (object)
+(defgeneric de.setf.rdf:evict (object)
   (:documentation "Remove the object from a transaction's state and clear its content.
  Permitted in the clean-persistent state only."))
 
 
-(defgeneric rdf:find-class (context type &key error-p)
+(defgeneric de.setf.rdf:find-class (context type &key error-p)
   (:documentation "Find the class designated by TYPE in the specifiec CONTEXT.
  CONTEXT : (or resource-class repository-mediator)
- TYPE : rdf:identifier
+ TYPE : de.setf.rdf:identifier
  If the context is a resource-class, look for an instance of its vocabulary or delegate to its source.
  If the context is a repository-mediator, seach the vocabularies.
  If none is found and error-p is true, apply the metaclass' class-not-found-function to it and the type.
@@ -135,81 +135,81 @@
     (apply #'rdf:find-class (find-class metaclass) type args)))
 
 
-(defgeneric rdf:find-instance (context identifier)
+(defgeneric de.setf.rdf:find-instance (context identifier)
   (:documentation "Find the designated instance relative to the class.
  If the designator is a string, interpret it as a resource identifier - either absolute or just the fragment.
  If it is an expression, treat it as a query against the class' default source.")
   
   (:method ((class-name symbol) identifier)
-    (rdf:find-instance (find-class class-name) identifier)))
+    (de.setf.rdf:find-instance (find-class class-name) identifier)))
 
-(defgeneric (setf rdf:find-instance) (instance class identifier)
+(defgeneric (setf de.setf.rdf:find-instance) (instance class identifier)
   (:documentation "Find the designated instance relative to the class.
  If the designator is a string, interpret it as a resource identifier - either absolute or just the fragment.
  If it is an expression, treat it as a query against the class' default source.")
 
   (:method (instance (class-name symbol) identifier)
-    (setf (rdf:find-instance (find-class class-name) identifier) instance)))
+    (setf (de.setf.rdf:find-instance (find-class class-name) identifier) instance)))
 
 
-(defgeneric rdf:find-vocabulary (mediator uri)
+(defgeneric de.setf.rdf:find-vocabulary (mediator uri)
   (:documentation "Attempt to locate a vocabulary given its base URI or that of a term.
  Return nil if none is found."))
 
 
-(defgeneric rdf:has-context? (repository context)
+(defgeneric de.setf.rdf:has-context? (repository context)
   (:documentation "Return true of the repository state includes an assertion with the object
  REPOSITORY : repository
  OBJECT : t"))
 
 
-(defgeneric rdf:has-predicate? (repository predicate)
+(defgeneric de.setf.rdf:has-predicate? (repository predicate)
   (:documentation "Return true of the repository state includes an assertion with the predicate
  REPOSITORY : (or resource-object repository)
  PREDICATE : identifier"))
 
 
-(defgeneric rdf:has-object? (repository object)
+(defgeneric de.setf.rdf:has-object? (repository object)
   (:documentation "Return true of the repository state includes an assertion with the object
  REPOSITORY : repository
  OBJECT : t"))
 
 
-(defgeneric rdf:has-statement? (repository statement)
+(defgeneric de.setf.rdf:has-statement? (repository statement)
   (:documentation "Return true of the repository state includes the assertion
  REPOSITORY : (or resource-object repository)
  STATEMENT : statement"))
 
 
-(defgeneric rdf:has-subject? (repository subject)
+(defgeneric de.setf.rdf:has-subject? (repository subject)
   (:documentation "Return true of the context state includes an assertion about the subject
  REPOSITORY : (or resource-object repository)
  SUBJECT : identifier"))
 
 
-(defgeneric rdf:id (statement)
+(defgeneric de.setf.rdf:id (statement)
   (:documentation "Return the statement's id if it has one.")
   (:method ((statement null)) nil))
 
 
-(defgeneric rdf:insert-statement (repository statement)
+(defgeneric de.setf.rdf:insert-statement (repository statement)
   (:documentation "Assert the statement in the given repository.
  REPOSITORY : (or resource-object repository)
- STATEMENT : rdf:statement
+ STATEMENT : de.setf.rdf:statement
 
  If the context is a repository, add the statement as a triple. If the context is an
  object bind the predicated object to the subject."))
 
 
-(defgeneric rdf:instance-not-found (class identifier)
+(defgeneric de.setf.rdf:instance-not-found (class identifier)
   (:documentation "Invoked from find-instance if the given uri does not designate an instance
  in the context of the class and/or its respective persistent repository.")
 
   (:method ((class standard-class) (identifier t))
-    (rdf:instance-not-found-error :class class :uri identifier)))
+    (de.setf.rdf:instance-not-found-error :class class :uri identifier)))
 
 
-(defgeneric rdf:load-repository (repository location)
+(defgeneric de.setf.rdf:load-repository (repository location)
   (:documentation "Load a REPOSITORY from a give LOCATION.
  REPOSITORY : repository-mediator
  LOCATION : (or pathname uri stream)
@@ -217,12 +217,12 @@
  Reads RDF content from a location and adds the triples to the mediated repository."))
 
 
-(defgeneric rdf:load-repository-as (repository location form)
+(defgeneric de.setf.rdf:load-repository-as (repository location form)
   (:documentation "Decode the content from the source LOCATION as FORM and load it into the
  repository."))  
 
 
-(defgeneric rdf:load-vocabulary (repository vocabulary-uri &key )
+(defgeneric de.setf.rdf:load-vocabulary (repository vocabulary-uri &key )
   (:documentation "Load the vocabulary schema identified by the given URI into the runtime.
  SOURCE : (or repository-mediator pathname) 
  URI : string : a URI namestring which locates the vocabulary schema directly, or a URI reference,
@@ -241,13 +241,13 @@
  vocabulary cross-references, but instead limits the definition to classes."))
 
 
-(defgeneric rdf:make-persistent (object)
+(defgeneric de.setf.rdf:make-persistent (object)
   (:documentation "When applied to a transient object in a transaction, the object is registered to
  be stored when the transaction completes and the state is changed to mark it new-persistent, in which state
  it maintains a modification history."))
 
 
-(defgeneric rdf:map-property-slots (function resource-object)
+(defgeneric de.setf.rdf:map-property-slots (function resource-object)
   (:documentation "Map the function over the subject's predicate slot definitions.
  FUNCTION : function : The function should accept one argument, the property definition object.
  SUBJECT : resource-object
@@ -258,7 +258,7 @@
            subject))
 
 
-(defgeneric rdf:map-property-predicates (function subject)
+(defgeneric de.setf.rdf:map-property-predicates (function subject)
   (:documentation "Map the function over the context's property slot predicates.
  FUNCTION : function : The function should accept one argument, the property predicate identifier.
  SUBJECT : resource-object
@@ -273,7 +273,7 @@
            subject))
 
 
-(defgeneric rdf:map-property-values (function subject)
+(defgeneric de.setf.rdf:map-property-values (function subject)
   (:documentation "Map the function over the subject's predicate slots' values.
  FUNCTION : function: The function should accept one argument, the property value.
  SUBJECT : resource-object
@@ -289,15 +289,15 @@
     subject))
 
 
-(defgeneric rdf:map-statements (function source)
+(defgeneric de.setf.rdf:map-statements (function source)
   (:documentation "This is a special projection case, in which the destination is a consumer function and the
  source applies that function to each statement it contains.")
 
   (:method ((function function) source)
-    (rdf:project-graph source function)))
+    (de.setf.rdf:project-graph source function)))
 
 
-(defgeneric rdf:model-value (repository object)
+(defgeneric de.setf.rdf:model-value (repository object)
   (:documentation "Map the given OBJECT from the REPOSITORY store's domain to the model domain.
  Decode literal values according to their annotation and transform URI into uuid or symbols.
  Each source implements its own methods for literals and URI to operate on the respective
@@ -324,30 +324,30 @@
     "One path of the process devolves to a search of the mediator's cached objets.
      In which case, the caches can be chained."
     (or (gethash repository-value map)
-        (rdf:model-value (hash-table-parent map) repository-value))))
+        (de.setf.rdf:model-value (hash-table-parent map) repository-value))))
 
 
-(defgeneric rdf:object (statement)
+(defgeneric de.setf.rdf:object (statement)
   (:documentation "Return the statement's object as a URI, a node, or a literal, as per
  the source repository's representation.")
   (:method ((statement null)) nil))
 
-(defgeneric rdf:object-value (source statement)
+(defgeneric de.setf.rdf:object-value (source statement)
   (:documentation "Return the statement's object as a URI or a literal in the model domain, as
  translated by the repository mediator."))
 
 
-(defgeneric rdf:predicate (statement)
+(defgeneric de.setf.rdf:predicate (statement)
   (:documentation "Return the statement's predicate as a URI, a node, or a literal, as per
  the source repository's representation.")
   (:method ((statement null)) nil))
 
-(defgeneric rdf:predicate-value (repository statement)
+(defgeneric de.setf.rdf:predicate-value (repository statement)
   (:documentation "Return the statement's predicate as a URI or a literal in the model domain, as
  translated by the repository mediator."))
 
 
-(defgeneric rdf:project-graph (source destination)
+(defgeneric de.setf.rdf:project-graph (source destination)
   (:documentation "Project a model/graph/repository from a source onto a destination.
  SOURCE : (or stream list resource-object repository-mediator function)
  DESTINATION : (or stream list resource-object repository-mediator function)
@@ -377,10 +377,10 @@
 
   (:method ((graph list) (destination t))
     (dolist (s graph)
-      (rdf:project-graph s destination)))
+      (de.setf.rdf:project-graph s destination)))
 
   (:method ((source t) (destination symbol))
-    (rdf:project-graph source (find-class destination)))
+    (de.setf.rdf:project-graph source (find-class destination)))
 
   (:method ((enumerator function) (consumer function))
     "Combine two operators as an enumerator and a consumer by applying the enumerator to the consumer.
@@ -388,7 +388,7 @@
     (funcall enumerator consumer)))
 
 
-(defgeneric rdf:property-missing (class object statement operation &optional value)
+(defgeneric de.setf.rdf:property-missing (class object statement operation &optional value)
   (:documentation "Invoked when an attempt is made to access a predicate property in object
  an object through one of the operations property-value, (setf property-value), property-boundp,
  property-exists-p, property-makunbound, get-statements, insert-statement, or remove-statement.
@@ -399,20 +399,20 @@
 
   (:method ((class standard-class) (object standard-object) property-name operation &optional value)
     "The base method signals a property-missing-error."
-    (rdf:property-missing-error :object object :predicate property-name :operation operation
+    (de.setf.rdf:property-missing-error :object object :predicate property-name :operation operation
                                 :value value)))
 
 
-(defgeneric rdf:property-read-only (class object property-name operation value)
+(defgeneric de.setf.rdf:property-read-only (class object property-name operation value)
   (:documentation "Invoked when an attempt is made to modify a predicate property which is
  specified as read-only.")
 
   (:method ((class standard-class) (object standard-object) property-name operation value)
-    (rdf:property-read-only-error :object object
+    (de.setf.rdf:property-read-only-error :object object
                                   :predicate property-name :operation operation :value value)))
 
 
-(defgeneric rdf:query (repository &key subject predicate object context continuation offset limit)
+(defgeneric de.setf.rdf:query (repository &key subject predicate object context continuation offset limit)
   (:documentation "Perform a query against the REPOSITORY. Permit  SUBJECT PREDICATE OBJECT and CONTEXT
  constraints.
 
@@ -438,7 +438,7 @@
  to do: pattern, sparql, and other query forms."))
 
 
-(defgeneric rdf:read-properties (object)
+(defgeneric de.setf.rdf:read-properties (object)
   (:documentation "Given an hollow object, or a modified persistent object retrieve the first-order
  predicated properties and bind them as per the class definition. Absent properties remain unbound, while
  additional properties signal a continuable predicate-missing error. Arity is managed as per the slot
@@ -446,55 +446,55 @@
  If the object is modified-persistent, discard any modifications. Any other intiial state signals an error."))
 
 
-(defgeneric rdf:repository-clear (repository)
+(defgeneric de.setf.rdf:repository-clear (repository)
   (:documentation "Remove all statements from the repository."))
 
 
-(defgeneric rdf:repository-close (repository)
+(defgeneric de.setf.rdf:repository-close (repository)
   (:documentation "Close the repository and release any instance-specific resources."))
 
 
-(defgeneric rdf:repository-count (repository)
+(defgeneric de.setf.rdf:repository-count (repository)
   (:documentation "Return the count of statements in the repository."))
 
 
-(defgeneric rdf:repository-indelible? (repository)
+(defgeneric de.setf.rdf:repository-indelible? (repository)
   (:documentation "Return true iff the repository is is write-only.
  The abstract class binds a class slot to nil. A concrete repository class may shadow this."))
 
 
-(defgeneric rdf:repository-empty? (repository)
+(defgeneric de.setf.rdf:repository-empty? (repository)
   (:documentation "Return true iff the repository contains no statement. Each concrete repository class
  must implement this."))
 
 
-(defgeneric rdf:repository-persistent? (repository)
+(defgeneric de.setf.rdf:repository-persistent? (repository)
   (:documentation "Return true iff the repository is persistent. The inverse of repository-transient?.
  The default method returns nil and must be specialized for each concrete repository and/or repository class."))
 
            
-(defgeneric rdf:repository-readable? (repository)
+(defgeneric de.setf.rdf:repository-readable? (repository)
   (:documentation "Return true iff the repository support query operations.
  The default method returns t and must be specialized for each concrete repository and/or repository class."))
 
            
-(defgeneric rdf:repository-transient? (repository)
+(defgeneric de.setf.rdf:repository-transient? (repository)
   (:documentation "Return true iff the repository is not persistent. The inverse of repository-persistent?.
  The default method inverts repository-persistent?."))
 
            
-(defgeneric rdf:repository-writable? (repository)
+(defgeneric de.setf.rdf:repository-writable? (repository)
   (:documentation "Return true iff the repository support insert and delete operations.
  The default method returns nil and must be specialized for each concrete repository and/or repository class."))
 
            
-(defgeneric rdf:require-vocabulary (uri &key pathname)
+(defgeneric de.setf.rdf:require-vocabulary (uri &key pathname)
   (:documentation "Load a vocabulary from the respective file if it has not yet been loaded.
  The file is derived from the path component of the URI, with the addition of the name 'vocabulary', and
  the type 'lisp', and rooted in the directory bound to '*uri-pathname-root*'."))
 
 
-(defgeneric rdf:save-repository (repository location)
+(defgeneric de.setf.rdf:save-repository (repository location)
   (:documentation "Load a REPOSITORY from a give LOCATION.
  REPOSITORY : repository-mediator
  LOCATION : (or pathname uri stream)
@@ -503,10 +503,10 @@
 
   (:method (repository (location pathname))
     (with-open-file (stream location :direction :input)
-      (rdf:save-repository repository stream))))
+      (de.setf.rdf:save-repository repository stream))))
 
 
-(defgeneric rdf:repository-value (repository object)
+(defgeneric de.setf.rdf:repository-value (repository object)
   (:documentation "Map the given OBJECT from its representation in the model domain to its representation for
  a particular RDF data REPOSITORY.
  REPOSITORY : repository-mediator
@@ -533,23 +533,23 @@
     "One path of the process devolves to a search of the mediator's cached objets.
      In which case, the caches can be chained."
     (or (gethash model-value map)
-        (rdf:repository-value (hash-table-parent map) model-value))))
+        (de.setf.rdf:repository-value (hash-table-parent map) model-value))))
 
 
-(defgeneric rdf:subject (statement)
+(defgeneric de.setf.rdf:subject (statement)
   (:documentation "Return the statement's subject as a URI, a node, or a literal, as per
  the source repository's representation.")
   (:method ((statement null)) nil))
 
-(defgeneric rdf:subject-value (repository statement)
+(defgeneric de.setf.rdf:subject-value (repository statement)
   (:documentation "Return the statement's subject as a URI or a literal in the model domain, as
  translated by the repository mediator."))
 
 
-(defgeneric rdf:type-of (repository identifier)
+(defgeneric de.setf.rdf:type-of (repository identifier)
   (:documentation "Determine the type of the designated resource.
  REPOSITORY : (or repository resource-object)
- IDENTIFIER : rdf:identifier 
+ IDENTIFIER : de.setf.rdf:identifier 
 
  If the designated resource is already present in the model, return its instance type directly.
  Otherwise delegate to the store and retrieve its type as a model-domain identifier. Absent an assertion,
@@ -563,11 +563,11 @@
     object))
 
 
-(defgeneric rdf:uri (object)
+(defgeneric de.setf.rdf:uri (object)
   (:documentation "Return the object's URI."))
 
 
-(defgeneric rdf:write-properties (object)
+(defgeneric de.setf.rdf:write-properties (object)
   (:documentation "Synchronize the instance content to the persistent repository.
  This is done by inserting new statements and deleting obsolete ones.
  If the object is new, that entails all statements, but if it is already just a projection of the source,

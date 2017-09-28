@@ -487,7 +487,7 @@
                        (incf count)))))
         ;; no dynamic extent, in case one tries to re-use it, the stream will have been closed,
         ;; but it still shouldn't crash
-        (rdf:project-graph #'nt-reader destination))
+        (de.setf.rdf:project-graph #'nt-reader destination))
       (values count source))))
 
 
@@ -501,14 +501,14 @@
                (incf count)))
         ;; no dynamic extent, in case one tries to re-use it, the stream will have been closed,
         ;; but it still shouldn't crash
-        (rdf:project-graph source #'nt-writer))
+        (de.setf.rdf:project-graph source #'nt-writer))
       (values count destination))))
 
 (:documentation
   "Count the statements in the 'Standard Thesaurus fuer Wirtschaft' (stw)
  [data](http://zbw.eu/stw/versions/latest/download/about)."
   (let ((i 0))
-    (rdf:project-graph #P"LIBRARY:examples;data;stw.nt"
+    (de.setf.rdf:project-graph #P"LIBRARY:examples;data;stw.nt"
                        #'(lambda (statement)
                            (incf i)
                            (when (zerop (mod i 10000))
@@ -520,13 +520,13 @@
   "Return the class names referenced in the stw data." 
   (let ((classes ())
         (count 0))
-    (rdf:project-graph #P"LIBRARY:examples;data;stw.nt"
+    (de.setf.rdf:project-graph #P"LIBRARY:examples;data;stw.nt"
                        #'(lambda (statement)
                            (destructuring-bind (s p o) statement
                              (when (and (eq p '{rdf}type) (member o '({rdfs}Class {owl}Class)))
                                (incf count)
                                (setf (getf classes s) 0)))))
-    (rdf:project-graph #P"LIBRARY:examples;data;stw.nt"
+    (de.setf.rdf:project-graph #P"LIBRARY:examples;data;stw.nt"
                        #'(lambda (statement)
                            (destructuring-bind (s p o) statement
                              (declare (ignore s))
@@ -538,7 +538,7 @@
 (:documentation
   "Return a list of all types used in the stw data."
   (let ((types ()))
-    (rdf:project-graph #P"LIBRARY:examples;data;stw.nt"
+    (de.setf.rdf:project-graph #P"LIBRARY:examples;data;stw.nt"
                        #'(lambda (statement)
                            (destructuring-bind (s p o) statement
                              (declare (ignore s))
@@ -551,4 +551,4 @@
   "print the staements in a file encoded as RDF."
   (dolist (pathname (directory #P"LIBRARY:examples;data;dublincore;example*.rdf"))
     (format t "~&~%;;; ~s" pathname)
-    (rdf:project-graph pathname #'print)))
+    (de.setf.rdf:project-graph pathname #'print)))

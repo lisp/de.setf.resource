@@ -19,8 +19,8 @@
   If not, see the GNU [site](http://www.gnu.org/licenses/)."))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defvar *foaf-vocabulary* (rdf:require-vocabulary "http://xmlns.com/foaf/0.1/"))
-  (defvar *rel-vocabulary* (rdf:require-vocabulary "http://purl.org/vocab/relationship/")))
+  (defvar *foaf-vocabulary* (de.setf.rdf:require-vocabulary "http://xmlns.com/foaf/0.1/"))
+  (defvar *rel-vocabulary* (de.setf.rdf:require-vocabulary "http://purl.org/vocab/relationship/")))
 
 (setf (logical-pathname-translations "SPIRA")
       '(("**;*.*" "LIBRARY:com;github;datagraph;spira;**;*.*")))
@@ -72,12 +72,12 @@
 
 (defun load-graph (repository source &optional (clear-p t))
   (when clear-p
-    (rdf:repository-clear repository)
+    (de.setf.rdf:repository-clear repository)
     (maphash #'(lambda (k v) (declare (ignore k))
                  (when (typep v 'resource-object)
                    (unbind-property-slots v)))
              (mediator-instance-cache repository)))
-  (rdf:project-graph source repository))
+  (de.setf.rdf:project-graph source repository))
 
 ;;;
 
@@ -85,26 +85,26 @@
   (let ((uri-child (uuid:make-v1-uuid))
         (uri-father (uuid:make-v1-uuid))
         (uri-mother (uuid:make-v1-uuid)))
-    (list (rdf:triple uri-child '{rdf}type '{foaf}Person)
-          (rdf:triple uri-child '{foaf}firstName "baby")
-          (rdf:triple uri-child '{foaf}age 1)
-          (rdf:triple uri-child 'height 50)
-          (rdf:triple uri-child 'weight 10)
+    (list (de.setf.rdf:triple uri-child '{rdf}type '{foaf}Person)
+          (de.setf.rdf:triple uri-child '{foaf}firstName "baby")
+          (de.setf.rdf:triple uri-child '{foaf}age 1)
+          (de.setf.rdf:triple uri-child 'height 50)
+          (de.setf.rdf:triple uri-child 'weight 10)
 
-          (rdf:triple uri-father '{rdf}type '{foaf}Person)
-          (rdf:triple uri-father '{foaf}firstName "dad")
-          (rdf:triple uri-father '{foaf}age 21)
-          (rdf:triple uri-father 'height 200)
-          (rdf:triple uri-father 'weight 70)
+          (de.setf.rdf:triple uri-father '{rdf}type '{foaf}Person)
+          (de.setf.rdf:triple uri-father '{foaf}firstName "dad")
+          (de.setf.rdf:triple uri-father '{foaf}age 21)
+          (de.setf.rdf:triple uri-father 'height 200)
+          (de.setf.rdf:triple uri-father 'weight 70)
 
-          (rdf:triple uri-mother '{rdf}type '{foaf}Person)
-          (rdf:triple uri-mother '{foaf}firstName "mom")
-          (rdf:triple uri-mother '{foaf}age 22)
-          (rdf:triple uri-mother 'height 180)
-          (rdf:triple uri-mother 'weight 60)
+          (de.setf.rdf:triple uri-mother '{rdf}type '{foaf}Person)
+          (de.setf.rdf:triple uri-mother '{foaf}firstName "mom")
+          (de.setf.rdf:triple uri-mother '{foaf}age 22)
+          (de.setf.rdf:triple uri-mother 'height 180)
+          (de.setf.rdf:triple uri-mother 'weight 60)
 
-          (rdf:triple uri-child '{rel}childof uri-mother)
-          (rdf:triple uri-child '{rel}childof uri-father))))
+          (de.setf.rdf:triple uri-child '{rel}childof uri-mother)
+          (de.setf.rdf:triple uri-child '{rel}childof uri-father))))
 
 (defun load-family (source &optional (clear-p t))
   (load-graph source *test.family-graph* clear-p))

@@ -25,8 +25,8 @@
        (typep *rel-vocabulary* 'vocabulary)))
 
 (test:test resource.vocabulary.find-class
-  (and (typep (rdf:find-class *foaf-vocabulary* '{foaf}Person) 'cons)
-       (null (rdf:find-class *foaf-vocabulary* '{foaf}Person_x :error-p nil))
-       (typep (ignored-error (rdf:find-class *foaf-vocabulary* '{foaf}Person_x))
+  (and (typep (de.setf.rdf:find-class *foaf-vocabulary* '{foaf}Person) 'cons)
+       (null (de.setf.rdf:find-class *foaf-vocabulary* '{foaf}Person_x :error-p nil))
+       (typep (ignored-error (de.setf.rdf:find-class *foaf-vocabulary* '{foaf}Person_x))
               'rdf:class-not-found-error)
        t))

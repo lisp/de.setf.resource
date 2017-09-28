@@ -114,7 +114,7 @@
 
 
 (defmethod repository-uri ((mediator cassandra-mediator) (object t))
-  (rdf:repository-value mediator object))
+  (de.setf.rdf:repository-value mediator object))
 
 (defmethod repository-uri ((mediator cassandra-mediator) (uri-namestring string))
   (with-output-to-vector-stream (stream)

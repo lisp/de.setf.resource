@@ -29,7 +29,7 @@
     :reader get-object-repository
     :documentation "Binds the repository for the instance. The default is the class repository.")
    (state
-    :initform rdf:transient :initarg :state
+    :initform de.setf.rdf:transient :initarg :state
     :reader object-state :writer setf-object-state
     :documentation "Records the instance lifecycle state. Initially :transient. If it is created as a
      consequence of a persistent reference, that is changed to :hollow. a persistent-new reference propagates.
@@ -60,7 +60,7 @@
   (:metaclass abstract-resource-class)
   (:repository t)
   (:compute-uri-function compute-object-uuid)
-  (:property-missing-function rdf:property-missing)
+  (:property-missing-function de.setf.rdf:property-missing)
 
   (:documentation "The resource-object class describes the abstract features of 'resource' linked data entities.
  Each object comprises an identifier - either a symbol or a UUID, a repository -either directly, or by
@@ -117,10 +117,10 @@
 
 (defmethod n3:print-property ((object resource-object) stream)
   "Encode a resource-object instance in n-triple as its URI."
-  (n3:print-property (rdf:uri object) stream))
+  (n3:print-property (de.setf.rdf:uri object) stream))
 
 
-(defmethod rdf:uri ((object resource-object))
+(defmethod de.setf.rdf:uri ((object resource-object))
   "Return the object's URI and compute a default value if necessary by delegation to compute-object-uri."
   (if (slot-boundp object 'uri)
     (get-object-uri object)
@@ -135,26 +135,26 @@
     (compute-object-uri-with-class (class-of object) object)))
 
 
-(defmethod rdf:ensure-instance ((object resource-object) identifier)
-  (rdf:ensure-instance (class-of object) identifier))
+(defmethod de.setf.rdf:ensure-instance ((object resource-object) identifier)
+  (de.setf.rdf:ensure-instance (class-of object) identifier))
 
 
-(defmethod rdf:model-value ((mediator repository-mediator) (object resource-object))
+(defmethod de.setf.rdf:model-value ((mediator repository-mediator) (object resource-object))
   "In the context of a repository, the model domain value of a resource-object instance
  is the instance itself."
   object)
 
 
-(defmethod rdf:model-value ((object resource-object) identifier)
+(defmethod de.setf.rdf:model-value ((object resource-object) identifier)
   "In the context of a resource-object, resolve a model value by delegating to the respective class."
-  (rdf:model-value (class-of object) identifier))
+  (de.setf.rdf:model-value (class-of object) identifier))
 
 
-(defmethod rdf:repository-value :around ((mediator repository-mediator) (object resource-object))
+(defmethod de.setf.rdf:repository-value :around ((mediator repository-mediator) (object resource-object))
   "In the context of a repository, a resource-object is identified with its URI.
  This is present as an :around method to delegate immediately to the URI in order that it appear in the
  repositories cache in relation to the concrete repository-value."
-  (rdf:repository-value mediator (rdf:uri object)))
+  (de.setf.rdf:repository-value mediator (de.setf.rdf:uri object)))
 
 
 (defmethod compute-object-uuid ((object resource-object))
@@ -163,16 +163,16 @@
   (uuid:make-v1-uuid))
 
 
-(defmethod rdf:equal ((object resource-object) (uri t))
+(defmethod de.setf.rdf:equal ((object resource-object) (uri t))
   "Given a resource-object and something else, the result is that for the instance's URI.
  This equates event two distinct resource-object instances which have equivalent URI"
-  (rdf:equal (rdf:uri object) uri))
+  (de.setf.rdf:equal (de.setf.rdf:uri object) uri))
 
 
-(defmethod rdf:equal ((uri t) (object resource-object))
+(defmethod de.setf.rdf:equal ((uri t) (object resource-object))
   "Given a resource-object and something else, the result is that for the instance's URI.
  This equates event two distinct resource-object instances which have equivalent URI"
-  (rdf:equal (rdf:uri object) uri))
+  (de.setf.rdf:equal (de.setf.rdf:uri object) uri))
 
 
 (defmethod object-repository ((object resource-object))
@@ -182,12 +182,12 @@
       (class-repository (class-of object))))
 
 
-(defmethod rdf:prototypal-property-definition ((object resource-object) &rest initargs)
+(defmethod de.setf.rdf:prototypal-property-definition ((object resource-object) &rest initargs)
     "The primary method for resource-object instances delegates to the respective class."
     (declare (dynamic-extent initargs))
     (apply #'prototypal-property-definition (class-of object) initargs))
 
-(defgeneric rdf:property-value-using-class (class resource-object name)
+(defgeneric de.setf.rdf:property-value-using-class (class resource-object name)
   (:documentation "Given a CLASS a RESOURCE-OBJECT instance, and a predicate NAME, return
  the value bound in the instance context. If the predicate names an archetypal slot, this
  is equivalent to slot value, but in the predicate rather than the slot name namespace.
@@ -201,16 +201,16 @@
      The locate an property definition - whether arcetypal or prototypal and return the value.
      Absent a definition signal a property-missing-error."
     (typecase (object-state object)
-      (rdf:hollow (read-properties object)))
+      (de.setf.rdf:hollow (read-properties object)))
     (let ((definition  (find-archetypal-property-definition-by-predicate class predicate)))
       (cond (definition
              (let* ((reader (slot-definition-reader definition)))
                (funcall reader object)))
             (t
-             (rdf:prototypal-property-value object predicate))))))
+             (de.setf.rdf:prototypal-property-value object predicate))))))
 
 
-(defgeneric rdf:property-value (object predicate)
+(defgeneric de.setf.rdf:property-value (object predicate)
   (:documentation "Return the value associated with the object by the predicate. This devolves to
  a slot reference and signals a resource-missing error if the predicate is not related to the
  object.")
@@ -218,7 +218,7 @@
     (property-value-using-class (class-of object) object predicate)))
 
 
-(defgeneric (setf rdf:property-value-using-class) (new-value class object predicate)
+(defgeneric (setf de.setf.rdf:property-value-using-class) (new-value class object predicate)
   (:method ((new-value t) (class resource-class) object predicate)
     (let ((definition (find-archetypal-property-definition-by-predicate class predicate)))
       (cond (definition
@@ -227,7 +227,7 @@
             (t
              (setf (prototypal-property-value object predicate) new-value))))))
 
-(defgeneric (setf rdf:property-value) (value object predicate)
+(defgeneric (setf de.setf.rdf:property-value) (value object predicate)
   (:documentation "Set the value associated with the object by the predicate. This devolves to
  a slot reference and signals a resource-missing error if the predicate is not related to the
  object.")
@@ -238,7 +238,7 @@
 (defgeneric bound-property-value-using-class (class object predicate)
   (:method ((class resource-class) object predicate)
     (typecase (object-state object)
-      (rdf:hollow (read-properties object)))
+      (de.setf.rdf:hollow (read-properties object)))
     (let ((definition  (find-archetypal-property-definition-by-predicate class predicate)))
       (cond (definition
               (if (slot-boundp object (c2mop:slot-definition-name definition))
@@ -269,7 +269,7 @@
 ;; nb. these are augmented with class-specific methods which handle the direct slots for
 ;; the respective class
 
-(defmethod rdf:map-property-slots progn (function (object resource-object))
+(defmethod de.setf.rdf:map-property-slots progn (function (object resource-object))
   "The base method for a resource object applies the operator to each property slot definition."
   (let ((properties (get-object-properties object)))
     (when properties
@@ -278,23 +278,23 @@
             do (funcall function pd)))))
 
 
-(defmethod rdf:map-property-values progn (function (object resource-object))
+(defmethod de.setf.rdf:map-property-values progn (function (object resource-object))
   "The base method for a resource object applies the operator to the values of each property slot definition."
   (let ((properties (get-object-properties object)))
     (when properties
       (loop for pd being each hash-value of properties
             unless (typep pd 'rdf-internal-property-definition)
             when (slot-boundp pd 'value)
-            do (rdf:map-collection function (slot-definition-value pd))))))
+            do (de.setf.rdf:map-collection function (slot-definition-value pd))))))
 
 
-(defmethod rdf:map-property-predicates progn (function (object resource-object))
+(defmethod de.setf.rdf:map-property-predicates progn (function (object resource-object))
   "The base method for a resource object applies the operator to the predicate of each property slot definition."
   (let ((properties (get-object-properties object)))
     (when properties
       (loop for pd being each hash-value of properties
             unless (typep pd 'rdf-internal-property-definition)
-            do (rdf:map-collection function (slot-definition-predicate pd))))))
+            do (de.setf.rdf:map-collection function (slot-definition-predicate pd))))))
 
 
 
@@ -317,7 +317,7 @@
           (setf-object-properties properties object)))))
 
 
-(defgeneric rdf:prototypal-property-value (resource-object name &optional type)
+(defgeneric de.setf.rdf:prototypal-property-value (resource-object name &optional type)
   (:documentation "Given a RESOURCE-OBJECT instance and a predicate NAME, return the prototypal property value.
  If none is bound, signal a continuable property-missing error to permit the application to furnish or create a
  property definition. Accept an optional TYPE to incorporate when instantiating a new property.")
@@ -325,7 +325,7 @@
   (:method ((object resource-object) name &optional (type nil))
     ;; if hollow, perform the read _before_ looking for a property definition
     (typecase (object-state object)
-      (rdf:hollow (read-properties object)))
+      (de.setf.rdf:hollow (read-properties object)))
     ;; then return the property or signal an error if none is found
     (let ((definition (find-prototypal-property-definition object name)))
       (etypecase definition
@@ -340,7 +340,7 @@
                             :report (lambda (stream)
                                       (format stream "Create a property definition and continue."))
                             (setf (find-prototypal-property-definition object name)
-                                  (rdf:prototypal-property-definition object :name name :value value :type type))
+                                  (de.setf.rdf:prototypal-property-definition object :name name :value value :type type))
                             (prototypal-property-value object name))
            (use-definition (definition)
                            :report (lambda (stream)
@@ -348,12 +348,12 @@
                            (assert (typep definition 'rdf:prototypal-property-definition) ()
                                    "Invalid property definition: ~s." definition)
                            (setf (find-prototypal-property-definition object name) definition)
-                           (rdf:prototypal-property-value object name))
+                           (de.setf.rdf:prototypal-property-value object name))
            (use-value (value)
                       :report (lambda (stream)
                                 (format stream "Specify a value to return from the operation"))
                       value)))
-        (rdf:prototypal-property-definition
+        (de.setf.rdf:prototypal-property-definition
          (slot-definition-value definition))))))
 
 
@@ -379,7 +379,7 @@
                             :report (lambda (stream)
                                       (format stream "Create a property definition and continue."))
                             (setf (find-prototypal-property-definition object name)
-                                  (rdf:prototypal-property-definition object :name name :type type))
+                                  (de.setf.rdf:prototypal-property-definition object :name name :type type))
                             (setf (prototypal-property-value object name) new-value))
            (use-definition (definition)
                            :report (lambda (stream)
@@ -388,12 +388,12 @@
                                    "Invalid property definition: ~s." definition)
                            (setf (find-prototypal-property-definition object name) definition)
                            (setf (prototypal-property-value object name) new-value))))
-        (rdf:prototypal-property-definition 
+        (de.setf.rdf:prototypal-property-definition 
          (typecase (object-state object)
-           (rdf:hollow (read-properties object)))
+           (de.setf.rdf:hollow (read-properties object)))
          (setf (slot-definition-value definition) new-value)))))
 
-  (:method (new-value (object resource-object) (definition rdf:prototypal-property-definition)
+  (:method (new-value (object resource-object) (definition de.setf.rdf:prototypal-property-definition)
                       &optional (type (c2mop:slot-definition-type definition)))
     "Given a specific property definition for an object and a NEW-VALUE, setf the property value."
     (unless (slot-definition-writable definition)
@@ -415,13 +415,13 @@
   (:method ((object resource-object) name)
     ;; if hollow, perform the read _before_ looking for a property definition
     (typecase (object-state object)
-      (rdf:hollow (read-properties object)))
+      (de.setf.rdf:hollow (read-properties object)))
     ;; then return the property or signal an error if none is found
     (let ((definition (find-prototypal-property-definition object name)))
       (etypecase definition
         (null
          (values nil nil))
-        (rdf:prototypal-property-definition
+        (de.setf.rdf:prototypal-property-definition
          (if (slot-boundp definition 'value)
            (values (slot-definition-value definition) t)
            (values nil t)))))))
@@ -436,9 +436,9 @@
       (unless definition
         (setf (find-prototypal-property-definition object name)
               (setf definition
-                    (rdf:prototypal-property-definition object :name name))))
+                    (de.setf.rdf:prototypal-property-definition object :name name))))
       (typecase (object-state object)
-        (rdf:hollow (read-properties object)))
+        (de.setf.rdf:hollow (read-properties object)))
       (setf (slot-definition-value definition) new-value))))
 
 
@@ -446,9 +446,9 @@
   (:documentation "Given a RESOURCE-OBJECT instance and a property definition, return true iff
  the property is bound.")
 
-  (:method ((object resource-object) (definition rdf:prototypal-property-definition))
+  (:method ((object resource-object) (definition de.setf.rdf:prototypal-property-definition))
     (slot-boundp definition 'value))
-  (:method ((object resource-object) (definition rdf:archetypal-property-definition))
+  (:method ((object resource-object) (definition de.setf.rdf:archetypal-property-definition))
     (slot-boundp object (c2mop:slot-definition-name definition))))
 
 
@@ -457,11 +457,11 @@
     (let ((slots ()))
       (flet ((collector (sd)
                (when (property-boundp object sd) (push sd slots))))
-        (rdf:map-property-slots #'collector object))
+        (de.setf.rdf:map-property-slots #'collector object))
       slots)))
 
 
-(defgeneric rdf:retain-values? (resource)
+(defgeneric de.setf.rdf:retain-values? (resource)
   (:documentation "Return true iff the resource should retain property values subsequent to having
  been evicted from a transaction. The default value is NIL.")
 
@@ -520,37 +520,37 @@
 ;;;
 ;;; rdf enumeration interface
 
-(defmethod rdf:has-statement? ((object resource-object) (statement rdf:triple))
-  (and (rdf:equal (rdf:uri object) (triple-subject statement))
+(defmethod de.setf.rdf:has-statement? ((object resource-object) (statement de.setf.rdf:triple))
+  (and (de.setf.rdf:equal (de.setf.rdf:uri object) (triple-subject statement))
        (multiple-value-bind (value exists)
                             (bound-property-value object (triple-predicate statement))
          (and exists
-              (rdf:equal (triple-object statement) value)))))
+              (de.setf.rdf:equal (triple-object statement) value)))))
 
 
-(defmethod rdf:has-context? ((object resource-object) context)
-  (rdf:equal (object-graph object) context))
+(defmethod de.setf.rdf:has-context? ((object resource-object) context)
+  (de.setf.rdf:equal (object-graph object) context))
 
 
-(defmethod rdf:has-object? ((resource-object resource-object) object)
+(defmethod de.setf.rdf:has-object? ((resource-object resource-object) object)
   (labels ((test-value (value)
              (when (typecase value
                      (cons (member object value :test #'rdf:equal))
-                     (t (rdf:equal object value)))
-               (return-from rdf:has-object? t)))
+                     (t (de.setf.rdf:equal object value)))
+               (return-from de.setf.rdf:has-object? t)))
            (test-slot (sd)
              (etypecase sd
-               (rdf:prototypal-property-definition
+               (de.setf.rdf:prototypal-property-definition
                 (when (slot-boundp sd 'value)
                   (test-value (slot-definition-value sd))))
-               (rdf:archetypal-property-definition
+               (de.setf.rdf:archetypal-property-definition
                 (when (slot-boundp resource-object (c2mop:slot-definition-name sd))
                   (test-value (funcall (slot-definition-reader sd) resource-object)))))))
     (declare (dynamic-extent #'test-slot))
     (map-property-slots #'test-slot resource-object)))
 
 
-(defmethod rdf:has-predicate? ((object resource-object) predicate)
+(defmethod de.setf.rdf:has-predicate? ((object resource-object) predicate)
   "Test the presences of the predicate among the resource slots - not all slots, and
  against any bound properties. exclude unbound slots."
 
@@ -560,19 +560,19 @@
         (and sd (slot-boundp sd 'value)))))
 
 
-(defmethod rdf:has-subject? ((object resource-object) (subject resource-object))
+(defmethod de.setf.rdf:has-subject? ((object resource-object) (subject resource-object))
   (eq object subject))
 
 
-(defmethod rdf:has-subject? ((object resource-object) (subject t))
-  (rdf:equal (rdf:uri object) subject))
+(defmethod de.setf.rdf:has-subject? ((object resource-object) (subject t))
+  (de.setf.rdf:equal (de.setf.rdf:uri object) subject))
 
 
 ;;;
 ;;; life-cycle support
 
-(defmethod (setf rdf:find-instance) (instance (object resource-object) identifier)
-  (setf (rdf:find-instance (object-repository object) identifier) instance))
+(defmethod (setf de.setf.rdf:find-instance) (instance (object resource-object) identifier)
+  (setf (de.setf.rdf:find-instance (object-repository object) identifier) instance))
 
 
 (defmethod repository-register ((mediator repository-mediator) (object resource-object))
@@ -580,10 +580,10 @@
         (object-state object)))
 
 
-(defmethod rdf:query ((resource-object resource-object) &key subject predicate object context continuation offset limit)
-  (when (and (or (null subject) (rdf:equal resource-object subject))
+(defmethod de.setf.rdf:query ((resource-object resource-object) &key subject predicate object context continuation offset limit)
+  (when (and (or (null subject) (de.setf.rdf:equal resource-object subject))
              (or (null context) (equal context (object-context resource-object))))
-    (unless subject (setf subject (rdf:uri resource-object)))
+    (unless subject (setf subject (de.setf.rdf:uri resource-object)))
     
     (dsu:collect-list (collect)
       (flet ((dynamic-collect (statement)
@@ -601,33 +601,33 @@
                               #'dynamic-collect)))
           (if predicate
             (if object
-              (let ((triple (rdf:triple subject predicate nil)))
-                (rdf:map-collection #'(lambda (value)
-                                        (when (rdf:equal value object)
+              (let ((triple (de.setf.rdf:triple subject predicate nil)))
+                (de.setf.rdf:map-collection #'(lambda (value)
+                                        (when (de.setf.rdf:equal value object)
                                           (setf (triple-object triple) value)
                                           (funcall continuation triple)))
                                     (bound-property-value resource-object predicate)))
-              (let ((triple (rdf:triple subject predicate nil)))
-                (rdf:map-collection #'(lambda (value)
+              (let ((triple (de.setf.rdf:triple subject predicate nil)))
+                (de.setf.rdf:map-collection #'(lambda (value)
                                         (setf (triple-object triple) value)
                                         (funcall continuation triple))
                                     (bound-property-value resource-object predicate))))
             (if object
-              (rdf:map-property-slots #'(lambda (sd)
+              (de.setf.rdf:map-property-slots #'(lambda (sd)
                                           (when (property-boundp resource-object sd)
-                                            (project-slot-using-statement resource-object sd (rdf:triple subject nil nil)
+                                            (project-slot-using-statement resource-object sd (de.setf.rdf:triple subject nil nil)
                                                                           #'(lambda (stmt)
-                                                                              (when (rdf:equal object (triple-object stmt))
+                                                                              (when (de.setf.rdf:equal object (triple-object stmt))
                                                                                 (funcall continuation stmt))))))
                                       resource-object)
-              (rdf:project-graph resource-object #'(lambda (stmt) (funcall continuation (copy-triple stmt)))))))))))
+              (de.setf.rdf:project-graph resource-object #'(lambda (stmt) (funcall continuation (copy-triple stmt)))))))))))
 
 
-(defmethod rdf:project-graph ((object resource-object) (function function))
-  (let ((statement (make-quad :subject (rdf:uri object) :context (object-context object))))
+(defmethod de.setf.rdf:project-graph ((object resource-object) (function function))
+  (let ((statement (make-quad :subject (de.setf.rdf:uri object) :context (object-context object))))
     (flet ((project-slot (sd)
              (project-slot-using-statement object sd statement function)))
-      (rdf:map-property-slots #'project-slot object))
+      (de.setf.rdf:map-property-slots #'project-slot object))
     function))
 
 

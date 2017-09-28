@@ -1,11 +1,11 @@
 ;;; -*- Mode: lisp; Syntax: ansi-common-lisp; Base: 10; Package: common-lisp-user; -*-
 
-;;; (rdf:require-vocabulary "http://www.w3.org/2001/XMLSchema-datatypes#")
+;;; (de.setf.rdf:require-vocabulary "http://www.w3.org/2001/XMLSchema-datatypes#")
 
 (in-package :common-lisp-user)
 
 
-(rdf:require-vocabulary "http://www.w3.org/2001/XMLSchema#")
+(de.setf.rdf:require-vocabulary "http://www.w3.org/2001/XMLSchema#")
 
 (defpackage "http://www.w3.org/2001/XMLSchema-datatypes"
   (:use)
@@ -42,7 +42,7 @@
            "yearMonthDuration")
   (:nicknames "xsd"))
 
-(rdf:defvocabulary "xsd"
+(de.setf.rdf:defvocabulary "xsd"
   :uri "http://www.w3.org/2001/XMLSchema-datatypes#"
   :package "http://www.w3.org/2001/XMLSchema-datatypes"
   :definitions ()

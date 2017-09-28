@@ -30,7 +30,7 @@
            "yearMonthDuration")
   (:nicknames "xs"))
 
-(rdf:defvocabulary "xs"
+(de.setf.rdf:defvocabulary "xs"
   :uri "http://www.w3.org/2001/XMLSchema#"
   :package "http://www.w3.org/2001/XMLSchema"
   :definitions ()

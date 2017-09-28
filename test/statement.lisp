@@ -23,25 +23,25 @@
 
 (test:test resource.statement.instantiation
   (and (triple-p (make-triple :subject 'subject :predicate 'predicate :object 'object :id 'id))
-       (triple-p (rdf:triple 'subject 'predicate 'object))
+       (triple-p (de.setf.rdf:triple 'subject 'predicate 'object))
        (triple-p (make-quad :subject 'subject :predicate 'predicate :object 'object :context nil))
        (quad-p (make-quad :subject 'subject :predicate 'predicate :object 'object :context nil))
-       (quad-p (rdf:quad 'subject 'predicate 'object 'context))))
+       (quad-p (de.setf.rdf:quad 'subject 'predicate 'object 'context))))
 
 (test:test resource.statement.valid
   (and (valid? (make-triple :subject 'subject :predicate 'predicate :object 'object))
        (not (valid? (make-triple :subject 'subject :predicate 'predicate :object nil)))))
 
 (test:test resource.statement.namestring
-  (rdf:namestring (make-triple :subject "uri" :predicate "uri" :object "data")))
+  (de.setf.rdf:namestring (make-triple :subject "uri" :predicate "uri" :object "data")))
 
 (test:test resource.statement.accessors
-  (let ((s (rdf:quad 'subject 'predicate 'object 'context 'id)))
-    (and (eq (quad-subject s) (rdf:subject s))
-         (eq (quad-predicate s) (rdf:predicate s))
-         (eq (quad-object s) (rdf:object s))
-         (eq (quad-context s) (rdf:context s))
-         (eq (quad-id s) (rdf:id s)))))
+  (let ((s (de.setf.rdf:quad 'subject 'predicate 'object 'context 'id)))
+    (and (eq (quad-subject s) (de.setf.rdf:subject s))
+         (eq (quad-predicate s) (de.setf.rdf:predicate s))
+         (eq (quad-object s) (de.setf.rdf:object s))
+         (eq (quad-context s) (de.setf.rdf:context s))
+         (eq (quad-id s) (de.setf.rdf:id s)))))
 
 (test:test resource.statement.assertion.type
   (every #'(lambda (s) (typecase s (statement t) (t nil)))

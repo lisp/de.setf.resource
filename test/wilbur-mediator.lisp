@@ -30,51 +30,51 @@
 (test:test resource.wilbur-mediator.delete-object
   "verify object enquiry of a wilbur repository for intrinsic slots and augmentation with a property."
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil))
-         (uri (rdf:uri p))
+         (uri (de.setf.rdf:uri p))
          (m (object-repository p)))
     (setf (property-value p 'height) 100)
-    (dolist (s (rdf:query m :subject uri)) (rdf:delete-statement m s))
-    (rdf:project-graph p m)
-    (and (rdf:has-object? m "name")
-         (rdf:has-object? m 1)
-         (rdf:has-object? m 100)
-         (progn (rdf:delete-object m "name")
-                (rdf:delete-object m 1)
-                (rdf:delete-object m 100)
-                (not (rdf:has-object? m "name"))
-                (not (rdf:has-object? m 1))
-                (not (rdf:has-object? m 100))))))
+    (dolist (s (de.setf.rdf:query m :subject uri)) (de.setf.rdf:delete-statement m s))
+    (de.setf.rdf:project-graph p m)
+    (and (de.setf.rdf:has-object? m "name")
+         (de.setf.rdf:has-object? m 1)
+         (de.setf.rdf:has-object? m 100)
+         (progn (de.setf.rdf:delete-object m "name")
+                (de.setf.rdf:delete-object m 1)
+                (de.setf.rdf:delete-object m 100)
+                (not (de.setf.rdf:has-object? m "name"))
+                (not (de.setf.rdf:has-object? m 1))
+                (not (de.setf.rdf:has-object? m 100))))))
 
 
 (test:test resource.wilbur-mediator.delete-predicate
   "verify subject enquiry of a wilbur repository for intrinsic slots and augmentation with a property."
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil))
-         (uri (rdf:uri p))
+         (uri (de.setf.rdf:uri p))
          (m (object-repository p)))
     (setf (property-value p 'height) 100)
-    (dolist (s (rdf:query m :subject uri)) (rdf:delete-statement m s))
-    (rdf:project-graph p m)
-    (and (rdf:has-predicate? m '{foaf}firstName)
-         (rdf:has-predicate? m '{foaf}age)
-         (rdf:has-predicate? m 'height)
-         (progn (rdf:delete-predicate m '{foaf}firstName)
-                (rdf:delete-predicate m '{foaf}age)
-                (rdf:delete-predicate m 'height)
-                (not (rdf:has-predicate? m '{foaf}firstName))
-                (not (rdf:has-predicate? m '{foaf}age))
-                (not (rdf:has-predicate? m 'height))))))
+    (dolist (s (de.setf.rdf:query m :subject uri)) (de.setf.rdf:delete-statement m s))
+    (de.setf.rdf:project-graph p m)
+    (and (de.setf.rdf:has-predicate? m '{foaf}firstName)
+         (de.setf.rdf:has-predicate? m '{foaf}age)
+         (de.setf.rdf:has-predicate? m 'height)
+         (progn (de.setf.rdf:delete-predicate m '{foaf}firstName)
+                (de.setf.rdf:delete-predicate m '{foaf}age)
+                (de.setf.rdf:delete-predicate m 'height)
+                (not (de.setf.rdf:has-predicate? m '{foaf}firstName))
+                (not (de.setf.rdf:has-predicate? m '{foaf}age))
+                (not (de.setf.rdf:has-predicate? m 'height))))))
 
 (test:test resource.wilbur-mediator.delete-subject
   "verify subject enquiry of a wilbur repository for intrinsic slots and augmentation with a property."
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil))
-         (uri (rdf:uri p))
+         (uri (de.setf.rdf:uri p))
          (m (object-repository p)))
     (setf (property-value p 'height) 100)
-    (dolist (s (rdf:query m :subject uri)) (rdf:delete-statement m s))
-    (rdf:project-graph p m)
-    (and (rdf:has-subject? m p)
-         (progn (rdf:delete-subject m uri)
-                (not (rdf:has-subject? m uri))))))
+    (dolist (s (de.setf.rdf:query m :subject uri)) (de.setf.rdf:delete-statement m s))
+    (de.setf.rdf:project-graph p m)
+    (and (de.setf.rdf:has-subject? m p)
+         (progn (de.setf.rdf:delete-subject m uri)
+                (not (de.setf.rdf:has-subject? m uri))))))
 
 
 (test:test resource.wilbur-mediator.delete-statement
@@ -87,25 +87,25 @@
                                 (wilbur:triple-subject s)
                                 (wilbur:triple-predicate s)
                                 (wilbur:triple-object s)))
-      (rdf:delete-statement m s))
+      (de.setf.rdf:delete-statement m s))
     ;; then add/delete it and test existence
-    (rdf:insert-statement m s)
-    (and (rdf:has-statement? m s)
-         (progn (rdf:delete-statement m s)
-                (null (rdf:has-statement? m s))))))
+    (de.setf.rdf:insert-statement m s)
+    (and (de.setf.rdf:has-statement? m s)
+         (progn (de.setf.rdf:delete-statement m s)
+                (null (de.setf.rdf:has-statement? m s))))))
 
 
 (test:test resource.wilbur-mediator.find-instance
   "Verify instance registration in the class' mediator. Remove and verify removal."
-  (let* ((instance (rdf:ensure-instance 'resource '{http://example.com}self))
+  (let* ((instance (de.setf.rdf:ensure-instance 'resource '{http://example.com}self))
          (mediator (object-repository instance)))
     (and (typep instance 'resource-object)
-         (eq instance (rdf:find-instance 'resource '{http://example.com}self))
-         (eq instance (rdf:find-instance mediator '{http://example.com}self))
-         (rdf:equal instance '{http://example.com}self)
-         (null (rdf:find-instance mediator '{http://example.com}self_2))
-         (null (setf (rdf:find-instance instance '{http://example.com}self) nil))
-         (null (rdf:find-instance mediator '{http://example.com}self)))))
+         (eq instance (de.setf.rdf:find-instance 'resource '{http://example.com}self))
+         (eq instance (de.setf.rdf:find-instance mediator '{http://example.com}self))
+         (de.setf.rdf:equal instance '{http://example.com}self)
+         (null (de.setf.rdf:find-instance mediator '{http://example.com}self_2))
+         (null (setf (de.setf.rdf:find-instance instance '{http://example.com}self) nil))
+         (null (de.setf.rdf:find-instance mediator '{http://example.com}self)))))
 
 
 (test:test resource.wilbur-mediator.has-statement
@@ -118,12 +118,12 @@
                                 (wilbur:triple-subject s)
                                 (wilbur:triple-predicate s)
                                 (wilbur:triple-object s)))
-      (rdf:delete-statement m s))
+      (de.setf.rdf:delete-statement m s))
     ;; then add/delete it and test existence
-    (rdf:insert-statement m s)
-    (and (rdf:has-statement? m s)
-         (progn (rdf:delete-statement m s)
-                (null (rdf:has-statement? m s))))))
+    (de.setf.rdf:insert-statement m s)
+    (and (de.setf.rdf:has-statement? m s)
+         (progn (de.setf.rdf:delete-statement m s)
+                (null (de.setf.rdf:has-statement? m s))))))
 
 
 (test:test resource.wilbur-mediator.has-subject
@@ -131,10 +131,10 @@
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil))
          (s (object-repository p)))
     (setf (property-value p 'height) 100)
-    (rdf:project-graph p s)
-    (and (rdf:has-subject? s p)
-         (rdf:has-subject? s (rdf:uri p))
-         (rdf:has-subject? s (wilbur:node (uri-namestring (rdf:uri p)))))))
+    (de.setf.rdf:project-graph p s)
+    (and (de.setf.rdf:has-subject? s p)
+         (de.setf.rdf:has-subject? s (de.setf.rdf:uri p))
+         (de.setf.rdf:has-subject? s (wilbur:node (uri-namestring (de.setf.rdf:uri p)))))))
 
 
 (test:test resource.wilbur-mediator.has-object
@@ -142,10 +142,10 @@
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil))
          (s (object-repository p)))
     (setf (property-value p 'height) 100)
-    (rdf:project-graph p s)
-    (and (rdf:has-object? s "name")
-         (rdf:has-object? s 1)
-         (rdf:has-object? s 100))))
+    (de.setf.rdf:project-graph p s)
+    (and (de.setf.rdf:has-object? s "name")
+         (de.setf.rdf:has-object? s 1)
+         (de.setf.rdf:has-object? s 100))))
 
 
 (test:test resource.wilbur-mediator.has-predicate
@@ -153,21 +153,21 @@
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil))
          (s (object-repository p)))
     (setf (property-value p 'height) 100)
-    (rdf:project-graph p s)
-    (and (rdf:has-predicate? s '{foaf}firstName)
-         (rdf:has-predicate? s '{foaf}age)
-         (rdf:has-predicate? s 'height))))
+    (de.setf.rdf:project-graph p s)
+    (and (de.setf.rdf:has-predicate? s '{foaf}firstName)
+         (de.setf.rdf:has-predicate? s '{foaf}age)
+         (de.setf.rdf:has-predicate? s 'height))))
 
 
 (test:test resource.wilbur-mediator.literal.1
   (let ((source (make-instance 'wilbur-mediator)))
-    (every #'(lambda (v)  (equal v (rdf:model-value source (rdf:repository-value source v))))
+    (every #'(lambda (v)  (equal v (de.setf.rdf:model-value source (de.setf.rdf:repository-value source v))))
            '(1 "1" 1.0s0 1.0d0))))
 
 
 (test:test resource.wilbur-mediator.literal.2
   (let ((source (make-instance 'wilbur-mediator)))
-    (equal (mapcar #'(lambda (v)  (wilbur:literal-datatype (rdf:repository-value source v)))
+    (equal (mapcar #'(lambda (v)  (wilbur:literal-datatype (de.setf.rdf:repository-value source v)))
                    '(1 "1" 1.0s0 1.0d0))
            '(!xsd:integer  !xsd:string  !xsd:float  !xsd:double))))
 
@@ -179,11 +179,11 @@
                             (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#object")
                             (repository-value m (mediator-default-context m)))))
     (wilbur:add-triple new)
-    (let ((found (first (rdf:query m :subject '{rdf}subject :predicate '{rdf}predicate :object '{rdf}object))))
+    (let ((found (first (de.setf.rdf:query m :subject '{rdf}subject :predicate '{rdf}predicate :object '{rdf}object))))
       (and found
-           (eq (rdf:subject new) (rdf:subject found))
-           (eq (rdf:predicate new) (rdf:predicate found))
-           (eq (rdf:object new) (rdf:object found))))))
+           (eq (de.setf.rdf:subject new) (de.setf.rdf:subject found))
+           (eq (de.setf.rdf:predicate new) (de.setf.rdf:predicate found))
+           (eq (de.setf.rdf:object new) (de.setf.rdf:object found))))))
 
 (test:test resource.wilbur-mediator.statement.2
   "When placing a native triple, either the context must be provided, or the search must use a wild context."
@@ -192,16 +192,16 @@
                              (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate")
                              (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"))))
     (wilbur:add-triple new)
-    (let ((found (first (rdf:query m :subject '{rdf}subject :predicate '{rdf}predicate :object '{rdf}object
+    (let ((found (first (de.setf.rdf:query m :subject '{rdf}subject :predicate '{rdf}predicate :object '{rdf}object
                                    :context nil))))
       (and found
-           (eq (rdf:subject new) (rdf:subject found))
-           (eq (rdf:predicate new) (rdf:predicate found))
-           (eq (rdf:object new) (rdf:object found))))))
+           (eq (de.setf.rdf:subject new) (de.setf.rdf:subject found))
+           (eq (de.setf.rdf:predicate new) (de.setf.rdf:predicate found))
+           (eq (de.setf.rdf:object new) (de.setf.rdf:object found))))))
 
 
 (test:test resource.wilbur-mediator.statement.namestring
-  (rdf:namestring (wilbur:triple (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")
+  (de.setf.rdf:namestring (wilbur:triple (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")
                                  (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate")
                                  (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"))))
 
@@ -209,8 +209,8 @@
 
 (test:test resource.wilbur-mediator.triple
   (let ((s (wilbur:triple 1 "2" !xsd:string)))
-    (and (eq (wilbur:triple-subject s) (rdf:subject s))
-         (eq (wilbur:triple-predicate s) (rdf:predicate s))
-         (eq (wilbur:triple-object s) (rdf:object s))
-         (eq (first (wilbur:triple-sources s)) (rdf:context s)))))
+    (and (eq (wilbur:triple-subject s) (de.setf.rdf:subject s))
+         (eq (wilbur:triple-predicate s) (de.setf.rdf:predicate s))
+         (eq (wilbur:triple-object s) (de.setf.rdf:object s))
+         (eq (first (wilbur:triple-sources s)) (de.setf.rdf:context s)))))
 

@@ -50,7 +50,7 @@
  Given which, it is a simple operation to load it into the rdf repository. Should it be necessary to first
  clear the repository:
 
-    (rdf:repository-clear (wilbur-mediator))
+    (de.setf.rdf:repository-clear (wilbur-mediator))
 
  On a vintage G5-2x1.8 with mcl, the process takes about two minutes, yields about 114K nodes and uses
  about 150 megabutes.
@@ -59,7 +59,7 @@
  [8]: http://librdf.org/raptor/")
 
 
-(rdf:load-repository (wilbur-mediator) #P"LIBRARY:examples;data;stw.nt")
+(de.setf.rdf:load-repository (wilbur-mediator) #P"LIBRARY:examples;data;stw.nt")
 
 
 (:documentation
@@ -107,9 +107,9 @@
  definition explicitly.")
  
 ;;; purge it by setting it to nil
-;;; (setf (rdf:find-vocabulary (wilbur-mediator) "http://zbw.eu/namespaces/zbw-extensions/") nil)
+;;; (setf (de.setf.rdf:find-vocabulary (wilbur-mediator) "http://zbw.eu/namespaces/zbw-extensions/") nil)
 
-(rdf:ensure-vocabulary (wilbur-mediator) "http://zbw.eu/namespaces/zbw-extensions/"
+(de.setf.rdf:ensure-vocabulary (wilbur-mediator) "http://zbw.eu/namespaces/zbw-extensions/"
                        :resource-uri "http://zbw.eu/namespaces/zbw-extensions/zbw-extensions.rdf")
 
 ;;; for convenience alias the package
@@ -121,16 +121,16 @@
 (rename-package "http://www.w3.org/2004/02/skos/core#"
                 "http://www.w3.org/2004/02/skos/core#" '("skos"))
 
-(vocabulary-definitions (rdf:find-vocabulary (wilbur-mediator)
+(vocabulary-definitions (de.setf.rdf:find-vocabulary (wilbur-mediator)
                                              "http://zbw.eu/namespaces/zbw-extensions/"))
 
 (:documentation
   "That is, two classes are associated with the data:
 
-    ((rdf:defclass {zbw}Thsys ({skos}Concept)
+    ((de.setf.rdf:defclass {zbw}Thsys ({skos}Concept)
        ()
        (:datatype {zbw}Thsys))
-     (rdf:defclass {zbw}Descriptor ({skos}Concept)
+     (de.setf.rdf:defclass {zbw}Descriptor ({skos}Concept)
        ()
        (:datatype {zbw}Descriptor)))
 
@@ -139,7 +139,7 @@
 
 ;; (|http://zbw.eu/namespaces/zbw-extensions/|::|Descriptor| |http://zbw.eu/namespaces/zbw-extensions/|::|Thsys|)
 
-(c2mop:finalize-inheritance (rdf:find-class (wilbur-mediator) '{zbw}Descriptor))
+(c2mop:finalize-inheritance (de.setf.rdf:find-class (wilbur-mediator) '{zbw}Descriptor))
 (mapcar #'c2mop:slot-definition-name
         (remove-if-not #'(lambda (sd) (typep sd 'rdf-effective-property-definition))
                        (c2mop:class-slots (find-class '{zbw}Descriptor))))
@@ -148,7 +148,7 @@
 (mapcar #'class-name (c2mop:class-precedence-list (find-class '{zbw}Descriptor)))
 ;;; (|http://zbw.eu/namespaces/zbw-extensions/|::|Descriptor| |http://www.w3.org/2004/02/skos/core#|::|Concept| RESOURCE-OBJECT STANDARD-OBJECT T)
 
-(c2mop:finalize-inheritance (rdf:find-class (wilbur-mediator) '{zbw}Thsys))
+(c2mop:finalize-inheritance (de.setf.rdf:find-class (wilbur-mediator) '{zbw}Thsys))
 (mapcar #'c2mop:slot-definition-name
         (remove-if-not #'(lambda (sd) (typep sd 'rdf-effective-property-definition))
                        (c2mop:class-slots (find-class '{zbw}Thsys))))
@@ -158,26 +158,26 @@
 ;;;
 ;;; taking an example
 
-(rdf:defaccessor concept-narrower (concept) :property {skos}narrower)
-(rdf:defaccessor concept-broader (concept) :property {skos}narrower)
-(rdf:defaccessor concept-related (concept) :property {skos}related)
+(de.setf.rdf:defaccessor concept-narrower (concept) :property {skos}narrower)
+(de.setf.rdf:defaccessor concept-broader (concept) :property {skos}narrower)
+(de.setf.rdf:defaccessor concept-related (concept) :property {skos}related)
 
-(rdf:defaccessor concept-label (concept) :property {rdfs}label)
-(rdf:defaccessor pref-label (concept) :property {skos}prefLabel)
-(rdf:defaccessor alt-label (concept) :property {skos}altLabel)
+(de.setf.rdf:defaccessor concept-label (concept) :property {rdfs}label)
+(de.setf.rdf:defaccessor pref-label (concept) :property {skos}prefLabel)
+(de.setf.rdf:defaccessor alt-label (concept) :property {skos}altLabel)
 
-(rdf:query (wilbur-mediator) :subject !"http://zbw.eu/stw/thsys/a")
-(rdf:query (wilbur-mediator) :subject '{http://zbw.eu/stw/thsys/}70582 :continuation 'print)
-(rdf:query (wilbur-mediator) :subject '{http://zbw.eu/stw/descriptor/}137990 :continuation 'print)
+(de.setf.rdf:query (wilbur-mediator) :subject !"http://zbw.eu/stw/thsys/a")
+(de.setf.rdf:query (wilbur-mediator) :subject '{http://zbw.eu/stw/thsys/}70582 :continuation 'print)
+(de.setf.rdf:query (wilbur-mediator) :subject '{http://zbw.eu/stw/descriptor/}137990 :continuation 'print)
 
 ;;; a single instance 
-(defparameter *thsys* (rdf:ensure-instance '{zbw}Thsys '{http://zbw.eu/stw/thsys/}70582))
-(rdf:project-graph (rdf:project-graph (wilbur-mediator) *thsys*) 'print)
+(defparameter *thsys* (de.setf.rdf:ensure-instance '{zbw}Thsys '{http://zbw.eu/stw/thsys/}70582))
+(de.setf.rdf:project-graph (de.setf.rdf:project-graph (wilbur-mediator) *thsys*) 'print)
 (mapcar #'concept-label (concept-narrower *thsys*))     ; needs to complete the protocol to read on demand
 
 ;;; mcl5.2/g5x1.8 == +/- 250/s
-(time (defparameter *t* (rdf:project-graph (rdf:wilbur-mediator) '{zbw}Thsys)))
-(time (defparameter *d* (rdf:project-graph (rdf:wilbur-mediator) '{zbw}Descriptor)))
+(time (defparameter *t* (de.setf.rdf:project-graph (de.setf.rdf:wilbur-mediator) '{zbw}Thsys)))
+(time (defparameter *d* (de.setf.rdf:project-graph (de.setf.rdf:wilbur-mediator) '{zbw}Descriptor)))
 
 (every #'concept-label *t*)
 (inspect (find-if-not #'stw-label  *d*))

@@ -6,19 +6,19 @@
 
 (defpackage "http://www.franz.com/simple#" (:use) (:nicknames "simple"))
 
-(rdf:defaccessor person-first-name (person) :property '{simple}first-name)
-(rdf:defaccessor person-last-name (person) :property '{simple}last-name)
-(rdf:defaccessor person-spouse (person) :property '{simple}spouse :type (cons {simple}person))
-(rdf:defaccessor person-sex (person) :property '{simple}sex)
-(rdf:defaccessor person-children (person) :property '{simple}has-child :type (cons {simple}person))
+(de.setf.rdf:defaccessor person-first-name (person) :property '{simple}first-name)
+(de.setf.rdf:defaccessor person-last-name (person) :property '{simple}last-name)
+(de.setf.rdf:defaccessor person-spouse (person) :property '{simple}spouse :type (cons {simple}person))
+(de.setf.rdf:defaccessor person-sex (person) :property '{simple}sex)
+(de.setf.rdf:defaccessor person-children (person) :property '{simple}has-child :type (cons {simple}person))
 
-;;; (rdf:repository-clear (wilbur-mediator))
+;;; (de.setf.rdf:repository-clear (wilbur-mediator))
 ;;; (xmlp:document-parser #P"LIBRARY:examples;data;opencyc-latest.owl")
 ;;; mcl5.2/g5x1.8 = +/- 30 min, 14,740,383 elements and about 400MB
 
-(rdf:load-repository (wilbur-mediator) #P"LIBRARY:examples;data;opencyc-latest.owl")
+(de.setf.rdf:load-repository (wilbur-mediator) #P"LIBRARY:examples;data;opencyc-latest.owl")
 
-(defparameter *k* (rdf:project-graph (rdf:wilbur-mediator) 't))
+(defparameter *k* (de.setf.rdf:project-graph (de.setf.rdf:wilbur-mediator) 't))
 
 (remove-duplicates (mapcar #'type-of *k*))
 
@@ -28,11 +28,11 @@
            (let ((name (format nil "~@[~a~] ~@[~a~]"
                                (person-first-name person) (person-last-name person))))
              (dot:put-node person :label name)
-             (rdf:do-collection (s (person-spouse person))
+             (de.setf.rdf:do-collection (s (person-spouse person))
                (unless (find s spouses)
                  (push s spouses)
                  (dot:put-edge person s :label "spouse")))
-             (rdf:do-collection (c (person-children person))
+             (de.setf.rdf:do-collection (c (person-children person))
                (dot:put-edge person c :label "child")))))
     (dot:context-put-graph #P"LIBRARY:examples;data;kennedy.dot" "kennedy"
                            #'(lambda () (dolist (p people) (graph-person p)))

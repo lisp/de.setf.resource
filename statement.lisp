@@ -2,10 +2,10 @@
 
 (in-package :de.setf.resource.implementation)
 
-(defstruct rdf:triple
+(defstruct de.setf.rdf:triple
   subject predicate object id)
 
-(defstruct (rdf:quad (:include rdf:triple))
+(defstruct (de.setf.rdf:quad (:include de.setf.rdf:triple))
   context)
 
 (defun print-triple (triple stream level)
@@ -22,16 +22,16 @@
   triple)
 
 
-(defun rdf:triple (subject predicate object &optional id)
+(defun de.setf.rdf:triple (subject predicate object &optional id)
   (make-triple :subject subject :predicate predicate :object object :id id))
 
-(defun rdf:quad (subject predicate object context &optional id)
+(defun de.setf.rdf:quad (subject predicate object context &optional id)
   (make-quad :subject subject :predicate predicate :object object :context context :id id))
 
-(defmethod print-object ((object rdf:triple) stream)
+(defmethod print-object ((object de.setf.rdf:triple) stream)
   (print-triple object stream 1))
 
-(defgeneric rdf:valid? (statement)
+(defgeneric de.setf.rdf:valid? (statement)
   (:method ((statement triple))
     (when (and (triple-subject statement)
                (triple-predicate statement)
@@ -39,12 +39,12 @@
       t)))
 
 
-(defgeneric rdf:namestring (statement)
+(defgeneric de.setf.rdf:namestring (statement)
   (:method ((statement triple))
     (with-output-to-string (stream)
       (format stream "~@/n3:format/" statement))))
 
-(defmethod n3:format ((object rdf:triple) stream  &optional colon at var)
+(defmethod n3:format ((object de.setf.rdf:triple) stream  &optional colon at var)
   (declare (ignore colon var))
   (unless at (write-char #\space stream))
   (n3:print-property (triple-subject object) stream)
@@ -56,44 +56,44 @@
   object)
 
 
-(defmethod rdf:subject ((triple rdf:triple)) (triple-subject triple))
-(defmethod rdf:subject-value ((source t) (triple rdf:triple)) (triple-subject triple))
-(defmethod rdf:predicate ((triple rdf:triple)) (triple-predicate triple))
-(defmethod rdf:predicate-value ((source t) (triple rdf:triple)) (triple-predicate triple))
-(defmethod rdf:object ((triple rdf:triple)) (triple-object triple))
-(defmethod rdf:object-value ((source t) (triple rdf:triple)) (triple-object triple))
-(defmethod rdf:context ((triple rdf:triple)) nil)
-(defmethod rdf:context ((quad rdf:quad)) (quad-context quad))
-(defmethod rdf:id ((triple rdf:triple)) (triple-id triple))
+(defmethod de.setf.rdf:subject ((triple de.setf.rdf:triple)) (triple-subject triple))
+(defmethod de.setf.rdf:subject-value ((source t) (triple de.setf.rdf:triple)) (triple-subject triple))
+(defmethod de.setf.rdf:predicate ((triple de.setf.rdf:triple)) (triple-predicate triple))
+(defmethod de.setf.rdf:predicate-value ((source t) (triple de.setf.rdf:triple)) (triple-predicate triple))
+(defmethod de.setf.rdf:object ((triple de.setf.rdf:triple)) (triple-object triple))
+(defmethod de.setf.rdf:object-value ((source t) (triple de.setf.rdf:triple)) (triple-object triple))
+(defmethod de.setf.rdf:context ((triple de.setf.rdf:triple)) nil)
+(defmethod de.setf.rdf:context ((quad de.setf.rdf:quad)) (quad-context quad))
+(defmethod de.setf.rdf:id ((triple de.setf.rdf:triple)) (triple-id triple))
 
 
-(deftype rdf:statement ()
+(deftype de.setf.rdf:statement ()
   "An abstract type which distinguishes the various rdf assertion classes which may be present.
  These include the library's own triple type, and the statement types from any concrete reopsitory"
-  '(satisfies rdf:statement-p))
+  '(satisfies de.setf.rdf:statement-p))
 
-(defgeneric rdf:statement-p (object)
+(defgeneric de.setf.rdf:statement-p (object)
   (:method ((object t)) nil)
-  (:method ((object rdf:triple)) t))
+  (:method ((object de.setf.rdf:triple)) t))
 
-(defmethod rdf:equal ((s1 rdf:triple) (s2 rdf:triple))
+(defmethod de.setf.rdf:equal ((s1 de.setf.rdf:triple) (s2 de.setf.rdf:triple))
   (or (equalp s1 s2)
       (equal (triple-id s1) (triple-id s2))
-      (and (rdf:equal (triple-subject s1) (triple-subject s2))
-           (rdf:equal (triple-predicate s1) (triple-predicate s2))
-           (rdf:equal (triple-object s1) (triple-object s2))
+      (and (de.setf.rdf:equal (triple-subject s1) (triple-subject s2))
+           (de.setf.rdf:equal (triple-predicate s1) (triple-predicate s2))
+           (de.setf.rdf:equal (triple-object s1) (triple-object s2))
            )))
 
-(defmethod rdf:equal ((s1 rdf:quad) (s2 rdf:quad))
+(defmethod de.setf.rdf:equal ((s1 de.setf.rdf:quad) (s2 de.setf.rdf:quad))
   (or (equalp s1 s2)
       (equal (triple-id s1) (triple-id s2))
-      (and (rdf:equal (triple-subject s1) (triple-subject s2))
-           (rdf:equal (triple-predicate s1) (triple-predicate s2))
-           (rdf:equal (triple-object s1) (triple-object s2))
-           (rdf:equal (quad-context s1) (quad-context s2)))))
+      (and (de.setf.rdf:equal (triple-subject s1) (triple-subject s2))
+           (de.setf.rdf:equal (triple-predicate s1) (triple-predicate s2))
+           (de.setf.rdf:equal (triple-object s1) (triple-object s2))
+           (de.setf.rdf:equal (quad-context s1) (quad-context s2)))))
 
 (defgeneric copy-statement (statement)
-  (:method ((statement rdf:triple))
+  (:method ((statement de.setf.rdf:triple))
     (copy-triple statement))
-  (:method ((statement rdf:quad))
+  (:method ((statement de.setf.rdf:quad))
     (copy-quad statement)))

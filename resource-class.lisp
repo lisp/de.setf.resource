@@ -162,7 +162,7 @@
  Protocol
  --------
 
- rdf:make-instance (class &rest initargs) :
+ de.setf.rdf:make-instance (class &rest initargs) :
   Create a new instance. The default protocol is standard CLOS cl:standard-class instantiation protocol.
   No additional slot value processing occurs beyond distinguishing the the initial state as modified-new
   if arguments were provided.
@@ -170,24 +170,24 @@
   already persistent instance.
   No identifier is generated until the instance is written to the repository.
 
- rdf:find-instance (class . designators) :
+ de.setf.rdf:find-instance (class . designators) :
   Retrieve the designated instance from the class' persistence repository.
 
- rdf:find-instance-with-repository (class repository . designators) :
+ de.setf.rdf:find-instance-with-repository (class repository . designators) :
   Retrieve the designated instance of the given class from the given persistent repository.
   The resource can be designated with a URI, or it can be specified by associations, in which case
   the related subject URI are retrieved, to be used as resource designators. count, offset, and order-by
   parameters arrange and subset the result. an if-does-not-exist parameter determines whether a null result
   signals an error.
 
- rdf:make-class (designator) :
+ de.setf.rdf:make-class (designator) :
   instantiates a class. The designator can be a Lisp class designator, an RDF schema URI or symbol, or
   a set of attributes. In the first case the standard CLOS protocol applies. In the case of a schema
   class name, the designator is interned as the equivalent Lisp symbol and treated as such. In the case
   of an attribute set, the closest structural match is found and that class is used - with possible
   prototype extensions.
 
- rdf:project-graph (source destination)
+ de.setf.rdf:project-graph (source destination)
   Project data between instance and rdf models. Permitted (source x destination) combinations are
     (resource-object repository)
     ((set resource-object) repository)
@@ -243,11 +243,11 @@
  be incorporated in an :after or :around method for the compute-effective-slot-definition function.
  some implementations add operators to compute the initargs, but they are not standard.
 
- Literal slot values are internalized/externalized according to a data flow implemented in the rdf:internalize-value
- and rdf:externalize-value functions. Reference slot values require further retrieval according to the
+ Literal slot values are internalized/externalized according to a data flow implemented in the de.setf.rdf:internalize-value
+ and de.setf.rdf:externalize-value functions. Reference slot values require further retrieval according to the
  immediate URI and construction of the respective instances to comprise the related attributes. This process
  employes either the declared slot datatype, the type furnished by the repository in relation to the subject,
- of introspective analysis of available classes (see rdf:find-class).
+ of introspective analysis of available classes (see de.setf.rdf:find-class).
 
 
  Persistence Mediation
@@ -388,7 +388,7 @@
      related class and datatype definitions. By default the vocabulary which comprises the datatype.")
    (indelible
     :initarg :indelible :initform nil :allocation :class
-    :reader rdf:repository-indelible?
+    :reader de.setf.rdf:repository-indelible?
     :documentation "Analogous to repository-indelible? for mediators."))
 
   (:documentation "The resource-class is the concrete metaclass for instantiated resource classes.
@@ -428,10 +428,10 @@
 
  - rdf-relation-definition
    - rdf-direct-relation-definition
-     - rdf:archetypal-property-definition
+     - de.setf.rdf:archetypal-property-definition
        ;; - rdf-archetypal-literal-property-definition
        ;; - rdf-archetypal-resource-property-definition
-     - rdf:prototypal-property-definition
+     - de.setf.rdf:prototypal-property-definition
    - rdf-effective-property-definition
    - rdf-statement-slot-definition
 
@@ -459,7 +459,7 @@
  one of its structural subtypes appears, eg. (cons {foaf}Person), the collection relation is modeled
  as a list.
 
- Internal prototypal properties are managed with a specialized rdf:prototypal-property-definition
+ Internal prototypal properties are managed with a specialized de.setf.rdf:prototypal-property-definition
  class in order to recognize them when unbinding values.
 
  The distinction between literal and resource properties can be specified in the declarations in terms
@@ -478,14 +478,14 @@
   ((predicate
     :initform (error "predicate required") :initarg :predicate
     :reader slot-definition-predicate
-    :type rdf:identifier
+    :type de.setf.rdf:identifier
     :documentation "The predicate which specifies the relation between the subject instance
      and the slot value object. This is represented internally as a symbol and
      encoded as an URI.")
    (datatype
     :initform t :initarg :datatype
     :reader slot-definition-datatype
-    :type rdf:identifier
+    :type de.setf.rdf:identifier
     :documentation "The RDF datatype of the atomic object value. This is represented internally
      as a symbol and encoded as an URI. It does not distinguish scalar from set values."))
   (:documentation "The rdf-relation-definition class mixes the predicate and datatype
@@ -529,7 +529,7 @@
  definitions, which maintain the respective rdf statement instances. For each property a statement slot
  is paired with an archetypal property slot."))
 
-(defclass rdf:archetypal-property-definition (rdf-direct-relation-definition)
+(defclass de.setf.rdf:archetypal-property-definition (rdf-direct-relation-definition)
   ((statement-slot
     :initarg :statement-slot
     :reader slot-definition-statement-slot :writer setf-slot-definition-statement-slot)
@@ -540,18 +540,18 @@
  caches the statement and must arrange to synchronize that with any instance value."))
 
 #+(or)                                  ; no longer distinguished. allow the object type to decide
-(defclass rdf-archetypal-literal-property-definition (rdf:archetypal-property-definition)
+(defclass rdf-archetypal-literal-property-definition (de.setf.rdf:archetypal-property-definition)
   ()
   (:documentation "Describes archetypal property slots which bind literal values."))
 
 #+(or)
-(defclass rdf-archetypal-resource-property-definition (rdf:archetypal-property-definition)
+(defclass rdf-archetypal-resource-property-definition (de.setf.rdf:archetypal-property-definition)
   ()
   (:documentation "Describes archetypal property slots which bind resource values."))
 
 
 
-(defclass rdf:prototypal-property-definition (rdf-relation-definition)
+(defclass de.setf.rdf:prototypal-property-definition (rdf-relation-definition)
   ((name
     :initarg :name :reader c2mop:slot-definition-name)
    (type
@@ -567,11 +567,11 @@
     :initarg :permission :initform t
     :type (member t :read-only)
     :accessor slot-definition-permission))
-  (:documentation "The rdf:prototypal-property-definition class combines the RDF predicate and datatype
+  (:documentation "The de.setf.rdf:prototypal-property-definition class combines the RDF predicate and datatype
  information with standard slot attributes, and augments them with a values facet in order to represent
  prototypal properties in addition to archetypal definitions which follow from the class definition."))
 
-(defclass rdf-internal-property-definition (rdf:prototypal-property-definition)
+(defclass rdf-internal-property-definition (de.setf.rdf:prototypal-property-definition)
   ())
 
 (defclass rdf-effective-property-definition (c2mop:standard-effective-slot-definition)
@@ -582,7 +582,7 @@
  generated accessor operators."))
 
 
-(def-class-constructor rdf:prototypal-property-definition
+(def-class-constructor de.setf.rdf:prototypal-property-definition
   (:method ((class resource-class) &rest initargs)
     "Instantiate a prototypal property for the specific combination of CLASS and INITARGS.
      This permits each class to extend the prototype property access protocols by specialzing the
@@ -598,13 +598,13 @@
     (declare (dynamic-extent initargs) (ignore initargs))
     'rdf:prototypal-property-definition))
 
-(def-class-constructor rdf:archetypal-property-definition )
+(def-class-constructor de.setf.rdf:archetypal-property-definition )
 
 (defun rdf-internal-property-definition (&rest initargs)
   (declare (dynamic-extent initargs))
   (apply #'make-instance 'rdf-internal-property-definition initargs))
 
-(defmethod print-object ((object rdf:prototypal-property-definition) (stream t))
+(defmethod print-object ((object de.setf.rdf:prototypal-property-definition) (stream t))
   (print-unreadable-object (object stream :identity t :type t)
     (format stream "~@[~a~]" (when (slot-boundp object 'name) (c2mop:slot-definition-name object)))))
 
@@ -742,7 +742,7 @@
                  (let* ((reader (cons-symbol nil name :-statement))
                         (writer (cons-symbol nil :setf- name :-statement)))
                    `(:name ,statement-slot :property-slot ,name
-                           ;; :type rdf:assertion
+                           ;; :type de.setf.rdf:assertion
                            :readers ,(list reader) :writers ,(list writer))))))
         (append (mapcar #'complete-property-slot-spec direct-slots)
                 (mapcar #'compute-statement-slot-spec (nreverse property-slots)))))))
@@ -760,7 +760,7 @@
         (typecase sd
           (rdf-statement-slot-definition
            (setf-slot-definition-property-slot (ensure-slot (slot-definition-property-slot sd)) sd))
-          (rdf:archetypal-property-definition
+          (de.setf.rdf:archetypal-property-definition
            (setf-slot-definition-statement-slot (ensure-slot (slot-definition-statement-slot sd)) sd)))))))
 
 
@@ -932,7 +932,7 @@
   (let ((property-slots ()))
     (dolist (sd (c2mop:class-direct-slots class))
       (typecase sd
-        (rdf:archetypal-property-definition
+        (de.setf.rdf:archetypal-property-definition
          (push sd property-slots)
          ;; augment the combination for resource slots with access to the statement slot
          ;; (inspect sd) (print sd)
@@ -991,7 +991,7 @@
              (function (compile nil `(lambda (function subject)
                                        ,@(mapcar #'(lambda (sd)
                                                      `(when (slot-boundp subject ',(c2mop:slot-definition-name sd))
-                                                        (rdf:map-collection function (,(slot-definition-reader sd) subject))))
+                                                        (de.setf.rdf:map-collection function (,(slot-definition-reader sd) subject))))
                                                  property-slots))))
              (method (make-instance method-class
                        :function function
@@ -1025,7 +1025,7 @@
                            `(lambda (function subject)
                                        ,@(mapcar #'(lambda (sd)
                                                      `(when (slot-boundp subject ',(c2mop:slot-definition-name sd))
-                                                        (rdf:map-collection function (,(slot-definition-reader sd) subject))))
+                                                        (de.setf.rdf:map-collection function (,(slot-definition-reader sd) subject))))
                                                  property-slots))
                            :qualifiers '(progn)
                            :lambda-list '(function object)
@@ -1060,7 +1060,7 @@
       (some #'find-sd (c2mop:class-precedence-list class)))))
 
 
-(defmethod slot-definition-writable ((definition rdf:prototypal-property-definition))
+(defmethod slot-definition-writable ((definition de.setf.rdf:prototypal-property-definition))
   (not (eq :read-only (slot-definition-permission definition))))
 
 (defgeneric slot-definition-predicate (definition)
@@ -1093,7 +1093,7 @@
   (unless writer-s
     (setf-slot-definition-writer (first (c2mop:slot-definition-writers instance)) instance)))
 
-(defmethod initialize-instance ((instance rdf:prototypal-property-definition) &rest initargs
+(defmethod initialize-instance ((instance de.setf.rdf:prototypal-property-definition) &rest initargs
                                 &key name (predicate name))
   (apply #'call-next-method instance
          :predicate predicate
@@ -1302,10 +1302,10 @@
                        (not (slot-boundp ,instance ',name))
                        (not (equalp ,value (slot-value ,instance ',name))))
                (typecase (object-state ,instance)
-                 (rdf:new ,@(when new (call-methods new)))
-                 (rdf:hollow (read-properties ,instance) ,@(call-methods hollow))
-                 (rdf:deleted))
-               (rdf:modify ,instance ',name)
+                 (de.setf.rdf:new ,@(when new (call-methods new)))
+                 (de.setf.rdf:hollow (read-properties ,instance) ,@(call-methods hollow))
+                 (de.setf.rdf:deleted))
+               (de.setf.rdf:modify ,instance ',name)
                ,form))
       (when verbose-p
         (pprint form *trace-output*))
@@ -1316,44 +1316,44 @@
 (defmethod model-value ((class resource-class) identifier)
   (model-value (class-repository class) identifier))
 
-(defmethod rdf:ensure-instance ((class resource-class) identifier)
-  (handler-case (rdf:find-instance class identifier)
+(defmethod de.setf.rdf:ensure-instance ((class resource-class) identifier)
+  (handler-case (de.setf.rdf:find-instance class identifier)
     (instance-not-found-error ()
-      (let* ((type (rdf:type-of (class-repository class) identifier))
-             (identified-class (or (rdf:find-class class type) 'resource)))
+      (let* ((type (de.setf.rdf:type-of (class-repository class) identifier))
+             (identified-class (or (de.setf.rdf:find-class class type) 'resource)))
         (if (typep identified-class 'resource-class)
           ; if the type is known, construct a new instance of the respective class
-          (setf (rdf:find-instance class identifier)
+          (setf (de.setf.rdf:find-instance class identifier)
                 (make-instance identified-class :uri (model-value class identifier)
                                :repository (class-repository class)))
           identified-class)))))
 
 
-(defmethod rdf:find-instance ((class resource-class) identifier)
-  (or (rdf:find-instance (class-repository class) identifier)
-      (rdf:instance-not-found class identifier)))
+(defmethod de.setf.rdf:find-instance ((class resource-class) identifier)
+  (or (de.setf.rdf:find-instance (class-repository class) identifier)
+      (de.setf.rdf:instance-not-found class identifier)))
 
 
-(defmethod (setf rdf:find-instance) (instance (class resource-class) identifier)
-  (setf (rdf:find-instance (class-repository class) identifier) instance))
+(defmethod (setf de.setf.rdf:find-instance) (instance (class resource-class) identifier)
+  (setf (de.setf.rdf:find-instance (class-repository class) identifier) instance))
 
 
-(defmethod rdf:find-class ((class resource-class) (name symbol) &key (error-p t))
+(defmethod de.setf.rdf:find-class ((class resource-class) (name symbol) &key (error-p t))
   "GIven a concrete class, first delegate to the abstract version to look for sibling classes,
  then try the vocabularies loaded from the repository. If none is found optionally signal an error."
 
-  (or (rdf:find-class (class-of class) name :error-p nil)
-      (let ((definition (rdf:find-class (class-vocabulary class) name :error-p nil)))
+  (or (de.setf.rdf:find-class (class-of class) name :error-p nil)
+      (let ((definition (de.setf.rdf:find-class (class-vocabulary class) name :error-p nil)))
         (when definition
           (prog1 (eval definition)
             (dolist (superclass (third definition))
-              (rdf:find-class class superclass)))))
-      (rdf:find-class (class-repository class) name :error-p nil)
+              (de.setf.rdf:find-class class superclass)))))
+      (de.setf.rdf:find-class (class-repository class) name :error-p nil)
       (when error-p
-        (rdf:class-not-found class name))))
+        (de.setf.rdf:class-not-found class name))))
 
 
-(defmethod rdf:find-class ((class standard-class) (name symbol) &key (error-p t))
+(defmethod de.setf.rdf:find-class ((class standard-class) (name symbol) &key (error-p t))
   (or (let ((found (find-class name nil)))
         ;; should either return the class resource-class or one of its instances
         (typecase found
@@ -1366,25 +1366,25 @@
              (warn "find-class returning a non-resource class: ~s." found))
            found)))
       (when error-p
-        (rdf:class-not-found class name))))
+        (de.setf.rdf:class-not-found class name))))
 
 
 
-(defmethod rdf:find-class ((class resource-class) (identifier t) &rest args)
+(defmethod de.setf.rdf:find-class ((class resource-class) (identifier t) &rest args)
   (declare (dynamic-extent args))
-  (apply #'rdf:find-class class (rdf:model-value (class-repository class) identifier) args))
+  (apply #'rdf:find-class class (de.setf.rdf:model-value (class-repository class) identifier) args))
 
 
 
-(defmethod rdf:class-not-found ((class standard-class) type)
+(defmethod de.setf.rdf:class-not-found ((class standard-class) type)
   (class-not-found-error :metaclass class :name type))
 
 
-(defmethod rdf:type-of ((class resource-class) identifier)
-  (rdf:type-of (class-repository class) identifier))
+(defmethod de.setf.rdf:type-of ((class resource-class) identifier)
+  (de.setf.rdf:type-of (class-repository class) identifier))
 
 
-(defgeneric rdf:class-property-slots (class)
+(defgeneric de.setf.rdf:class-property-slots (class)
   (:method ((class resource-class))
     (reduce #'append
             (c2mop:class-precedence-list class)
@@ -1395,7 +1395,7 @@
 
 
 #+(or)
-(defun rdf:ensure-class (name)
+(defun de.setf.rdf:ensure-class (name)
   (or (find-class name nil)
       (make-instance 'resource-class :name name)))
 
@@ -1404,5 +1404,5 @@
   (dolist (super (c2mop:class-direct-superclasses class))
     (when (typep super 'c2mop:forward-referenced-class)
       ;; attempt to load the class, but defer to an eventual forward-reference-class error
-      (rdf:find-class class (class-name super) :error-p nil)))
+      (de.setf.rdf:find-class class (class-name super) :error-p nil)))
   (call-next-method))

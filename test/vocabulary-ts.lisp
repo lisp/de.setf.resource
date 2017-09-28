@@ -37,7 +37,7 @@
                                    :identifier-map '((:uri-1 . "x/uri_1") (:uri-2 . "x/uri_2")))))
     (and (load-vocabulary mediator vocabulary)
          ;(maphash #'(lambda (k v) (print (list k v))) (mediator-model2repository-value-map mediator))
-         (eq :uri-1 (rdf:model-value mediator (intern "uri_1" (find-package "x/")))))))
+         (eq :uri-1 (de.setf.rdf:model-value mediator (intern "uri_1" (find-package "x/")))))))
 
 
 (test:test resource.vocabulary-ts.uri-symbol.2
@@ -49,13 +49,13 @@
                                    :identifier-map '((:uri-1 . "uri/1")  (:uri-2 . "uri/2")))))
     ;; (maphash #'(lambda (k v) (print (list k v))) (mediator-model2repository-value-map mediator))
     (load-vocabulary mediator vocabulary)
-    (list (eq (rdf:model-value mediator (rdf:repository-value mediator :uri-1)) :uri-1)
-         (eq (rdf:model-value mediator (rdf:repository-value mediator :uri-2)) :uri-2)
-         (eq (rdf:model-value mediator (rdf:repository-value mediator :uri-3)) :uri-3)
-         (equal (rdf:repository-value mediator :uri-1) (intern "1" (find-package "uri/")))
-         (equal (rdf:repository-value mediator :uri-2) (intern "2" (find-package "uri/")))
+    (list (eq (de.setf.rdf:model-value mediator (de.setf.rdf:repository-value mediator :uri-1)) :uri-1)
+         (eq (de.setf.rdf:model-value mediator (de.setf.rdf:repository-value mediator :uri-2)) :uri-2)
+         (eq (de.setf.rdf:model-value mediator (de.setf.rdf:repository-value mediator :uri-3)) :uri-3)
+         (equal (de.setf.rdf:repository-value mediator :uri-1) (intern "1" (find-package "uri/")))
+         (equal (de.setf.rdf:repository-value mediator :uri-2) (intern "2" (find-package "uri/")))
          ;; w/o a pre-registerd value, the default is an encoded symbol
-         (equalp (rdf:repository-value mediator :uri-3)
+         (equalp (de.setf.rdf:repository-value mediator :uri-3)
                 (load-time-value
                  (with-output-to-vector-stream (stream)
                    (thrift:stream-write-struct stream (thrift:list (cons symbol "KEYWORD/uri3"))
@@ -105,8 +105,8 @@
  specified identifier canonicalizer."
   (let ((m (repository-mediator 'wilbur-mediator :identifier-function 'camel-dash-canonicalizer)))
     (and (eq '|http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|subject|
-             (rdf:model-value m (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")))
-         (eq (rdf:repository-value m '|http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|subject|)
+             (de.setf.rdf:model-value m (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")))
+         (eq (de.setf.rdf:repository-value m '|http://www.w3.org/1999/02/22-rdf-syntax-ns#|:|subject|)
              (wilbur:node "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject")))))
 
 

@@ -48,8 +48,8 @@
           (eq (class-name class) 'test-resource-class)
           (eq (find-class 'test-resource-class) class)
           (eq (find-class :test-type) class)
-          (eq (rdf:find-class 'resource-class 'test-resource-class) class)
-          (eq (rdf:find-class 'resource-class :test-type) class))))
+          (eq (de.setf.rdf:find-class 'resource-class 'test-resource-class) class)
+          (eq (de.setf.rdf:find-class 'resource-class :test-type) class))))
 
 
 
@@ -87,15 +87,15 @@
          (*load-verbose* (eq test::*test-unit-mode* :verbose)))
     (slot-makunbound class 'vocabulary)
     (slot-makunbound class 'repository)
-    (and (rdf:find-class class '{rdfs}Class)
+    (and (de.setf.rdf:find-class class '{rdfs}Class)
          #+(or)                         ; this should not fail - the person fixture class datatype is {foaf}Person
                                         ; which means that the standard-class method finds it
-         (typep (test:ignored-error (rdf:find-class (class-repository class) '{foaf}Person)) 'rdf:class-not-found-error)
-         (rdf:find-class (class-repository class) '{foaf}Person)
-         (typep (rdf:find-class class '{foaf}Person)
+         (typep (test:ignored-error (de.setf.rdf:find-class (class-repository class) '{foaf}Person)) 'rdf:class-not-found-error)
+         (de.setf.rdf:find-class (class-repository class) '{foaf}Person)
+         (typep (de.setf.rdf:find-class class '{foaf}Person)
                 'resource-class)
          (class-vocabulary class)
-         (typep (rdf:find-class (class-repository class) '{foaf}Person)
+         (typep (de.setf.rdf:find-class (class-repository class) '{foaf}Person)
                 'resource-class))))
 
 
@@ -137,7 +137,7 @@
 (test:test resource.resource-class.find-prototypal-property-definition
   "verify prototypal slots and augmentation with a property."
   (let ((p (make-instance 'person :name "name" :age 1 :parents nil)))
-    (and (rdf:insert-statement p (rdf:triple (uri p) 'height 100))
+    (and (de.setf.rdf:insert-statement p (de.setf.rdf:triple (uri p) 'height 100))
          (typep (find-prototypal-property-definition p 'height) 'rdf:prototypal-property-definition))))
 
 
@@ -152,13 +152,13 @@
          (equal (setf (person-height p) 100) 100)
          (equal (person-height p) 100)
          (equal (property-value p 'height) 100)
-         (eq (object-state p) rdf:transient))))
+         (eq (object-state p) de.setf.rdf:transient))))
 
 
 (test:test resource.resource-class.property-value.2
   "verify intrinsic slots and augmentation with a property."
   (let ((p (make-instance 'person :name "name" :age 1 :parents nil)))
-    (and (rdf:insert-statement p (rdf:triple (uri p) 'height 100))
+    (and (de.setf.rdf:insert-statement p (de.setf.rdf:triple (uri p) 'height 100))
          (equal (property-value p '{foaf}firstName) "name")
          (equal (property-value p '{foaf}age) 1)
          (equal (property-value p '{rel}childof) nil)
@@ -168,14 +168,14 @@
 (test:test resource.resource-class.insert-statement.0
   "verify intrinsic slots and augmentation with a property."
   (let ((p (make-instance 'person :name "name" :age 1 :parents nil)))
-    (and (rdf:insert-statement p (rdf:triple (uri p) 'height 100))
+    (and (de.setf.rdf:insert-statement p (de.setf.rdf:triple (uri p) 'height 100))
          (equal (property-value p 'height) 100))))
 
 
 (test:test resource.resource-class.insert-statement.1
   "verify intrinsic slots and augmentation with a property."
   (let ((p (make-instance 'person :name "name" :age 1 :parents nil)))
-    (and (rdf:insert-statement p (rdf:triple (uri p) 'height 100))
+    (and (de.setf.rdf:insert-statement p (de.setf.rdf:triple (uri p) 'height 100))
          (unbind-property-slots p)
          (null (find-prototypal-property-definition p 'height)))))
 
@@ -183,8 +183,8 @@
 (test:test resource.resource-class.insert-statement.2
   "verify distinction between setting a property and adding a statement"
   (let ((p (make-instance 'person :name "name" :age 1 :parents nil)))
-    (and (rdf:insert-statement p (rdf:triple (uri p) 'height 100))
-         (rdf:insert-statement p (rdf:triple (uri p) 'height 200))
+    (and (de.setf.rdf:insert-statement p (de.setf.rdf:triple (uri p) 'height 100))
+         (de.setf.rdf:insert-statement p (de.setf.rdf:triple (uri p) 'height 200))
          (equal (person-height p) '(200 100))
          (equal (setf (person-height p) 300) 300)
          (equal (property-value p 'height) 300))))
@@ -194,7 +194,7 @@
   "verify intrinsic slots and augmentation with a property."
   (let ((p (make-instance 'person :name "name" :age 1 :parents nil))
         (expected '(name age parents height)))
-    (and (rdf:insert-statement p (rdf:triple (uri p) 'height 100))
+    (and (de.setf.rdf:insert-statement p (de.setf.rdf:triple (uri p) 'height 100))
          (let ((list nil))
            (map-property-slots #'(lambda (sd) (push (c2mop:slot-definition-name sd) list)) p)
            (null (set-exclusive-or list expected :test #'equal))))))
@@ -204,7 +204,7 @@
   "verify intrinsic slots and augmentation with a property."
   (let* ((p (make-instance 'person :name "name" :age 1 :parents nil))
         (expected (list "name" 1 100)))
-    (and (rdf:insert-statement p (rdf:triple (uri p) 'height 100))
+    (and (de.setf.rdf:insert-statement p (de.setf.rdf:triple (uri p) 'height 100))
          (let ((list ()))
            (map-property-values #'(lambda (v) (push v list)) p)
            (null (set-exclusive-or list expected :test #'equal))))))
@@ -222,12 +222,12 @@
 ;;; (map nil 'print (wilbur:db-triples wilbur:*db*))
 ;;; (map nil 'print (wilbur:db-query wilbur:*db* nil nil !owl:Ontology))
 ;;; (map nil 'print (wilbur:db-query wilbur:*db* nil !rdf:type nil))
-;;; (rdf:query (class-repository (find-class 'prototype)) :predicate '{rdf}type :object '{owl}Ontology)
+;;; (de.setf.rdf:query (class-repository (find-class 'prototype)) :predicate '{rdf}type :object '{owl}Ontology)
 ;;; (unregister-value (class-repository (find-class 'prototype)) '{rdf}type nil)
 ;;; (unregister-value (class-repository (find-class 'prototype)) '{owl}Ontology nil)
-;;; (rdf:repository-value (class-repository (find-class 'resource-class)) '{owl}Ontology)
+;;; (de.setf.rdf:repository-value (class-repository (find-class 'resource-class)) '{owl}Ontology)
 ;;; (trace register-value)
-;;; (trace (rdf:repository-value :before :break))
+;;; (trace (de.setf.rdf:repository-value :before :break))
 
 #|
 ;; an exercise to track the sync failures in the mcl type cache

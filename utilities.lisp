@@ -63,23 +63,23 @@
 ;;; life-cycle states
 
 (defclass rdf-state () ())
-(defclass rdf:deleted (rdf-state) ())
-(defclass rdf:new (rdf-state) ())
-(defclass rdf:clean (rdf-state) ())
-(defclass rdf:clean-persistent (rdf:clean rdf:persistent) ())
-(defclass rdf:deleted-new (rdf:deleted rdf:new) ())
-(defclass rdf:deleted-persistent (rdf:deleted rdf:persistent) ())
-(defclass rdf:hollow (rdf:persistent) ())
-(defclass rdf:modified (rdf-state) ())
-(defclass rdf:modified-persistent (rdf:modified rdf:persistent) ())
-(defclass rdf:new-persistent (rdf:new rdf:persistent) ())
-(defclass rdf:modified-transient (rdf:modified rdf:transient) ())
-(defclass rdf:persistent (rdf-state) ())
-(defclass rdf:stored (rdf:persistent) ())
-(defclass rdf:transient (rdf-state) ())
+(defclass de.setf.rdf:deleted (rdf-state) ())
+(defclass de.setf.rdf:new (rdf-state) ())
+(defclass de.setf.rdf:clean (rdf-state) ())
+(defclass de.setf.rdf:clean-persistent (de.setf.rdf:clean de.setf.rdf:persistent) ())
+(defclass de.setf.rdf:deleted-new (de.setf.rdf:deleted de.setf.rdf:new) ())
+(defclass de.setf.rdf:deleted-persistent (de.setf.rdf:deleted de.setf.rdf:persistent) ())
+(defclass de.setf.rdf:hollow (de.setf.rdf:persistent) ())
+(defclass de.setf.rdf:modified (rdf-state) ())
+(defclass de.setf.rdf:modified-persistent (de.setf.rdf:modified de.setf.rdf:persistent) ())
+(defclass de.setf.rdf:new-persistent (de.setf.rdf:new de.setf.rdf:persistent) ())
+(defclass de.setf.rdf:modified-transient (de.setf.rdf:modified de.setf.rdf:transient) ())
+(defclass de.setf.rdf:persistent (rdf-state) ())
+(defclass de.setf.rdf:stored (de.setf.rdf:persistent) ())
+(defclass de.setf.rdf:transient (rdf-state) ())
 
 
-(defclass rdf:non-transactional (rdf-state) ())
+(defclass de.setf.rdf:non-transactional (rdf-state) ())
 (defclass transactional (rdf-state) ())
 (defclass transaction-open (transactional)
   ((id
@@ -96,15 +96,15 @@
 (defclass transaction-abort (transactional) ())
 (defclass transaction-commit (transactional) ())
 
-(defvar rdf:clean-persistent (make-instance 'rdf:clean-persistent))
-(defvar rdf:deleted-persistent (make-instance 'rdf:deleted-persistent))
-(defvar rdf:hollow (make-instance 'rdf:hollow))
-(defvar rdf:modified-persistent (make-instance 'rdf:modified-persistent))
-(defvar rdf:new-persistent (make-instance 'rdf:new-persistent))
-(defvar rdf:transient (make-instance 'rdf:transient))
+(defvar de.setf.rdf:clean-persistent (make-instance 'rdf:clean-persistent))
+(defvar de.setf.rdf:deleted-persistent (make-instance 'rdf:deleted-persistent))
+(defvar de.setf.rdf:hollow (make-instance 'rdf:hollow))
+(defvar de.setf.rdf:modified-persistent (make-instance 'rdf:modified-persistent))
+(defvar de.setf.rdf:new-persistent (make-instance 'rdf:new-persistent))
+(defvar de.setf.rdf:transient (make-instance 'rdf:transient))
 
 
-(defvar rdf:non-transactional (make-instance 'rdf:non-transactional))
+(defvar de.setf.rdf:non-transactional (make-instance 'rdf:non-transactional))
 (defvar transaction-open (make-instance 'transaction-open))
 (defvar transaction-commit (make-instance 'transaction-commit))
 (defvar transaction-abort (make-instance 'transaction-abort))
@@ -114,7 +114,7 @@
   ;; while this is a possible implementation, it's easier to just use (cons <x>)
   ;; as its primary purpose is to distinctuis accessor mechanisms rather than to
   ;; test list constituency
-  (deftype rdf:set (&optional type)
+  (deftype de.setf.rdf:set (&optional type)
     "A set of objects of a homogeneous type"
     (if type
       `(satisfies ,(set-type-predicate type))
@@ -181,7 +181,7 @@
     (cl-user::format-url-encoded stream (princ-to-string object) colon at)))                          
 
 
-(defgeneric rdf:uri-match-p (uri-instance uri-pattern)
+(defgeneric de.setf.rdf:uri-match-p (uri-instance uri-pattern)
   (:method ((uri string) (uri-pattern string))
     (let ((length (length uri-pattern)))
       (and (>= (length uri) length)
@@ -194,7 +194,7 @@
 
 (define-condition repository-error (rdf-error) ())
 
-(define-condition rdf:invalid-state-error (rdf-error)
+(define-condition de.setf.rdf:invalid-state-error (rdf-error)
   ((object :initarg :object :reader condition-object)
    (start-state :initarg :start-state :reader condition-start-state)
    (end-state :initarg :end-state :reader condition-end-state))
@@ -204,10 +204,10 @@
                      (type-of (condition-start-state condition))
                      (type-of (condition-end-state condition))))))
 
-(defun rdf:invalid-state-error (&rest args)
+(defun de.setf.rdf:invalid-state-error (&rest args)
   (apply #'error 'rdf:invalid-state-error args))
 
-(define-condition rdf:property-missing-error (rdf-error)
+(define-condition de.setf.rdf:property-missing-error (rdf-error)
   ((object :initarg :object :reader condition-object)
    (value :initarg :value :reader condition-value)
    (predicate :initarg :predicate :reader condition-predicate)
@@ -218,31 +218,31 @@
                      (condition-predicate condition)
                      (condition-value condition)))))
 
-(defun rdf:property-missing-error (&rest args)
+(defun de.setf.rdf:property-missing-error (&rest args)
   (apply #'error 'rdf:property-missing-error args))
 
 
-(define-condition rdf:resource-not-found-error (rdf-error)
+(define-condition de.setf.rdf:resource-not-found-error (rdf-error)
   ((uri :initarg :uri :reader condition-uri))
   (:report (lambda (condition stream)
              (format stream "No resource found for URI: ~s."
                      (condition-uri condition)))))
 
-(defun rdf:resource-not-found-error (&rest args)
+(defun de.setf.rdf:resource-not-found-error (&rest args)
   (apply #'error 'rdf:resource-not-found-error args))
 
 
-(define-condition rdf:schema-not-found-error (rdf-error)
+(define-condition de.setf.rdf:schema-not-found-error (rdf-error)
   ((uri :initarg :uri :reader condition-uri))
   (:report (lambda (condition stream)
              (format stream "No resource found for URI: ~s."
                      (condition-uri condition)))))
 
-(defun rdf:schema-not-found-error (&rest args)
+(defun de.setf.rdf:schema-not-found-error (&rest args)
   (apply #'error 'rdf:schema-not-found-error args))
 
 
-(define-condition rdf:class-not-found-error (rdf-error)
+(define-condition de.setf.rdf:class-not-found-error (rdf-error)
   ((metaclass :initarg :metaclass :reader condition-metaclass)
    (name :initarg :name :reader condition-name))
   (:report (lambda (condition stream)
@@ -250,7 +250,7 @@
                      (condition-metaclass condition)
                      (condition-name condition)))))
 
-(defun rdf:class-not-found-error (&key metaclass name)
+(defun de.setf.rdf:class-not-found-error (&key metaclass name)
   (restart-case (error 'rdf:class-not-found-error :metaclass metaclass :name name)
     (use-value (value)
                :report "Specify a class."
@@ -262,7 +262,7 @@
                                 :direct-superclasses direct-superclasses))))
 
 
-(define-condition rdf:property-read-only-error (rdf-error)
+(define-condition de.setf.rdf:property-read-only-error (rdf-error)
   ((object :initarg :object :reader condition-object)
    (predicate :initarg :predicate :reader condition-predicate)
    (operation :initarg :operation :reader condition-operation)
@@ -272,11 +272,11 @@
                      (condition-object condition)
                      (condition-predicate condition)))))
 
-(defun rdf:property-read-only-error (&rest args)
+(defun de.setf.rdf:property-read-only-error (&rest args)
   (apply #'error 'rdf:property-read-only-error args))
 
 
-(define-condition rdf:unbound-source-error (rdf-error)
+(define-condition de.setf.rdf:unbound-source-error (rdf-error)
   ((class :initarg :class :reader condition-class)
    (operation :initarg :operation :initform nil :reader condition-operation))
   (:report (lambda (condition stream)
@@ -284,11 +284,11 @@
                      (condition-class condition)
                      (condition-operation condition)))))
 
-(defun rdf:unbound-source-error (&rest args)
+(defun de.setf.rdf:unbound-source-error (&rest args)
   (apply #'error 'rdf:unbound-source-error args))
 
 
-(define-condition rdf:instance-not-found-error (rdf-error)
+(define-condition de.setf.rdf:instance-not-found-error (rdf-error)
   ((class :initarg :class :reader condition-class)
    (uri :initarg :uri :reader condition-uri))
   (:report (lambda (condition stream)
@@ -296,10 +296,10 @@
                      (condition-class condition)
                      (condition-uri condition)))))
 
-(defun rdf:instance-not-found-error (&rest args)
+(defun de.setf.rdf:instance-not-found-error (&rest args)
   (apply #'error 'rdf:instance-not-found-error args))
 
-(define-condition rdf:feb-timeout-error (repository-error)
+(define-condition de.setf.rdf:feb-timeout-error (repository-error)
   ((repository :initarg :repository :reader condition-repository)
    (operation :initarg :operation :reader condition-operation))
   (:documentation "The error is signaled if repeated attempts to perform an feb operation
@@ -309,22 +309,22 @@
                      (condition-repository condition)
                      (condition-operation condition)))))
 
-(defun rdf:feb-timeout-error (&rest args)
+(defun de.setf.rdf:feb-timeout-error (&rest args)
   (apply #'error 'rdf:feb-timeout-error args))
 
 
 ;;;
 ;;; literal utilities
 
-(deftype rdf::literal () '(satisfies rdf::literal-p))
+(deftype de.setf.rdf::literal () '(satisfies de.setf.rdf::literal-p))
 
-(defgeneric rdf::literal-p (object)
+(defgeneric de.setf.rdf::literal-p (object)
   (:method ((object t)) nil))
 
 ;;;
 ;;; uri/symbol utilities
 
-(defgeneric rdf:identifier-p (object)
+(defgeneric de.setf.rdf:identifier-p (object)
   (:documentation "Return true when the object is an identifier. This includes URI as represented
  by a repository, symbols, and UUID.")
   (:method ((identifier symbol)) t)
@@ -332,7 +332,7 @@
   (:method ((object null)) nil)
   (:method ((object t)) nil))
 
-(deftype rdf:identifier () '(satisfies rdf:identifier-p))
+(deftype de.setf.rdf:identifier () '(satisfies de.setf.rdf:identifier-p))
 
 (defun uri-intrinsic-separator (uri-namestring)
   (let ((length (length uri-namestring)))
@@ -475,7 +475,7 @@
     (uri-vocabulary-components (uri-namestring object))))
 
 
-(defun rdf:ensure-uri-package (uri)
+(defun de.setf.rdf:ensure-uri-package (uri)
   "Given the URI for a vocabulary term, extract the vocabulary uri and ensure that
  the respective package exists. If it is not found, make it anew.
 
@@ -547,7 +547,7 @@
 ;;; (probe-file (uri-pathname (uuid:make-v1-uuid) :name "vocabulary"))
 
 
-(defun rdf:map-collection (function collection)
+(defun de.setf.rdf:map-collection (function collection)
   "Iterate over a degenerate list to allow post-facto change form atom to sequence"
   (loop (typecase collection
           (cons (funcall function (pop collection)))
@@ -556,16 +556,16 @@
              (return)))))
 
 (defun map-rdf-collection (function collection)
-  (break "use rdf:map-collection")
-  (rdf:map-collection function collection))
+  (break "use de.setf.rdf:map-collection")
+  (de.setf.rdf:map-collection function collection))
 
 
-(defmacro rdf:do-collection ((variable collection) &body body)
+(defmacro de.setf.rdf:do-collection ((variable collection) &body body)
   (let ((op (gensym)))
     `(block nil
        (flet ((,op (,variable) ,@body))
          (declare (dynamic-extent #',op))
-         (rdf:map-collection #',op ,collection)))))
+         (de.setf.rdf:map-collection #',op ,collection)))))
      
 
 
@@ -617,7 +617,7 @@
 ;;;
 ;;; mop utilities
 
-(defmacro rdf:defclass (name supers slots &rest options)
+(defmacro de.setf.rdf:defclass (name supers slots &rest options)
   "Define a class to mirror a linked data resource.
  - ensure that the metaclass is set.
  - ensure that resource-object is in the precedence list.
@@ -625,9 +625,9 @@
    prefer the declared accessor for the respective property as the default."
 
   (unless (assoc :metaclass options)
-    (push '(:metaclass rdf:resource-class) options))
+    (push '(:metaclass de.setf.rdf:resource-class) options))
   (unless (find 'rdf:resource-object supers)
-    (setf supers (append supers '(rdf:resource-object))))
+    (setf supers (append supers '(de.setf.rdf:resource-object))))
   `(defclass ,name ,supers
      ,(mapcar #'(lambda (slot)
                   (destructuring-bind (slot-name &rest slot-args &key accessor (predicate slot-name p-s) &allow-other-keys) slot
@@ -639,10 +639,10 @@
               slots)
      ,@options))
 
-(set-pprint-dispatch '(cons (eql rdf:defclass)) (pprint-dispatch '(cons (eql defclass))))
+(set-pprint-dispatch '(cons (eql de.setf.rdf:defclass)) (pprint-dispatch '(cons (eql defclass))))
 
 
-(defmacro rdf:defaccessor (function-name (parameter) &key property (name property) (type t))
+(defmacro de.setf.rdf:defaccessor (function-name (parameter) &key property (name property) (type t))
   "Define the base definitions for prototypal property accessors for the given predicate."
   (let ((list-type-p (list-type-p type)))
     (when property
@@ -654,11 +654,11 @@
        (defgeneric ,function-name (,parameter)
          ,(if list-type-p
             `(:method ((object resource-object))
-               (let ((value (rdf:prototypal-property-value object ,property)))
+               (let ((value (de.setf.rdf:prototypal-property-value object ,property)))
                  (if (listp value) value (list value))))
             `(:method ((object resource-object))
-               (rdf:prototypal-property-value object ,property)))
-         (:generic-function-class rdf:rdf-slot-reader)
+               (de.setf.rdf:prototypal-property-value object ,property)))
+         (:generic-function-class de.setf.rdf:rdf-slot-reader)
          (:method-combination persistent-slot-reader
                               ,@(when name `(:name ,name))
                               ,@(when type `(:type ,type))))
@@ -667,12 +667,12 @@
        (defgeneric (setf ,function-name) (value ,parameter)
          ,@(if list-type-p
              `((:method ((value list) (object resource-object))
-                 (setf (rdf:prototypal-property-value object ,property) value))
+                 (setf (de.setf.rdf:prototypal-property-value object ,property) value))
                (:method ((value t) (object resource-object))
-                 (setf (rdf:prototypal-property-value object ,property) (list value))))
+                 (setf (de.setf.rdf:prototypal-property-value object ,property) (list value))))
              `((:method (value (object resource-object))
-                 (setf (rdf:prototypal-property-value object ,property) value))))
-         (:generic-function-class rdf:rdf-slot-writer)
+                 (setf (de.setf.rdf:prototypal-property-value object ,property) value))))
+         (:generic-function-class de.setf.rdf:rdf-slot-writer)
          (:method-combination persistent-slot-writer
                               ,@(when name `(:name ,name))
                               ,@(when type `(:type ,type))))

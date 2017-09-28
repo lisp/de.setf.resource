@@ -57,7 +57,7 @@
 "))
 
 
-(defclass rdf:vocabulary ()
+(defclass de.setf.rdf:vocabulary ()
   ((name
     :reader vocabulary-name :writer setf-vocabulary-name)
    (uri
@@ -94,7 +94,7 @@
  in the file system."))
 
 
-(defmacro rdf:defvocabulary (name &key (uri (error "uri is required."))
+(defmacro de.setf.rdf:defvocabulary (name &key (uri (error "uri is required."))
                                    definitions (identifiers nil i-s)
                                    (identifier-map nil im-s)
                                    (package nil p-s)
@@ -207,7 +207,7 @@
   (defmethod (setf documentation) (documentation (object vocabulary) (type (eql 'vocabulary)))
     (setf (vocabulary-documentation object) documentation)))
 
-(defgeneric rdf:repository-namespace-bindings (source)
+(defgeneric de.setf.rdf:repository-namespace-bindings (source)
   (:documentation "Returns an a-list of (prefix . namespace-uri) bindings."))
 
 
@@ -220,21 +220,21 @@
       (error "Vocabulary without a package: ~s." vocabulary)))
 
 
-(defmethod rdf:ensure-vocabulary ((context t) (vocabulary vocabulary) &key)
+(defmethod de.setf.rdf:ensure-vocabulary ((context t) (vocabulary vocabulary) &key)
   "Given a vocabulary for an anomolous context, return the vocabulary as-is."
   vocabulary)
 
 
-(defmethod rdf:find-class ((vocabulary vocabulary) (name symbol) &key (error-p t))
+(defmethod de.setf.rdf:find-class ((vocabulary vocabulary) (name symbol) &key (error-p t))
   (or (dolist (definition (vocabulary-definitions vocabulary))
         (when (and (eq (first definition) 'rdf:defclass)
                    (eq (second definition) name))
           (return definition)))
       (when error-p
-        (rdf:class-not-found (find-class 'resource-class) name))))
+        (de.setf.rdf:class-not-found (find-class 'resource-class) name))))
 
 
-(defmethod (setf rdf:find-class) (definition (vocabulary vocabulary) (name symbol))
+(defmethod (setf de.setf.rdf:find-class) (definition (vocabulary vocabulary) (name symbol))
   (let ((old (find name (vocabulary-definitions vocabulary) :key #'second)))
     (setf (vocabulary-definitions vocabulary)
           (if definition
@@ -247,7 +247,7 @@
     definition))
 
 
-(defmethod rdf:load-vocabulary ((vocabulary-pathname pathname) (vocabulary-uri string) &key (resource-uri nil ru-s))
+(defmethod de.setf.rdf:load-vocabulary ((vocabulary-pathname pathname) (vocabulary-uri string) &key (resource-uri nil ru-s))
   "Given a pathname as context, interpret the file as a vocabulary definition."
 
   (let ((*package* *package*))
@@ -262,9 +262,9 @@
                      (assert (typep package 'package) () 
                              (error "Invalid package definition: ~s." form))
                      (setq *package* package)))
-                  (rdf:require-vocabulary
+                  (de.setf.rdf:require-vocabulary
                    (eval form))
-                  (rdf:defvocabulary
+                  (de.setf.rdf:defvocabulary
                     (let ((vocabulary (eval form)))
                       (assert (typep vocabulary 'vocabulary) ()
                               "Invalid vocabulary: ~s." form)
@@ -286,12 +286,12 @@
   (uri-pathname uri :name "vocabulary"))
 
 
-(defmethod rdf:require-vocabulary ((uri-namestring string) &key (pathname (vocabulary-pathname uri-namestring)))
+(defmethod de.setf.rdf:require-vocabulary ((uri-namestring string) &key (pathname (vocabulary-pathname uri-namestring)))
   (or (gethash uri-namestring *vocabularies*)
       (setf (gethash uri-namestring *vocabularies*)
             (load-vocabulary pathname uri-namestring))))
 
-(defmethod rdf:require-vocabulary ((uri symbol) &rest args)
+(defmethod de.setf.rdf:require-vocabulary ((uri symbol) &rest args)
   (declare (dynamic-extent args))
   (apply #'rdf:require-vocabulary (symbol-uri-namestring uri) args))
 
@@ -330,11 +330,11 @@
 ;;;
 ;;; load standard vocabularies
 
-(defvar *rdf-vocabulary* (rdf:require-vocabulary "http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
-(defvar *rdfs-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2000/01/rdf-schema#"))
-(defvar *owl-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2002/07/owl#"))
-(defvar *xsd-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2001/XMLSchema-datatypes#"))
-(defvar *time-vocabulary* (rdf:require-vocabulary "http://www.w3.org/2006/time#"))
+(defvar *rdf-vocabulary* (de.setf.rdf:require-vocabulary "http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
+(defvar *rdfs-vocabulary* (de.setf.rdf:require-vocabulary "http://www.w3.org/2000/01/rdf-schema#"))
+(defvar *owl-vocabulary* (de.setf.rdf:require-vocabulary "http://www.w3.org/2002/07/owl#"))
+(defvar *xsd-vocabulary* (de.setf.rdf:require-vocabulary "http://www.w3.org/2001/XMLSchema-datatypes#"))
+(defvar *time-vocabulary* (de.setf.rdf:require-vocabulary "http://www.w3.org/2006/time#"))
 
 ;;; note default separators
 
@@ -358,23 +358,23 @@
 ;;; (rdf-class-properties *foaf* "http://xmlns.com/foaf/0.1/Agent")
 
 ;;; (defparameter *beer* (xmlp:document-parser #p"XML:NAMESPACES;purl-org;net;ontology;beer.rdf"))
-;;; (setf (rdf:document-ontology-namespace-name *beer*) nil)
-;;; (rdf:document-ontology-namespace-name *beer*)
-;;; (rdf:document-ontology-namespace-terms *beer*)
-;;; (pprint (rdf:document-definitions *beer*))
-;;; (rdf:retrieve-vocabulary *beer*)
+;;; (setf (de.setf.rdf:document-ontology-namespace-name *beer*) nil)
+;;; (de.setf.rdf:document-ontology-namespace-name *beer*)
+;;; (de.setf.rdf:document-ontology-namespace-terms *beer*)
+;;; (pprint (de.setf.rdf:document-definitions *beer*))
+;;; (de.setf.rdf:retrieve-vocabulary *beer*)
 
-;;; (rdf:document-class-definitions "http://vocab.org/bio/0.1/.rdf")
+;;; (de.setf.rdf:document-class-definitions "http://vocab.org/bio/0.1/.rdf")
 
 
 ;;; vocabulary sources : schemaweb
 
 ;;; importing a vocabulary:
 ;;; first load it into wilbur
-;;; (defparameter *v* (rdf:load-vocabulary (wilbur-mediator) "http://www.w3.org/2006/time#"))
+;;; (defparameter *v* (de.setf.rdf:load-vocabulary (wilbur-mediator) "http://www.w3.org/2006/time#"))
 ;;; (map nil #'(lambda (d) (print (second d)))  (vocabulary-definitions *v*))
 ;;;
-;;; (rdf:query (wilbur-mediator) :subject '{http://www.w3.org/2006/time#}Instant :context nil)
+;;; (de.setf.rdf:query (wilbur-mediator) :subject '{http://www.w3.org/2006/time#}Instant :context nil)
 ;;; (vocabulary-pathname  "http://www.w3.org/2006/time#")
 ;;; (save-vocabulary *v* *trace-output*)
 ;;; (save-vocabulary *v* t)
