@@ -318,7 +318,7 @@
 (set-macro-character #\_ 'n3::read-blank-node t n3:*readtable*)
 
 
-(:documentation "interface methods" n3:open n3:with-open-stream rdf:project-graph
+(:documentation "interface methods" n3:open n3:with-open-stream de.setf.rdf:project-graph
 
  "The library provides i/o access to RDF streams encoded as notation3. The operator n3:read reads
  statements from the stream and n3:format writes statements to a stream. While notation3 is the only
@@ -473,7 +473,7 @@
   )
 
 
-(defmethod rdf:project-graph ((source pathname) (destination t))
+(defmethod de.setf.rdf:project-graph ((source pathname) (destination t))
   "Given a pathname, open it as an ntriple input stream, wrap it  with a continuation-based iterator
  and project that onto the destination."
   (n3:with-open-stream (n3-input-stream source :direction :input)
@@ -491,7 +491,7 @@
       (values count source))))
 
 
-(defmethod rdf:project-graph ((source t) (destination pathname))
+(defmethod de.setf.rdf:project-graph ((source t) (destination pathname))
   (n3:with-open-stream (n3-output-stream source :direction :output
                                          :if-exists :supersede :if-does-not-exist :create)
     (let ((count 0))
