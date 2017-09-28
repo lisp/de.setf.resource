@@ -52,8 +52,8 @@
  property-exists-p, property-makunbound, get-statements, insert-statement, or remove-statement
 
  ---
- [1]: http://www.w3.org/standards/semanticweb/data "the Semantic Web @w3c.org"
- [2]: http://en.wikipedia.org/wiki/Linked_Data "Linked Data @ Wikipedia"
+ [1]: http://www.w3.org/standards/semanticweb/data \"the Semantic Web @w3c.org\"
+ [2]: http://en.wikipedia.org/wiki/Linked_Data \"Linked Data @ Wikipedia\"
  [3]: http://linkeddata.org/ \"linkeddata.org\"
  [4]: http://www.w3.org/standards/techs/rdf#w3c_all
  ")
