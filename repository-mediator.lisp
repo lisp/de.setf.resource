@@ -1070,13 +1070,13 @@
 (defvar +feb-retry-delay+ 0.1)
 (defvar +feb-false+ 0)
 (defvar +feb-true+ 1)
-(defvar +feb-context+ '|RDF|::|feb|)      ; as symbols to intern them w/o constaint
-(defvar +feb-load+ '|RDF|::|feb-load|)
-(defvar +feb-sac+ '|RDF|::|feb-sac|)
-(defvar +feb-sas+ '|RDF|::|feb-sas|)
-(defvar +feb-tfas+ '|RDF|::|feb-tfas|)
-(defvar +feb-bit+ '|RDF|::|feb-bit|)
-(defvar +feb-value+ '|RDF|::|feb-value|)
+(defvar +feb-context+ 'de.setf.rdf::|feb|)      ; as symbols to intern them w/o constaint
+(defvar +feb-load+ 'de.setf.rdf::|feb-load|)
+(defvar +feb-sac+ 'de.setf.rdf::|feb-sac|)
+(defvar +feb-sas+ 'de.setf.rdf::|feb-sas|)
+(defvar +feb-tfas+ 'de.setf.rdf::|feb-tfas|)
+(defvar +feb-bit+ 'de.setf.rdf::|feb-bit|)
+(defvar +feb-value+ 'de.setf.rdf::|feb-value|)
 
 
 
