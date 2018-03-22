@@ -14,10 +14,30 @@
            "days" "weeks" "months" "years" "DurationDescription" "Year" "xsdDateTime"
            "hasDateTimeDescription" "DateTimeInterval"
            ;; additions
-           "DateInterval"  "TimeInterval"
+           "DateInterval" "TimeInterval"
            "TemporalUnit" "timeZone" 
            "second" "minute" "hour" "dayOfYear" "dayOfWeek" "day" "week" "month" "year" "unitType"
-           "DateTimeDescription" "DayOfWeek" "January"))
+           "DateTimeDescription" "DayOfWeek" "January"
+           ;; 2016
+           "2006" "2016" "Duration" "after" "generalDay" "generalMonth" "generalYear"
+           "GeneralDateTimeDescription" "GeneralDurationDescription"
+           "hasTRS" "TRS" "hasTime" "hasDuration" "hasTemporalDuration" "hasNumericDuration" "hasXSDDuration"
+           "numericDuration" "numericPosition" "nominalPosition"
+           "TemporalDuration" "TemporalPosition"  "inTemporalPosition" "inTimePosition" "TimePosition"
+           "inXSDDate" "inXSDDateTimeStamp" "dateTimeStamp"
+           "inXSDgYear" "inXSDgYearMonth"
+           "intervalAfter" "intervalDisjoint" "intervalContains" "intervalIn" "intervalFinishedBy"
+           "intervalMetBy" "intervalOverlappedBy" "intervalStartedBy"
+           "unitYear" "unitMonth" "unitDay" "unitHour" "unitMinute" "unitSecond" "unitWeek"
+           "monthOfYear"
+           "MonthOfYear"
+           "Monday"
+           "Tuesday"
+           "Wednesday"
+           "Thursday"
+           "Friday"
+           "Saturday"
+           "Sunday"))
 
 (rdfs:defvocabulary "time" :uri "http://www.w3.org/2006/time#" :package "http://www.w3.org/2006/time#"
  :definitions
