@@ -14,7 +14,9 @@
            "days" "weeks" "months" "years" "DurationDescription" "Year" "xsdDateTime"
            "hasDateTimeDescription" "DateTimeInterval"
            ;; additions
-           "DateInterval" "TimeInterval"
+           "dateTimeInterval" ;; as function
+           "DateInterval" "TimeInterval" ;; as object
+           "dateInterval" "timeInterval" ;; as function
            "TemporalUnit" "timeZone" 
            "second" "minute" "hour" "dayOfYear" "dayOfWeek" "day" "week" "month" "year" "unitType"
            "DateTimeDescription" "DayOfWeek" "January"
