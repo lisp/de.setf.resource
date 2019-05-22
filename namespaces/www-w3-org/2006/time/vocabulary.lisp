@@ -4,6 +4,11 @@
 
 (in-package :common-lisp-user)
 
+;;; the record ontology (https://www.w3.org/TR/owl-time/)
+;;; uses full camel case for classes (in contract to xsd).
+;;; eg time:DateTimeInterval
+;;; this adds initial lower case names for operators
+
 
 (defpackage "http://www.w3.org/2006/time#"
   (:use)

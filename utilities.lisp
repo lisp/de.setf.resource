@@ -408,11 +408,13 @@
        (char-equal #\# (char fragment-string 0))))
 
 (defun make-vocabulary-uri-namestring (base-uri fragment)
+  (setf fragment
+        (if (and (uri-intrinsic-separator base-uri) (fragment-has-separator-p fragment))
+            (subseq fragment 1)
+            fragment))
   (concatenate 'string base-uri
-               (uri-extrinsic-separator-string base-uri)
-               (if (and (uri-intrinsic-separator base-uri) (fragment-has-separator-p fragment))
-                 (subseq fragment 1)
-                 fragment)))
+               (when (plusp (length fragment)) (uri-extrinsic-separator-string base-uri))
+               fragment))
 
 (defun symbol-uri-namestring (symbol &optional (canonicalize #'symbol-name))
   (declare (dynamic-extent canonicalize))
