@@ -413,15 +413,22 @@
             (subseq fragment 1)
             fragment))
   (concatenate 'string base-uri
-               (when (plusp (length fragment)) (uri-extrinsic-separator-string base-uri))
+               ;; the base package symbols should also have a separator
+               ;;(when (plusp (length fragment)) (uri-extrinsic-separator-string base-uri))
+               (uri-extrinsic-separator-string base-uri)
                fragment))
 
 (defun symbol-uri-namestring (symbol &optional (canonicalize #'symbol-name))
   (declare (dynamic-extent canonicalize))
-  (let* ((package (symbol-package symbol))
-         (vocabulary (if package (package-name package) "")))
-    (make-vocabulary-uri-namestring vocabulary
-                                    (funcall canonicalize symbol))))
+  (or (get symbol :namestring)
+      (setf (get symbol :namestring)
+            (let* ((package (symbol-package symbol))
+                   (vocabulary (if package (package-name package) "")))
+              (make-vocabulary-uri-namestring vocabulary
+                                              (funcall canonicalize symbol))))))
+
+(defun (setf symbol-uri-namestring) (string symbol)
+  (setf (get symbol :namestring) string))
 
 (defun uri-namestring-identifier (namestring &optional (canonicalize #'string) (create t))
   (declare (dynamic-extent canonicalize))
@@ -433,9 +440,12 @@
          (multiple-value-bind (package fragment)
                               (uri-vocabulary-components namestring)
            (let ((c-fragment (if fragment (funcall canonicalize fragment) "")))
-             (if create
-               (intern c-fragment package)
-               (find-symbol c-fragment package)))))))
+             (let ((symbol (if create
+                               (intern c-fragment package)
+                               (find-symbol c-fragment package))))
+               (when symbol
+                 (setf (get symbol :namestring) namestring))
+               symbol))))))
         
 (defgeneric uri-vocabulary-components (uri)
   (:documentation "Given a URI, return its two source components, a package and the original symbol name.
